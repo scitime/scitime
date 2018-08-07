@@ -1,2 +1,2 @@
 # scikest
-Training time estimation for sklearn Lagos
+Training time estimation for sklearn algos
