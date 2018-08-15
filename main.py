@@ -36,8 +36,13 @@ def model_fit(algo,X,y):
     return (algo,r2_score(y, regr.predict(X)))
 
 
-def model_predict(algo,X,y):
-    return algo.predict(X)
+def model_predict(algo,X):
+    n=X.shape[0]
+    p=X.shape[1]
+    i=algo.max_depth
+    j=algo.max_features
+    k=algo.n_estimators
+    return algo.predict(np.array([n,p,i,j,k,-1]))
 
 
 #TODO
