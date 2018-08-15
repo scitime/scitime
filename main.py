@@ -33,16 +33,16 @@ def generate_data():
 
 def model_fit(algo,X,y):
     algo.fit(X, y)
-    return (algo,r2_score(y, regr.predict(X)))
+    return (algo,r2_score(y, algo.predict(X)))
 
 
-def model_predict(algo,X):
+def model_predict(algo_to_train,algo,X):
     n=X.shape[0]
     p=X.shape[1]
-    i=algo.max_depth
-    j=algo.max_features
-    k=algo.n_estimators
-    return algo.predict(np.array([n,p,i,j,k,-1]))
+    i=algo_to_train.max_depth
+    j=algo_to_train.max_features
+    k=algo_to_train.n_estimators
+    return algo.predict(np.array([[n,p,i,j,k,-1]]))
 
 
 #TODO
