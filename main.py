@@ -48,7 +48,7 @@ class RFest(object):
                 for p in self.inputs_range:
                     for j in range(1,p,10):
                         for n in self.rows_range:
-                            if import np.random.uniform()>self.drop_rate:
+                            if np.random.uniform()>self.drop_rate:
                                 outputs.append(self.measure_time(j=j,i=i,n=n,k=k,p=p))
                                 inputs.append(np.array([n,p,i,j,k,-1]))
         return (inputs,outputs)
@@ -61,7 +61,7 @@ class RFest(object):
         algo.fit(X, y)
         log.info('Saving '+self.algo_estimator+' to '+self.algo_estimator + '_estimator.pkl')
         joblib.dump(algo, self.algo_estimator + '_estimator.pkl')
-        log.info('R square is {}'.format(r2_score(y, algo.predict(X))))
+        log.info('R squared is {}'.format(r2_score(y, algo.predict(X))))
         return algo
 
     def estimate_duration(self,X,algo):
