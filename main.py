@@ -17,9 +17,12 @@ class RFest(object):
     N_ESTIMATORS_RANGE=[10,50,100]
     ROWS_RANGE=[100,1000,10000]
     ALGO_ESTIMATOR='LR'
+    DROP_RATE=0.9
 
-    def __init__(self,max_depth_range=MAX_DEPTH_RANGE,inputs_range=INPUTS_RANGE,
+
+    def __init__(self,drop_rate=DROP_RATE,max_depth_range=MAX_DEPTH_RANGE,inputs_range=INPUTS_RANGE,
                  n_estimators_range=N_ESTIMATORS_RANGE,rows_range=ROWS_RANGE,algo_estimator=ALGO_ESTIMATOR):
+        self.drop_rate=drop_rate
         self.max_depth_range=max_depth_range
         self.inputs_range = inputs_range
         self.n_estimators_range = n_estimators_range
@@ -45,8 +48,9 @@ class RFest(object):
                 for p in self.inputs_range:
                     for j in range(1,p,10):
                         for n in self.rows_range:
-                            outputs.append(self.measure_time(j=j,i=i,n=n,k=k,p=p))
-                            inputs.append(np.array([n,p,i,j,k,-1]))
+                            if import np.random.uniform()>self.drop_rate:
+                                outputs.append(self.measure_time(j=j,i=i,n=n,k=k,p=p))
+                                inputs.append(np.array([n,p,i,j,k,-1]))
         return (inputs,outputs)
 
     def model_fit(self):
