@@ -18,23 +18,52 @@ class RFest(object):
     ROWS_RANGE=[100,1000,10000]
     ALGO_ESTIMATOR='LR'
     DROP_RATE=0.9
+    #criterion
+    #max_features?
+    MIN_SAMPLES_SPLIT_RANGE=[1,5,10]
+    MIN_SAMPLES_LEAF_RANGE=[1,5,10]
+    MIN_WEIGHT_FRACTION_LEAF_RANGE=[0.1,0.5,1]
+    MAX_LEAF_NODES_RANGE=[1,5,10]
+    MIN_IMPURITY_SPLIT_RANGE=[1,5,10]
+    MIN_IMPURITY_DECREASE_RANGE=[1,5,10]
+    BOOTSTRAP=[True,False]
+    OOB_SCORE=[True,False]
+    N_JOBS_RANGE=[-1,1,2]
+    #RANDOM_STATE
+    #verbose
+    #warm_start
+    #class_weight
+
 
 
     def __init__(self,drop_rate=DROP_RATE,max_depth_range=MAX_DEPTH_RANGE,inputs_range=INPUTS_RANGE,
-                 n_estimators_range=N_ESTIMATORS_RANGE,rows_range=ROWS_RANGE,algo_estimator=ALGO_ESTIMATOR):
+                 n_estimators_range=N_ESTIMATORS_RANGE,rows_range=ROWS_RANGE,algo_estimator=ALGO_ESTIMATOR,
+                 min_samples_split_range=MIN_SAMPLES_SPLIT_RANGE,min_samples_leaf_range=MIN_SAMPLES_LEAF_RANGE,min_weight_fraction_leaf_range=MIN_WEIGHT_FRACTION_LEAF_RANGE,
+                 max_leaf_nodes_range=MAX_LEAF_NODES_RANGE,min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
+                 min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE,bootstrap=BOOTSTRAP,oob_score=OOB_SCORE,n_jobs_range=N_JOBS_RANGE):
         self.drop_rate=drop_rate
         self.max_depth_range=max_depth_range
         self.inputs_range = inputs_range
         self.n_estimators_range = n_estimators_range
         self.rows_range=rows_range
         self.algo_estimator=algo_estimator
+        self.min_samples_split_range=min_samples_split_range
+        self.min_samples_leaf_range=min_samples_leaf_range
+        self.min_weight_fraction_leaf_range=min_weight_fraction_leaf_range
+        self.max_leaf_nodes_range=max_leaf_nodes_range
+        self.min_impurity_split_range=min_impurity_split_range
+        self.min_impurity_decrease_range=min_impurity_decrease_range
+        self.bootstrap=bootstrap
+        self.oob_score=oob_score
+        self.n_jobs_range=n_jobs_range
         self.num_cpu=multiprocessing.cpu_count()
+
 
     def measure_time(self,n=10,p=10,i=5,j=2,k=100,l=-1):
         start_time = time.time()
         X=np.random.rand(n,p)
         y=np.random.rand(n,)
-        clf = RandomForestRegressor(max_depth=i, max_features=j, n_estimators=k,n_jobs=l)
+        clf = RandomForestRegressor(max_depth=i, max_features=j, n_estimators=k, n_jobs=l)
         clf.fit(X,y)
         elapsed_time = time.time() - start_time
         return elapsed_time
