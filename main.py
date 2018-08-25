@@ -20,23 +20,21 @@ class RFest(object):
     ROWS_RANGE=[100,1000,10000]
     ALGO_ESTIMATOR='LR'
     DROP_RATE=0.9
-    #criterion
-    MAX_FEATURES=range(1,3,10) #TO VERIFY
-    MIN_SAMPLES_SPLIT_RANGE=[1,5,10]
+    MAX_FEATURES='auto' #TO VERIFY
+    MIN_SAMPLES_SPLIT_RANGE=[2,4,10]
     MIN_SAMPLES_LEAF_RANGE=[1,5,10]
-    MIN_WEIGHT_FRACTION_LEAF_RANGE=[0.1,0.5,1]
-    MAX_LEAF_NODES_RANGE=[1,5,10]
+    MIN_WEIGHT_FRACTION_LEAF_RANGE=[0.1,0.25,0.5]
+    MAX_LEAF_NODES_RANGE=[2,4,10]
     MIN_IMPURITY_SPLIT_RANGE=[1,5,10]
     MIN_IMPURITY_DECREASE_RANGE=[1,5,10]
     BOOTSTRAP=[True,False]
-    OOB_SCORE=[True,False]
+    OOB_SCORE=[False] ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
     N_JOBS_RANGE=[-1,1,2]
+    #criterion
     #RANDOM_STATE
     #verbose
     #warm_start
     #class_weight
-
-
 
     def __init__(self,drop_rate=DROP_RATE,max_depth_range=MAX_DEPTH_RANGE,inputs_range=INPUTS_RANGE,
                  n_estimators_range=N_ESTIMATORS_RANGE,rows_range=ROWS_RANGE,algo_estimator=ALGO_ESTIMATOR,max_features=MAX_FEATURES,
@@ -62,11 +60,11 @@ class RFest(object):
         self.num_cpu=multiprocessing.cpu_count()
 
 
-    def measure_time(self,n=10,p=10,i=5,j=2,k=100,l=-1):
+    def measure_time(self,n,p,n_estimators=10, max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='auto', max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=1):
         start_time = time.time()
         X=np.random.rand(n,p)
         y=np.random.rand(n,)
-        clf = RandomForestRegressor(max_depth=i, max_features=j, n_estimators=k, n_jobs=l)
+        clf = RandomForestRegressor(n_estimators=n_estimators,max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf, min_weight_fraction_leaf=min_weight_fraction_leaf, max_features=max_features, max_leaf_nodes=max_leaf_nodes, min_impurity_decrease=min_impurity_decrease, min_impurity_split=min_impurity_split, bootstrap=bootstrap, oob_score=oob_score, n_jobs=n_jobs)
         clf.fit(X,y)
         elapsed_time = time.time() - start_time
         return elapsed_time
@@ -76,15 +74,14 @@ class RFest(object):
         inputs=[]
         outputs=[]
         for element in itertools.product(
-            self.max_depth_range,
+            self.rows_range,
             self.inputs_range,
             self.n_estimators_range,
-            self.rows_range,
-            self.algo_estimator,
-            self.max_features,
+            self.max_depth_range,
             self.min_samples_split_range,
             self.min_samples_leaf_range,
             self.min_weight_fraction_leaf_range,
+            self.max_features,
             self.max_leaf_nodes_range,
             self.min_impurity_split_range,
             self.min_impurity_decrease_range,
@@ -92,15 +89,11 @@ class RFest(object):
             self.oob_score,
             self.n_jobs_range):
 
-            i=element[0]
-            p=element[1]
-            k=element[2]
-            n=element[3]
-            j=element[5]
+            arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13=element
 
             if np.random.uniform()>self.drop_rate:
-                outputs.append(self.measure_time(j=j,i=i,n=n,k=k,p=p))
-                inputs.append(np.array([n,p,i,j,k,-1]))
+                outputs.append(self.measure_time(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13))
+                inputs.append(np.array(element))
         return (inputs,outputs)
 
     def model_fit(self):
