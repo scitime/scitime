@@ -8,6 +8,7 @@ from sklearn import linear_model
 from utils import Logging
 import warnings
 import itertools
+import os
 
 
 warnings.simplefilter("ignore")
@@ -57,14 +58,14 @@ class RFest(object):
         self.bootstrap=bootstrap
         self.oob_score=oob_score
         self.n_jobs_range=n_jobs_range
-        self.num_cpu=multiprocessing.cpu_count()
+        self.num_cpu=os.cpu_count()
 
 
-    def measure_time(self,n,p,n_estimators=10, max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='auto', max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=1):
+    def measure_time(self,n,p,rf_params):
         start_time = time.time()
         X=np.random.rand(n,p)
         y=np.random.rand(n,)
-        clf = RandomForestRegressor(n_estimators=n_estimators,max_depth=max_depth, min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf, min_weight_fraction_leaf=min_weight_fraction_leaf, max_features=max_features, max_leaf_nodes=max_leaf_nodes, min_impurity_decrease=min_impurity_decrease, min_impurity_split=min_impurity_split, bootstrap=bootstrap, oob_score=oob_score, n_jobs=n_jobs)
+        clf = RandomForestRegressor(**rf_params)
         clf.fit(X,y)
         elapsed_time = time.time() - start_time
         return elapsed_time
@@ -73,7 +74,9 @@ class RFest(object):
         log.info('Generating dummy training durations to create a training set')
         inputs=[]
         outputs=[]
-        for element in itertools.product(
+        rf_parameters_list=['n_estimators','max_depth', 'min_samples_split', 'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease', 'min_impurity_split', 'bootstrap', 'oob_score', 'n_jobs']
+
+        for permutation in itertools.product(
             self.rows_range,
             self.inputs_range,
             self.n_estimators_range,
@@ -81,7 +84,7 @@ class RFest(object):
             self.min_samples_split_range,
             self.min_samples_leaf_range,
             self.min_weight_fraction_leaf_range,
-            self.max_features,
+            [self.max_features],
             self.max_leaf_nodes_range,
             self.min_impurity_split_range,
             self.min_impurity_decrease_range,
@@ -89,11 +92,13 @@ class RFest(object):
             self.oob_score,
             self.n_jobs_range):
 
-            arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13=element
-
+            n=permutation[0]
+            p=permutation[1]
+            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
+            
             if np.random.uniform()>self.drop_rate:
-                outputs.append(self.measure_time(arg0,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13))
-                inputs.append(np.array(element))
+                outputs.append(self.measure_time(n,p,rf_parameters_dic))
+                inputs.append(np.array(permutation))
         return (inputs,outputs)
 
     def model_fit(self):
