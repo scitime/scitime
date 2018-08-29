@@ -147,8 +147,8 @@ class RFest(object):
             #f.write(str(MAPE))
         log.info('MAPE on train set is: {}'.format(MAPE_train))
         log.info('MAPE on test set is: {}'.format(MAPE_test))
-        log.info('MSE on train set is {}'.format(mean_squared_error(y_train, y_pred_test)))
-        log.info('MSE on test set is {}'.format(mean_squared_error(y_test, y_pred_train)))
+        log.info('MSE on train set is {}'.format(mean_squared_error(y_train, y_pred_train)))
+        log.info('MSE on test set is {}'.format(mean_squared_error(y_test, y_pred_test)))
         return algo
 
     def estimate_duration(self, X, algo):
