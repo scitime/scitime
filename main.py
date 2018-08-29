@@ -77,10 +77,10 @@ class RFest(object):
         self.num_cpu = os.cpu_count()
 
     def measure_time(self, n, p, rf_params):
-        start_time = time.time()
         X = np.random.rand(n, p)
         y = np.random.rand(n, )
         clf = RandomForestRegressor(**rf_params)
+        start_time = time.time()
         clf.fit(X, y)
         elapsed_time = time.time() - start_time
         return elapsed_time
