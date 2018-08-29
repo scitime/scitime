@@ -140,9 +140,9 @@ class RFest(object):
         joblib.dump(algo, self.algo_estimator + '_estimator.pkl')
         log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
         y_pred_test = algo.predict(X_test)
-        MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y)) * 100
+        MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
         y_pred_train = algo.predict(X_train)
-        MAPE_train = np.mean(np.abs((y_train - y_pred_train) / y)) * 100
+        MAPE_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         #with open('MAPE.txt', 'w') as f:
             #f.write(str(MAPE))
         log.info('MAPE on train set is: {}'.format(MAPE_train))
