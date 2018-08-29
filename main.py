@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 import time
 from sklearn.metrics import r2_score
-import multiprocessing
+from sklearn.model_selection import train_test_split
 import joblib
 from sklearn import linear_model
 from utils import Logging
@@ -10,6 +10,7 @@ import warnings
 import itertools
 import os
 import pandas as pd
+from sklearn.metrics import mean_squared_error
 
 warnings.simplefilter("ignore")
 log = Logging(__name__)
@@ -133,10 +134,21 @@ class RFest(object):
              .dropna(axis=0, how='any')
              .as_matrix())
         y = outputs['output'].dropna(axis=0, how='any').as_matrix()
-        algo.fit(X, y)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+        algo.fit(X_train, y_train)
         log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
         joblib.dump(algo, self.algo_estimator + '_estimator.pkl')
-        log.info('R squared is {}'.format(r2_score(y, algo.predict(X))))
+        log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
+        y_pred_test = algo.predict(X_test)
+        MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y)) * 100
+        y_pred_train = algo.predict(X_train)
+        MAPE_train = np.mean(np.abs((y_train - y_pred_train) / y)) * 100
+        #with open('MAPE.txt', 'w') as f:
+            #f.write(str(MAPE))
+        log.info('MAPE on train set is: {}'.format(MAPE_train))
+        log.info('MAPE on test set is: {}'.format(MAPE_test))
+        log.info('MSE on train set is {}'.format(mean_squared_error(y_train, y_pred_test)))
+        log.info('MSE on test set is {}'.format(mean_squared_error(y_test, y_pred_train)))
         return algo
 
     def estimate_duration(self, X, algo):
