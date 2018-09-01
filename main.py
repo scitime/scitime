@@ -9,6 +9,7 @@ from utils import Logging
 import warnings
 import itertools
 import os
+import json
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
@@ -147,6 +148,10 @@ class RFest(object):
         #Diving into train/test
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         algo.fit(X_train, y_train)
+        if self.algo_estimator == 'LR':
+            log.info('Saving LR coefs in json file')
+            with open('coefs/lr_coefs.json', 'w') as outfile:
+                json.dump([algo.intercept_]+list(algo.coef_), outfile)
         log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
         joblib.dump(algo, self.algo_estimator + '_estimator.pkl')
         log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
