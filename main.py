@@ -169,8 +169,13 @@ class RFest(object):
 
     def estimate_duration(self, X, algo):
         '''Predicting training runtime'''
-        log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
-        estimator = joblib.load(self.algo_estimator + '_estimator.pkl')
+        if self.algo_estimator == 'LR':
+            log.info('Loading LR coefs from json file')
+            with open('coefs/lr_coefs.json', 'r') as f:
+                coefs= json.load(f)
+        else:
+            log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
+            estimator = joblib.load(self.algo_estimator + '_estimator.pkl')
         #Retrieving all parameters of interest
         inputs = []
         n = X.shape[0]
@@ -189,9 +194,12 @@ class RFest(object):
                     
             else:
                 inputs.append(params[i])
-
-        pred = estimator.predict(np.array([inputs]))
-        log.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
+        
+        if self.algo_estimator == 'LR':
+            pred=coefs[0]
+            for i in range(len(inputs)):
+                pred+=inputs[i]*coefs[i+1]
+        log.info('Training your model should take ~ ' + str(pred) + ' seconds')
         return pred
 
 # TODO
