@@ -5,7 +5,7 @@ max_depth
 min_samples_split
 min_samples_leaf
 min_weight_fraction_leaf
-max_features 
+max_features_auto
 max_leaf_nodes
 min_impurity_decrease
 min_impurity_split

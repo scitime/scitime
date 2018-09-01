@@ -179,6 +179,9 @@ class RFest(object):
             if (i=='n_jobs'):
                 if (i==-1):
                     inputs.append(self.cpu_count)
+                else:
+                    inputs.append(params[i])
+                    
             else:
                 inputs.append(params[i])
 
