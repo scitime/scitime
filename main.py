@@ -37,6 +37,7 @@ class RFest(object):
     BOOTSTRAP = [True, False]
     OOB_SCORE = [False]  ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
     N_JOBS_RANGE = [1, 2, 5, 8]
+    DUMMY_VARIABLES=['max_features']
 
     # criterion
     # RANDOM_STATE
@@ -52,7 +53,7 @@ class RFest(object):
                  min_weight_fraction_leaf_range=MIN_WEIGHT_FRACTION_LEAF_RANGE,
                  max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
                  min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE, bootstrap=BOOTSTRAP, oob_score=OOB_SCORE,
-                 n_jobs_range=N_JOBS_RANGE):
+                 n_jobs_range=N_JOBS_RANGE,dummy_variables=DUMMY_VARIABLES):
         '''Defining: algo paramters, algo parameters range, drop rate, number of cores'''
         self.raw_estimation_inputs = raw_estimation_inputs
         self.estimation_inputs = estimation_inputs
@@ -73,6 +74,7 @@ class RFest(object):
         self.oob_score = oob_score
         self.n_jobs_range = n_jobs_range
         self.num_cpu = os.cpu_count()
+        self.dummy_variables=dummy_variables
 
     def measure_time(self, n, p, rf_params):
         '''Generating fake fit and saving the training runtime'''
@@ -187,18 +189,30 @@ class RFest(object):
         for i in self.raw_estimation_inputs:
             #Handling n_jobs=-1 case
             if (i=='n_jobs'):
-                if (i==-1):
-                    inputs.append(self.cpu_count)
+                if (params[i]==-1):
+                    inputs.append(self.num_cpu)
                 else:
                     inputs.append(params[i])
                     
             else:
-                inputs.append(params[i])
-        
+                if i in self.dummy_variables:
+                    #To make dummy 
+                    inputs.append(str(params[i]))
+                else:    
+                    inputs.append(params[i])
+        #Making dummy
+        dic=dict(zip(['num_rows']+['num_features']+self.raw_estimation_inputs, [[i] for i in inputs]))
+        df=pd.DataFrame(dic, columns=['num_rows']+['num_features']+self.raw_estimation_inputs)
+        df=pd.get_dummies(df)
+        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
+        for i in missing_inputs:
+            df[i]=0
+
+        df=df[self.estimation_inputs]        
         if self.algo_estimator == 'LR':
             pred=coefs[0]
-            for i in range(len(inputs)):
-                pred+=inputs[i]*coefs[i+1]
+            for i in range(df.shape[1]):
+                pred+=df.ix[0,i]*coefs[i+1]
         log.info('Training your model should take ~ ' + str(pred) + ' seconds')
         return pred
 
