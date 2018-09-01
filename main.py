@@ -39,7 +39,7 @@ class RFest(object):
     MIN_IMPURITY_DECREASE_RANGE = [1, 5, 10]
     BOOTSTRAP = [True, False]
     OOB_SCORE = [False]  ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
-    N_JOBS_RANGE = [-1, 1, 2]
+    N_JOBS_RANGE = [1, 2, 5, 8]
 
     # criterion
     # RANDOM_STATE
@@ -169,6 +169,9 @@ class RFest(object):
         params = algo.get_params()
 
         for i in self.raw_estimation_inputs:
+            if (i=='n_jobs')&(i==-1):
+                inputs.append(self.cpu_count)
+            else:
             inputs.append(params[i])
 
         pred = estimator.predict(np.array([inputs]))
