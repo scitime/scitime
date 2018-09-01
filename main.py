@@ -17,6 +17,7 @@ log = Logging(__name__)
 
 
 class RFest(object):
+    '''Predicting training time of a random forest regression'''
     RAW_ESTIMATION_INPUTS = ['n_estimators', 'max_depth', 'min_samples_split', 'min_samples_leaf',
                              'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease',
                              'min_impurity_split', 'bootstrap', 'oob_score', 'n_jobs']
@@ -56,6 +57,7 @@ class RFest(object):
                  max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
                  min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE, bootstrap=BOOTSTRAP, oob_score=OOB_SCORE,
                  n_jobs_range=N_JOBS_RANGE):
+        '''Defining: algo paramters, algo parameters range, drop rate, number of cores'''
         self.raw_estimation_inputs = raw_estimation_inputs
         self.estimation_inputs = estimation_inputs
         self.drop_rate = drop_rate
@@ -77,8 +79,11 @@ class RFest(object):
         self.num_cpu = os.cpu_count()
 
     def measure_time(self, n, p, rf_params):
+        '''Generating fake fit and saving the training runtime'''
+        #Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
         y = np.random.rand(n, )
+        #Fitting rf
         clf = RandomForestRegressor(**rf_params)
         start_time = time.time()
         clf.fit(X, y)
@@ -86,6 +91,7 @@ class RFest(object):
         return elapsed_time
 
     def generate_data(self):
+        '''Measuring training runtimes for a set of distincts parameters'''
         log.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
@@ -112,8 +118,9 @@ class RFest(object):
             f = permutation[7]
 
             rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
-
+            #Computing only for (1-self.drop_rate) % of the data
             if np.random.uniform() > self.drop_rate:
+                #Handling max_features > p case
                 if type(f)==int:
                     if f<=p:
                         outputs.append(self.measure_time(n, p, rf_parameters_dic))
@@ -128,6 +135,7 @@ class RFest(object):
         return (inputs, outputs)
 
     def model_fit(self):
+        '''Building the actual training time estimator'''
         df, outputs = self.generate_data()
 
         data = pd.get_dummies(df)
@@ -135,12 +143,13 @@ class RFest(object):
         if self.algo_estimator == 'LR':
             algo = linear_model.LinearRegression()
         log.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
-
+        #Reshaping into arrays
         X = (data[self.estimation_inputs]
              ._get_numeric_data()
              .dropna(axis=0, how='any')
              .as_matrix())
         y = outputs['output'].dropna(axis=0, how='any').as_matrix()
+        #Diving into train/test
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         algo.fit(X_train, y_train)
         log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
@@ -159,8 +168,10 @@ class RFest(object):
         return algo
 
     def estimate_duration(self, X, algo):
+        '''Predicting training runtime'''
         log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
         estimator = joblib.load(self.algo_estimator + '_estimator.pkl')
+        #Retrieving all parameters of interest
         inputs = []
         n = X.shape[0]
         inputs.append(n)
@@ -169,6 +180,7 @@ class RFest(object):
         params = algo.get_params()
 
         for i in self.raw_estimation_inputs:
+            #Handling n_jobs=-1 case
             if (i=='n_jobs'):
                 if (i==-1):
                     inputs.append(self.cpu_count)
