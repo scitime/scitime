@@ -18,13 +18,8 @@ log = Logging(__name__)
 
 class RFest(object):
     '''Predicting training time of a random forest regression'''
-    RAW_ESTIMATION_INPUTS = ['n_estimators', 'max_depth', 'min_samples_split', 'min_samples_leaf',
-                             'min_weight_fraction_leaf', 'max_features', 'max_leaf_nodes', 'min_impurity_decrease',
-                             'min_impurity_split', 'bootstrap', 'oob_score', 'n_jobs']
-
-    ESTIMATION_INPUTS = ['num_rows', 'num_features', 'n_estimators', 'max_depth', 'min_samples_split',
-                         'min_samples_leaf', 'min_weight_fraction_leaf', 'max_features_auto', 'max_leaf_nodes',
-                         'min_impurity_decrease', 'min_impurity_split', 'bootstrap', 'oob_score', 'n_jobs']
+    RAW_ESTIMATION_INPUTS = open('inputs/raw_inputs.txt').read().splitlines()
+    ESTIMATION_INPUTS = open('inputs/inputs.txt').read().splitlines()
     MAX_DEPTH_RANGE = [10, 50, 100]
     INPUTS_RANGE = [5, 50, 100]
     N_ESTIMATORS_RANGE = [10, 50, 100]
