@@ -30,7 +30,7 @@ class RFest(object):
     ROWS_RANGE = [100, 1000, 10000]
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
-    MAX_FEATURES = 'auto'  # TO VERIFY
+    MAX_FEATURES = ['auto'  ,10]
     MIN_SAMPLES_SPLIT_RANGE = [2, 4, 10]
     MIN_SAMPLES_LEAF_RANGE = [1, 5, 10]
     MIN_WEIGHT_FRACTION_LEAF_RANGE = [0.1, 0.25, 0.5]
@@ -39,7 +39,7 @@ class RFest(object):
     MIN_IMPURITY_DECREASE_RANGE = [1, 5, 10]
     BOOTSTRAP = [True, False]
     OOB_SCORE = [False]  ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
-    N_JOBS_RANGE = [-1, 1, 2]
+    N_JOBS_RANGE = [1, 2, 5, 8]
 
     # criterion
     # RANDOM_STATE
@@ -99,7 +99,7 @@ class RFest(object):
                 self.min_samples_split_range,
                 self.min_samples_leaf_range,
                 self.min_weight_fraction_leaf_range,
-                [self.max_features],
+                self.max_features,
                 self.max_leaf_nodes_range,
                 self.min_impurity_split_range,
                 self.min_impurity_decrease_range,
@@ -109,11 +109,18 @@ class RFest(object):
 
             n = permutation[0]
             p = permutation[1]
+            f = permutation[7]
+
             rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
 
             if np.random.uniform() > self.drop_rate:
-                outputs.append(self.measure_time(n, p, rf_parameters_dic))
-                inputs.append(permutation)
+                if type(f)==int:
+                    if f<=p:
+                        outputs.append(self.measure_time(n, p, rf_parameters_dic))
+                        inputs.append(permutation)
+                else:
+                    outputs.append(self.measure_time(n, p, rf_parameters_dic))
+                    inputs.append(permutation)
 
         inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
@@ -162,6 +169,9 @@ class RFest(object):
         params = algo.get_params()
 
         for i in self.raw_estimation_inputs:
+            if (i=='n_jobs')&(i==-1):
+                inputs.append(self.cpu_count)
+            else:
             inputs.append(params[i])
 
         pred = estimator.predict(np.array([inputs]))
