@@ -169,10 +169,11 @@ class RFest(object):
         params = algo.get_params()
 
         for i in self.raw_estimation_inputs:
-            if (i=='n_jobs')&(i==-1):
-                inputs.append(self.cpu_count)
+            if (i=='n_jobs'):
+                if (i==-1):
+                    inputs.append(self.cpu_count)
             else:
-            inputs.append(params[i])
+                inputs.append(params[i])
 
         pred = estimator.predict(np.array([inputs]))
         log.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
