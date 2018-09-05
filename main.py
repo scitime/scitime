@@ -28,7 +28,7 @@ class RFest(object):
     ROWS_RANGE = [100, 1000, 10000]
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
-    MAX_FEATURES = ['auto'  ,10]
+    MAX_FEATURES_RANGE = ['auto'  ,10]
     MIN_SAMPLES_SPLIT_RANGE = [2, 4, 10]
     MIN_SAMPLES_LEAF_RANGE = [1, 5, 10]
     MIN_WEIGHT_FRACTION_LEAF_RANGE = [0.1, 0.25, 0.5]
@@ -49,7 +49,7 @@ class RFest(object):
     def __init__(self, raw_estimation_inputs=RAW_ESTIMATION_INPUTS, estimation_inputs=ESTIMATION_INPUTS,
                  drop_rate=DROP_RATE, max_depth_range=MAX_DEPTH_RANGE, inputs_range=INPUTS_RANGE,
                  n_estimators_range=N_ESTIMATORS_RANGE, rows_range=ROWS_RANGE, algo_estimator=ALGO_ESTIMATOR,
-                 max_features=MAX_FEATURES,
+                 max_features_range=MAX_FEATURES_RANGE,
                  min_samples_split_range=MIN_SAMPLES_SPLIT_RANGE, min_samples_leaf_range=MIN_SAMPLES_LEAF_RANGE,
                  min_weight_fraction_leaf_range=MIN_WEIGHT_FRACTION_LEAF_RANGE,
                  max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
@@ -64,7 +64,7 @@ class RFest(object):
         self.n_estimators_range = n_estimators_range
         self.rows_range = rows_range
         self.algo_estimator = algo_estimator
-        self.max_features = max_features
+        self.max_features_range = max_features_range
         self.min_samples_split_range = min_samples_split_range
         self.min_samples_leaf_range = min_samples_leaf_range
         self.min_weight_fraction_leaf_range = min_weight_fraction_leaf_range
@@ -104,7 +104,7 @@ class RFest(object):
                 self.min_samples_split_range,
                 self.min_samples_leaf_range,
                 self.min_weight_fraction_leaf_range,
-                self.max_features,
+                self.max_features_range,
                 self.max_leaf_nodes_range,
                 self.min_impurity_split_range,
                 self.min_impurity_decrease_range,
