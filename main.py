@@ -124,7 +124,7 @@ class RFest(object):
                     if f<=p:
                         thisOutput=self.measure_time(n, p, rf_parameters_dic)
                         thisInput=permutation
-
+                        log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
                         outputs.append(thisOutput)
                         inputs.append(thisInput)
 
