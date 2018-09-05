@@ -125,8 +125,8 @@ class RFest(object):
                         thisOutput=self.measure_time(n, p, rf_parameters_dic)
                         thisInput=permutation
                         log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
-                        outputs.append(thisOutput)
-                        inputs.append(thisInput)
+                        #outputs.append(thisOutput)
+                        #inputs.append(thisInput)
 
                         with open(r'result.csv', 'a+') as file:
                             #columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
@@ -137,8 +137,8 @@ class RFest(object):
                     thisOutput=self.measure_time(n, p, rf_parameters_dic)
                     thisInput=permutation
 
-                    outputs.append(thisOutput)
-                    inputs.append(thisInput)
+                    #outputs.append(thisOutput)
+                    #inputs.append(thisInput)
 
                     with open(r'result.csv', 'a+') as file:
                         #columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
