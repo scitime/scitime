@@ -12,6 +12,7 @@ import os
 import json
 import pandas as pd
 from sklearn.metrics import mean_squared_error
+import csv
 
 warnings.simplefilter("ignore")
 log = Logging(__name__)
@@ -121,16 +122,34 @@ class RFest(object):
                 #Handling max_features > p case
                 if type(f)==int:
                     if f<=p:
-                        outputs.append(self.measure_time(n, p, rf_parameters_dic))
-                        inputs.append(permutation)
+                        thisOutput=self.measure_time(n, p, rf_parameters_dic)
+                        thisInput=permutation
+
+                        outputs.append(thisOutput)
+                        inputs.append(thisInput)
+
+                        with open(r'result.csv', 'a+') as file:
+                            #columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
+                            writer = csv.writer(file)
+                            thisRow=list(thisInput)+[thisOutput]
+                            writer.writerows([thisRow])      
                 else:
-                    outputs.append(self.measure_time(n, p, rf_parameters_dic))
-                    inputs.append(permutation)
+                    thisOutput=self.measure_time(n, p, rf_parameters_dic)
+                    thisInput=permutation
 
-        inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
-        outputs = pd.DataFrame(outputs, columns=['output'])
+                    outputs.append(thisOutput)
+                    inputs.append(thisInput)
 
-        return (inputs, outputs)
+                    with open(r'result.csv', 'a+') as file:
+                        #columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
+                        writer = csv.writer(file)
+                        thisRow=list(thisInput)+[thisOutput]
+                        writer.writerows([thisRow])                
+
+        #inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
+        #outputs = pd.DataFrame(outputs, columns=['output'])
+
+        #return (inputs, outputs)
 
     def model_fit(self):
         '''Building the actual training time estimator'''
