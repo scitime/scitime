@@ -1,5 +1,3 @@
-import sys
-sys.path.append("scikes")
 from main import RFest
 import pandas as pd
 import time
