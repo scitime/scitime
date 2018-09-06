@@ -151,9 +151,10 @@ class RFest(object):
 
         #return (inputs, outputs)
 
-    def model_fit(self):
+    def model_fit(self,generate_data=True,df=None,outputs=None):
         '''Building the actual training time estimator'''
-        df, outputs = self.generate_data()
+        if generate_data==True:
+            df, outputs = self.generate_data()
 
         data = pd.get_dummies(df)
 
@@ -184,8 +185,8 @@ class RFest(object):
             #f.write(str(MAPE))
         log.info('MAPE on train set is: {}'.format(MAPE_train))
         log.info('MAPE on test set is: {}'.format(MAPE_test))
-        log.info('MSE on train set is {}'.format(mean_squared_error(y_train, y_pred_train)))
-        log.info('MSE on test set is {}'.format(mean_squared_error(y_test, y_pred_test)))
+        log.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
+        log.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
         return algo
 
     def estimate_duration(self, X, algo):
