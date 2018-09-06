@@ -153,7 +153,7 @@ class RFest(object):
 
     def model_fit(self,generate_data=True,df=None,outputs=None):
         '''Building the actual training time estimator'''
-        if generate_data==True:
+        if generate_data:
             df, outputs = self.generate_data()
 
         data = pd.get_dummies(df)
