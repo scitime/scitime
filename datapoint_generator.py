@@ -4,7 +4,7 @@ import time
 
 generator=RFest()
 generator.drop_rate=0.999
-generator.rows_range=[25000000, 50000000,100000000]
+generator.rows_range=[500000, 1000000,10000000]
 generator.max_depth_range=[10,50,100,200]
 generator.inputs_range=[200,500,700,1000]
 generator.max_features_range=['auto' , 20,50,100]
