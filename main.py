@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 import time
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
@@ -76,14 +76,24 @@ class RFest(object):
         self.n_jobs_range = n_jobs_range
         self.num_cpu = os.cpu_count()
         self.dummy_variables=dummy_variables
+        self.Regressor=True
 
     def measure_time(self, n, p, rf_params):
         '''Generating fake fit and saving the training runtime'''
         #Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
-        y = np.random.rand(n, )
+        
         #Fitting rf
-        clf = RandomForestRegressor(**rf_params)
+        if self.Regressor:
+            clf = RandomForestRegressor(**rf_params)
+            y = np.random.rand(n, )
+
+        else:  
+            clf = RandomForestClassifier(**rf_params)
+            #y = np.random.rand(n, )
+            y=[int(element) for element in np.random.rand(n, )]
+            #y =  np.array([str(10)]*n,) #np.random.randint(n, )
+
         start_time = time.time()
         clf.fit(X, y)
         elapsed_time = time.time() - start_time
