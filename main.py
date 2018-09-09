@@ -160,6 +160,9 @@ class RFest(object):
 
         if self.algo_estimator == 'LR':
             algo = linear_model.LinearRegression()
+        if self.algo_estimator == 'RF':
+            algo=RandomForestRegressor()
+            
         log.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
         #Reshaping into arrays
         X = (data[self.estimation_inputs]
