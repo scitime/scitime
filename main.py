@@ -236,7 +236,14 @@ class RFest(object):
             pred=coefs[0]
             for i in range(df.shape[1]):
                 pred+=df.ix[0,i]*coefs[i+1]
-        log.info('Training your model should take ~ ' + str(pred) + ' seconds')
+        else:
+            X = (df[self.estimation_inputs]
+             ._get_numeric_data()
+             .dropna(axis=0, how='any')
+             .as_matrix())
+            pred=estimator.predict(X)
+            
+        log.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
         return pred
 
 # TODO
