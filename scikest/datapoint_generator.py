@@ -9,4 +9,4 @@ generator.max_depth_range=[10,50,100,200]
 generator.inputs_range=[200,300,500,600]
 generator.max_features_range=['auto' , 20,50,100]
 
-generator.generate_data()
+generator._generate_data()

@@ -19,7 +19,6 @@ log = Logging(__name__)
 
 
 class RFest(object):
-    '''Predicting training time of a random forest regression'''
     RAW_ESTIMATION_INPUTS = open('inputs/raw_inputs.txt').read().splitlines()
     ESTIMATION_INPUTS = open('inputs/inputs.txt').read().splitlines()
     MAX_DEPTH_RANGE = [10, 50, 100]
@@ -39,7 +38,7 @@ class RFest(object):
     OOB_SCORE = [False]  ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
     N_JOBS_RANGE = [1, 2, 5, 8]
     DUMMY_VARIABLES=['max_features']
-
+    #features not trained on are :
     # criterion
     # RANDOM_STATE
     # verbose
@@ -55,7 +54,6 @@ class RFest(object):
                  max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
                  min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE, bootstrap=BOOTSTRAP, oob_score=OOB_SCORE,
                  n_jobs_range=N_JOBS_RANGE,dummy_variables=DUMMY_VARIABLES):
-        '''Defining: algo paramters, algo parameters range, drop rate, number of cores'''
         self.raw_estimation_inputs = raw_estimation_inputs
         self.estimation_inputs = estimation_inputs
         self.drop_rate = drop_rate
@@ -77,8 +75,13 @@ class RFest(object):
         self.num_cpu = os.cpu_count()
         self.dummy_variables=dummy_variables
 
-    def measure_time(self, n, p, rf_params):
-        '''Generating fake fit and saving the training runtime'''
+    def _measure_time(self, n, p, rf_params):
+        """
+            generates dummy fits and tracks the training runtime
+
+            :return: runtime
+            :rtype: float
+        """
         #Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
         y = np.random.rand(n, )
@@ -89,8 +92,13 @@ class RFest(object):
         elapsed_time = time.time() - start_time
         return elapsed_time
 
-    def generate_data(self):
-        '''Measuring training runtimes for a set of distincts parameters'''
+    def _generate_data(self):
+        """
+            measures training runtimes for a set of distinct parameters - saves results in a csv (row by row)
+
+            :return: inputs, outputs
+            :rtype: pd.DataFrame
+        """
         log.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
@@ -122,39 +130,44 @@ class RFest(object):
                 #Handling max_features > p case
                 if type(f)==int:
                     if f<=p:
-                        thisOutput=self.measure_time(n, p, rf_parameters_dic)
+                        thisOutput=self._measure_time(n, p, rf_parameters_dic)
                         thisInput=permutation
                         log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
-                        #outputs.append(thisOutput)
-                        #inputs.append(thisInput)
+                        outputs.append(thisOutput)
+                        inputs.append(thisInput)
 
                         with open(r'result.csv', 'a+') as file:
-                            #columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
+                            columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
                             writer = csv.writer(file)
                             thisRow=list(thisInput)+[thisOutput]
                             writer.writerows([thisRow])      
                 else:
-                    thisOutput=self.measure_time(n, p, rf_parameters_dic)
+                    thisOutput=self._measure_time(n, p, rf_parameters_dic)
                     thisInput=permutation
                     log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
-                    #outputs.append(thisOutput)
-                    #inputs.append(thisInput)
+                    outputs.append(thisOutput)
+                    inputs.append(thisInput)
 
                     with open(r'result.csv', 'a+') as file:
-                        #columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
+                        columns=['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
                         writer = csv.writer(file)
                         thisRow=list(thisInput)+[thisOutput]
                         writer.writerows([thisRow])                
 
-        #inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
-        #outputs = pd.DataFrame(outputs, columns=['output'])
+        inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
+        outputs = pd.DataFrame(outputs, columns=['output'])
 
-        #return (inputs, outputs)
+        return (inputs, outputs)
 
-    def model_fit(self,generate_data=True,df=None,outputs=None):
-        '''Building the actual training time estimator'''
+    def _model_fit(self,generate_data=True,df=None,outputs=None):
+        """
+            builds the actual training time estimator
+
+            :return: algo
+            :rtype: pickle file
+        """
         if generate_data:
-            df, outputs = self.generate_data()
+            df, outputs = self._generate_data()
 
         data = pd.get_dummies(df)
 
@@ -193,7 +206,12 @@ class RFest(object):
         return algo
 
     def estimate_duration(self, X, algo):
-        '''Predicting training runtime'''
+        """
+            predicts training runtime for a given training
+
+            :return: predicted runtime
+            :rtype: float
+        """
         if self.algo_estimator == 'LR':
             log.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
