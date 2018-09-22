@@ -79,6 +79,9 @@ class RFest(object):
         """
             generates dummy fits and tracks the training runtime
 
+            :param n: number of observations
+            :param p: number of features
+            :param rf_params: rf params included in the estimation
             :return: runtime
             :rtype: float
         """
@@ -163,6 +166,9 @@ class RFest(object):
         """
             builds the actual training time estimator
 
+            :param generate_data: bool (if set to True, calls _generate_data)
+            :param df: pd.DataFrame chosen as input
+            :param output: pd.DataFrame chosen as output
             :return: algo
             :rtype: pickle file
         """
@@ -209,6 +215,8 @@ class RFest(object):
         """
             predicts training runtime for a given training
 
+            :param X: np.array of inputs to be trained
+            :param algo: algo used to predict runtime
             :return: predicted runtime
             :rtype: float
         """
