@@ -78,6 +78,7 @@ class RFest(object):
     def _check_feature_condition(self, f, p):
         """
         makes sure the rf training doesn't break when f>p
+
         :param f: max feature param
         :param p: num feature param
         :return: bool
@@ -145,7 +146,8 @@ class RFest(object):
 
             rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
             #Computing only for (1-self.drop_rate) % of the data
-            if np.random.uniform() > self.drop_rate:
+            random_value = np.random.uniform()
+            if random_value > self.drop_rate:
                 #Handling max_features > p case
                 if self._check_feature_condition(f,p):
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
