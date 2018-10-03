@@ -53,7 +53,7 @@ class RFest(object):
                  min_weight_fraction_leaf_range=MIN_WEIGHT_FRACTION_LEAF_RANGE,
                  max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
                  min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE, bootstrap=BOOTSTRAP, oob_score=OOB_SCORE,
-                 n_jobs_range=N_JOBS_RANGE, dummy_variables=DUMMY_VARIABLES):
+                 n_jobs_range=N_JOBS_RANGE, dummy_variables=DUMMY_VARIABLES, verbose = True):
         self.raw_estimation_inputs = raw_estimation_inputs
         self.estimation_inputs = estimation_inputs
         self.drop_rate = drop_rate
@@ -74,6 +74,7 @@ class RFest(object):
         self.n_jobs_range = n_jobs_range
         self.num_cpu = os.cpu_count()
         self.dummy_variables = dummy_variables
+        self.verbose = verbose
 
     def _measure_time(self, n, p, rf_params):
         """
@@ -102,7 +103,8 @@ class RFest(object):
         :return: inputs, outputs
         :rtype: pd.DataFrame
         """
-        log.info('Generating dummy training durations to create a training set')
+        if self.verbose:
+            log.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
         rf_parameters_list = self.raw_estimation_inputs
@@ -135,7 +137,8 @@ class RFest(object):
                     if f <= p:
                         thisOutput = self._measure_time(n, p, rf_parameters_dic)
                         thisInput = permutation
-                        log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
+                        if self.verbose:
+                            log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
                         outputs.append(thisOutput)
                         inputs.append(thisInput)
 
@@ -147,7 +150,8 @@ class RFest(object):
                 else:
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
                     thisInput = permutation
-                    log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
+                    if self.verbose:
+                        log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
 
@@ -181,8 +185,9 @@ class RFest(object):
             algo = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
             algo=RandomForestRegressor()
-            
-        log.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
+
+        if self.verbose:
+            log.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
         #Reshaping into arrays
         X = (data[self.estimation_inputs]
              ._get_numeric_data()
@@ -193,22 +198,26 @@ class RFest(object):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         algo.fit(X_train, y_train)
         if self.algo_estimator == 'LR':
-            log.info('Saving LR coefs in json file')
+            if self.verbose:
+                log.info('Saving LR coefs in json file')
             with open('coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo.intercept_]+list(algo.coef_), outfile)
-        log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
+        if self.verbose:
+            log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
         joblib.dump(algo, self.algo_estimator + '_estimator.pkl')
-        log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
+        if self.verbose:
+            log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
         y_pred_test = algo.predict(X_test)
         MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
         y_pred_train = algo.predict(X_train)
         MAPE_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         #with open('MAPE.txt', 'w') as f:
             #f.write(str(MAPE))
-        log.info('MAPE on train set is: {}'.format(MAPE_train))
-        log.info('MAPE on test set is: {}'.format(MAPE_test))
-        log.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
-        log.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
+        if self.verbose:
+            log.info('MAPE on train set is: {}'.format(MAPE_train))
+            log.info('MAPE on test set is: {}'.format(MAPE_test))
+            log.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
+            log.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
         return algo
 
     def estimate_duration(self, X, algo):
@@ -221,11 +230,13 @@ class RFest(object):
         :rtype: float
         """
         if self.algo_estimator == 'LR':
-            log.info('Loading LR coefs from json file')
+            if self.verbose:
+                log.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
                 coefs= json.load(f)
         else:
-            log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
+            if self.verbose:
+                log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
             estimator = joblib.load(self.algo_estimator + '_estimator.pkl')
         #Retrieving all parameters of interest
         inputs = []
@@ -268,8 +279,8 @@ class RFest(object):
              .dropna(axis=0, how='any')
              .as_matrix())
             pred = estimator.predict(X)
-            
-        log.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
+        if self.verbose:
+            log.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
         return pred
 
 # TODO
