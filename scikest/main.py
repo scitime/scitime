@@ -5,14 +5,13 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 import joblib
 from sklearn import linear_model
-from utils import Logging
+from utils import Logging, add_data_to_csv
 import warnings
 import itertools
 import os
 import json
 import pandas as pd
 from sklearn.metrics import mean_squared_error
-import csv
 
 warnings.simplefilter("ignore")
 log = Logging(__name__)
@@ -76,6 +75,21 @@ class RFest(object):
         self.dummy_variables = dummy_variables
         self.verbose = verbose
 
+    def _check_feature_condition(self, f, p):
+        """
+        makes sure the rf training doesn't break when f>p
+        :param f: max feature param
+        :param p: num feature param
+        :return: bool
+        """
+        if (type(f) != int):
+            return True
+        else:
+            if f <= p:
+                return True
+            else:
+                return False
+
     def _measure_time(self, n, p, rf_params):
         """
         generates dummy fits and tracks the training runtime
@@ -133,33 +147,15 @@ class RFest(object):
             #Computing only for (1-self.drop_rate) % of the data
             if np.random.uniform() > self.drop_rate:
                 #Handling max_features > p case
-                if type(f) == int:
-                    if f <= p:
-                        thisOutput = self._measure_time(n, p, rf_parameters_dic)
-                        thisInput = permutation
-                        if self.verbose:
-                            log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
-                        outputs.append(thisOutput)
-                        inputs.append(thisInput)
-
-                        with open(r'result.csv', 'a+') as file:
-                            columns = ['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
-                            writer = csv.writer(file)
-                            thisRow = list(thisInput)+[thisOutput]
-                            writer.writerows([thisRow])      
-                else:
+                if self._check_feature_condition(f,p):
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
                     thisInput = permutation
-                    if self.verbose:
-                        log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
+                    if self.verbose:
+                        log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
 
-                    with open(r'result.csv', 'a+') as file:
-                        columns = ['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
-                        writer = csv.writer(file)
-                        thisRow = list(thisInput)+[thisOutput]
-                        writer.writerows([thisRow])                
+                    add_data_to_csv(thisInput, thisOutput, rf_parameters_list)
 
         inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
