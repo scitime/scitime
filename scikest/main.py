@@ -12,7 +12,6 @@ import os
 import json
 import pandas as pd
 
-
 warnings.simplefilter("ignore")
 log = Logging(__name__)
 
