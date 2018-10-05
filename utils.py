@@ -11,7 +11,7 @@ def Logging(__name__):
     log.setLevel(logging.INFO)
     return log
 
-def add_data_to_csv(thisInput,thisOutput, rf_parameters_list):
+def add_data_to_csv(thisInput, thisOutput, parameters_list):
     """
     writes into a csv row by row
 
@@ -21,7 +21,7 @@ def add_data_to_csv(thisInput,thisOutput, rf_parameters_list):
     :return:
     """
     with open(r'result.csv', 'a+') as file:
-        columns = ['num_rows'] + ['num_features'] + rf_parameters_list + ['output']
+        columns = ['num_rows'] + ['num_features'] + parameters_list + ['output']
         writer = csv.writer(file)
         thisRow = list(thisInput) + [thisOutput]
         writer.writerows([thisRow])
