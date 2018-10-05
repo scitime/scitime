@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 import time
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 import joblib
 from sklearn import linear_model
@@ -11,7 +11,7 @@ import itertools
 import os
 import json
 import pandas as pd
-from sklearn.metrics import mean_squared_error
+
 
 warnings.simplefilter("ignore")
 log = Logging(__name__)
