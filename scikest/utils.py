@@ -32,7 +32,6 @@ def get_path(file):
     """
     returns current path
     """
-
     return path.join(path.dirname(path.abspath(__file__)), file)
 
 def config(key):
