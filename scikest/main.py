@@ -5,7 +5,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 import joblib
 from sklearn import linear_model
-from utils import Logging, add_data_to_csv
+from utils import Logging, add_data_to_csv, get_path, config
 import warnings
 import itertools
 import os
@@ -201,7 +201,8 @@ class RFest(object):
                 json.dump([algo.intercept_]+list(algo.coef_), outfile)
         if self.verbose:
             log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
-        joblib.dump(algo, self.algo_estimator + '_estimator.pkl')
+        path = get_path(self.algo_estimator + '_estimator.pkl')
+        joblib.dump(algo, path)
         if self.verbose:
             log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
         y_pred_test = algo.predict(X_test)
@@ -234,7 +235,8 @@ class RFest(object):
         else:
             if self.verbose:
                 log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
-            estimator = joblib.load(self.algo_estimator + '_estimator.pkl')
+            path = get_path(self.algo_estimator + '_estimator.pkl')
+            estimator = joblib.load(path)
         #Retrieving all parameters of interest
         inputs = []
         n = X.shape[0]
