@@ -1,5 +1,6 @@
 {
   "RF": {
+    "internal_params":{
         "n_estimators":[10, 50, 100],
         "max_depth":[10, 50, 100],
         "min_samples_split":[2, 4, 10],
@@ -12,5 +13,10 @@
         "bootstrap":[true, false],
         "oob_score":[false],
         "n_jobs":[1, 2, 5, 8]
+                      },
+    "external_params":{
+      "rows": [100, 1000, 10000],
+      "inputs": [5, 50, 100]
+                      }
         }
 }

@@ -122,7 +122,8 @@ class RFest(object):
         inputs = []
         outputs = []
         rf_parameters_list = self.raw_estimation_inputs
-
+        #rf_parameter_list = list(internal_config.keys())
+        #for permutation in itertools.product(*concatenated_config.values()):
         for permutation in itertools.product(
                 self.rows_range,
                 self.inputs_range,
