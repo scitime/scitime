@@ -1,6 +1,16 @@
 {
   "RF": {
-        "test":[1,2,3],
-        "test1":[4,5]
+        "n_estimators":[10, 50, 100],
+        "max_depth":[10, 50, 100],
+        "min_samples_split":[2, 4, 10],
+        "min_samples_leaf":[1, 5, 10],
+        "min_weight_fraction_leaf":[0.1, 0.25, 0.5],
+        "max_features":["auto", 10],
+        "max_leaf_nodes":[2, 4, 10],
+        "min_impurity_decrease":[1, 5, 10],
+        "min_impurity_split":[1, 5, 10],
+        "bootstrap":[true, false],
+        "oob_score":[false],
+        "n_jobs":[1, 2, 5, 8]
         }
 }
