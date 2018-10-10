@@ -36,6 +36,7 @@ class RFest(object):
     OOB_SCORE = [False]  ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
     N_JOBS_RANGE = [1, 2, 5, 8]
     DUMMY_VARIABLES=['max_features']
+    ALGO = 'RF'
     #features not trained on are :
     # criterion
     # RANDOM_STATE
@@ -51,7 +52,7 @@ class RFest(object):
                  min_weight_fraction_leaf_range=MIN_WEIGHT_FRACTION_LEAF_RANGE,
                  max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
                  min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE, bootstrap=BOOTSTRAP, oob_score=OOB_SCORE,
-                 n_jobs_range=N_JOBS_RANGE, dummy_variables=DUMMY_VARIABLES, verbose = True):
+                 n_jobs_range=N_JOBS_RANGE, dummy_variables=DUMMY_VARIABLES, algo=ALGO, verbose=True):
         self.raw_estimation_inputs = raw_estimation_inputs
         self.estimation_inputs = estimation_inputs
         self.drop_rate = drop_rate
@@ -72,6 +73,8 @@ class RFest(object):
         self.n_jobs_range = n_jobs_range
         self.num_cpu = os.cpu_count()
         self.dummy_variables = dummy_variables
+        self.algo = algo
+        self.params = config(self.algo)
         self.verbose = verbose
 
     def _check_feature_condition(self, f, p):
@@ -121,25 +124,11 @@ class RFest(object):
             log.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
-        rf_parameters_list = self.raw_estimation_inputs
-        #rf_parameter_list = list(internal_config.keys())
-        #for permutation in itertools.product(*concatenated_config.values()):
-        for permutation in itertools.product(
-                self.rows_range,
-                self.inputs_range,
-                self.n_estimators_range,
-                self.max_depth_range,
-                self.min_samples_split_range,
-                self.min_samples_leaf_range,
-                self.min_weight_fraction_leaf_range,
-                self.max_features_range,
-                self.max_leaf_nodes_range,
-                self.min_impurity_split_range,
-                self.min_impurity_decrease_range,
-                self.bootstrap,
-                self.oob_score,
-                self.n_jobs_range):
-
+        #rf_parameters_list = self.raw_estimation_inputs
+        rf_parameters_list = list(self.params['internal_params'].keys())
+        external_parameters_list = list(self.params['external_params'].keys())
+        concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
+        for permutation in itertools.product(*concat_dic.values()):
             n = permutation[0]
             p = permutation[1]
             f = permutation[7]
@@ -159,7 +148,7 @@ class RFest(object):
 
                     add_data_to_csv(thisInput, thisOutput, rf_parameters_list)
 
-        inputs = pd.DataFrame(inputs, columns=['num_rows'] + ['num_features'] + rf_parameters_list)
+        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return (inputs, outputs)
