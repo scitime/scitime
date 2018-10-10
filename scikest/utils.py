@@ -2,16 +2,30 @@ import logging
 import csv
 import json
 from os import path
+import time 
 
-def Logging(__name__):
-    """
-    a function for logs
-    """
-    FORMAT = '%(asctime)-15s - %(name)s - %(message)s'
-    logging.basicConfig(format=FORMAT)
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.INFO)
-    return log
+class LogMixin(object):
+    @property
+    def logger(self):
+        name = '.'.join([self.__module__, self.__class__.__name__])
+        FORMAT = '%(asctime)-15s - %(name)s - %(message)s'
+        logging.basicConfig(format=FORMAT)
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.INFO)
+        return logger
+
+def timeit(method):
+    """takes method and wraps it in a timer"""
+    log = LogMixin()
+
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        log.logger.info(f'{method.__qualname__} took {round(te - ts, 3)}s seconds')
+        return result
+
+    return timed
 
 def add_data_to_csv(thisInput, thisOutput, parameters_list):
     """

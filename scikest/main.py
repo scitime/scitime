@@ -5,7 +5,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 import joblib
 from sklearn import linear_model
-from utils import Logging, add_data_to_csv, get_path, config
+from utils import LogMixin, add_data_to_csv, get_path, config, timeit
 import warnings
 import itertools
 import os
@@ -13,10 +13,10 @@ import json
 import pandas as pd
 
 warnings.simplefilter("ignore")
-log = Logging(__name__)
 
 
-class RFest(object):
+
+class RFest(LogMixin):
     RAW_ESTIMATION_INPUTS = open('inputs/raw_inputs.txt').read().splitlines()
     ESTIMATION_INPUTS = open('inputs/inputs.txt').read().splitlines()
     MAX_DEPTH_RANGE = [10, 50, 100]
@@ -113,6 +113,7 @@ class RFest(object):
         elapsed_time = time.time() - start_time
         return elapsed_time
 
+    @timeit
     def _generate_data(self):
         """
         measures training runtimes for a set of distinct parameters - saves results in a csv (row by row)
@@ -121,7 +122,7 @@ class RFest(object):
         :rtype: pd.DataFrame
         """
         if self.verbose:
-            log.info('Generating dummy training durations to create a training set')
+            self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
         #rf_parameters_list = self.raw_estimation_inputs
@@ -144,7 +145,7 @@ class RFest(object):
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
-                        log.info('data added for {p} which outputs {s} seconds'.format(p=dict(zip(external_parameters_list + rf_parameters_list, thisInput)),s=thisOutput))
+                        self.logger.info('data added for {p} which outputs {s} seconds'.format(p=dict(zip(external_parameters_list + rf_parameters_list, thisInput)),s=thisOutput))
 
                     add_data_to_csv(thisInput, thisOutput, rf_parameters_list)
 
@@ -174,7 +175,7 @@ class RFest(object):
             algo=RandomForestRegressor()
 
         if self.verbose:
-            log.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
+            self.logger.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
         #Reshaping into arrays
         X = (data[self.estimation_inputs]
              ._get_numeric_data()
@@ -186,15 +187,15 @@ class RFest(object):
         algo.fit(X_train, y_train)
         if self.algo_estimator == 'LR':
             if self.verbose:
-                log.info('Saving LR coefs in json file')
+                self.logger.info('Saving LR coefs in json file')
             with open('coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo.intercept_]+list(algo.coef_), outfile)
         if self.verbose:
-            log.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
+            self.logger.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
         path = get_path(self.algo_estimator + '_estimator.pkl')
         joblib.dump(algo, path)
         if self.verbose:
-            log.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
+            self.logger.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
         y_pred_test = algo.predict(X_test)
         MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
         y_pred_train = algo.predict(X_train)
@@ -202,10 +203,10 @@ class RFest(object):
         #with open('MAPE.txt', 'w') as f:
             #f.write(str(MAPE))
         if self.verbose:
-            log.info('MAPE on train set is: {}'.format(MAPE_train))
-            log.info('MAPE on test set is: {}'.format(MAPE_test))
-            log.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
-            log.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
+            self.logger.info('MAPE on train set is: {}'.format(MAPE_train))
+            self.logger.info('MAPE on test set is: {}'.format(MAPE_test))
+            self.logger.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
+            self.logger.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
         return algo
 
     def estimate_duration(self, X, algo):
@@ -219,12 +220,12 @@ class RFest(object):
         """
         if self.algo_estimator == 'LR':
             if self.verbose:
-                log.info('Loading LR coefs from json file')
+                self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
                 coefs= json.load(f)
         else:
             if self.verbose:
-                log.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
+                self.logger.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
             path = get_path(self.algo_estimator + '_estimator.pkl')
             estimator = joblib.load(path)
         #Retrieving all parameters of interest
@@ -269,7 +270,7 @@ class RFest(object):
              .as_matrix())
             pred = estimator.predict(X)
         if self.verbose:
-            log.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
+            self.logger.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
         return pred
 
 # TODO
