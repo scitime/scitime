@@ -147,7 +147,7 @@ class RFest(LogMixin):
                     if self.verbose:
                         self.logger.info('data added for {p} which outputs {s} seconds'.format(p=dict(zip(external_parameters_list + rf_parameters_list, thisInput)),s=thisOutput))
 
-                    add_data_to_csv(thisInput, thisOutput, rf_parameters_list)
+                    add_data_to_csv(thisInput, thisOutput)
 
         inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
