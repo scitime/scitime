@@ -144,7 +144,7 @@ class RFest(object):
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
-                        log.info('data added for {p} which outputs {s} seconds'.format(p=thisInput,s=thisOutput))
+                        log.info('data added for {p} which outputs {s} seconds'.format(p=dict(zip(external_parameters_list + rf_parameters_list, thisInput)),s=thisOutput))
 
                     add_data_to_csv(thisInput, thisOutput, rf_parameters_list)
 
