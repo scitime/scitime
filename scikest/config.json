@@ -6,7 +6,7 @@
         "min_samples_split":[2, 4, 10],
         "min_samples_leaf":[1, 5, 10],
         "min_weight_fraction_leaf":[0.1, 0.25, 0.5],
-        "max_features":["auto", 10],
+        "max_features":["auto", 10, 20, 50],
         "max_leaf_nodes":[2, 4, 10],
         "min_impurity_decrease":[1, 5, 10],
         "min_impurity_split":[1, 5, 10],
@@ -14,9 +14,10 @@
         "oob_score":[false],
         "n_jobs":[1, 2, 5, 8]
                       },
+    "dummy_inputs":["max_features"],
     "external_params":{
-      "rows": [100, 1000, 10000],
-      "inputs": [5, 50, 100]
+      "num_rows": [100, 1000, 10000],
+      "num_features": [5, 50, 100]
                       }
         }
 }

@@ -14,68 +14,19 @@ import pandas as pd
 
 warnings.simplefilter("ignore")
 
-
-
 class RFest(LogMixin):
-    RAW_ESTIMATION_INPUTS = open('inputs/raw_inputs.txt').read().splitlines()
-    ESTIMATION_INPUTS = open('inputs/inputs.txt').read().splitlines()
-    MAX_DEPTH_RANGE = [10, 50, 100]
-    INPUTS_RANGE = [5, 50, 100]
-    N_ESTIMATORS_RANGE = [10, 50, 100]
-    ROWS_RANGE = [100, 1000, 10000]
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
-    MAX_FEATURES_RANGE = ['auto', 10]
-    MIN_SAMPLES_SPLIT_RANGE = [2, 4, 10]
-    MIN_SAMPLES_LEAF_RANGE = [1, 5, 10]
-    MIN_WEIGHT_FRACTION_LEAF_RANGE = [0.1, 0.25, 0.5]
-    MAX_LEAF_NODES_RANGE = [2, 4, 10]
-    MIN_IMPURITY_SPLIT_RANGE = [1, 5, 10]
-    MIN_IMPURITY_DECREASE_RANGE = [1, 5, 10]
-    BOOTSTRAP = [True, False]
-    OOB_SCORE = [False]  ##OOB SCORE CAN BE TRUE IFF BOOTSTRAP IS TRUE!
-    N_JOBS_RANGE = [1, 2, 5, 8]
-    DUMMY_VARIABLES=['max_features']
     ALGO = 'RF'
-    #features not trained on are :
-    # criterion
-    # RANDOM_STATE
-    # verbose
-    # warm_start
-    # class_weight
 
-    def __init__(self, raw_estimation_inputs=RAW_ESTIMATION_INPUTS, estimation_inputs=ESTIMATION_INPUTS,
-                 drop_rate=DROP_RATE, max_depth_range=MAX_DEPTH_RANGE, inputs_range=INPUTS_RANGE,
-                 n_estimators_range=N_ESTIMATORS_RANGE, rows_range=ROWS_RANGE, algo_estimator=ALGO_ESTIMATOR,
-                 max_features_range=MAX_FEATURES_RANGE,
-                 min_samples_split_range=MIN_SAMPLES_SPLIT_RANGE, min_samples_leaf_range=MIN_SAMPLES_LEAF_RANGE,
-                 min_weight_fraction_leaf_range=MIN_WEIGHT_FRACTION_LEAF_RANGE,
-                 max_leaf_nodes_range=MAX_LEAF_NODES_RANGE, min_impurity_split_range=MIN_IMPURITY_SPLIT_RANGE,
-                 min_impurity_decrease_range=MIN_IMPURITY_DECREASE_RANGE, bootstrap=BOOTSTRAP, oob_score=OOB_SCORE,
-                 n_jobs_range=N_JOBS_RANGE, dummy_variables=DUMMY_VARIABLES, algo=ALGO, verbose=True):
-        self.raw_estimation_inputs = raw_estimation_inputs
-        self.estimation_inputs = estimation_inputs
+    def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.drop_rate = drop_rate
-        self.max_depth_range = max_depth_range
-        self.inputs_range = inputs_range
-        self.n_estimators_range = n_estimators_range
-        self.rows_range = rows_range
         self.algo_estimator = algo_estimator
-        self.max_features_range = max_features_range
-        self.min_samples_split_range = min_samples_split_range
-        self.min_samples_leaf_range = min_samples_leaf_range
-        self.min_weight_fraction_leaf_range = min_weight_fraction_leaf_range
-        self.max_leaf_nodes_range = max_leaf_nodes_range
-        self.min_impurity_split_range = min_impurity_split_range
-        self.min_impurity_decrease_range = min_impurity_decrease_range
-        self.bootstrap = bootstrap
-        self.oob_score = oob_score
-        self.n_jobs_range = n_jobs_range
         self.num_cpu = os.cpu_count()
-        self.dummy_variables = dummy_variables
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
+        self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']]+[i+'_'+str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     def _check_feature_condition(self, f, p):
         """
@@ -169,6 +120,9 @@ class RFest(LogMixin):
 
         data = pd.get_dummies(df)
 
+        if self.verbose:
+            self.logger.info('Model inputs: {}'.format(list(data.columns)))
+
         if self.algo_estimator == 'LR':
             algo = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
@@ -235,8 +189,9 @@ class RFest(LogMixin):
         p = X.shape[1]
         inputs.append(p)
         params = algo.get_params()
+        param_list = list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
 
-        for i in self.raw_estimation_inputs:
+        for i in self.params['internal_params'].keys():
             #Handling n_jobs=-1 case
             if (i == 'n_jobs'):
                 if (params[i] == -1):
@@ -245,14 +200,16 @@ class RFest(LogMixin):
                     inputs.append(params[i])
                     
             else:
-                if i in self.dummy_variables:
+                if i in self.params['dummy_inputs']:
                     #To make dummy 
                     inputs.append(str(params[i]))
                 else:    
                     inputs.append(params[i])
         #Making dummy
-        dic = dict(zip(['num_rows']+['num_features']+self.raw_estimation_inputs, [[i] for i in inputs]))
-        df = pd.DataFrame(dic, columns=['num_rows']+['num_features']+self.raw_estimation_inputs)
+        dic = dict(zip(param_list, [[i] for i in inputs]))
+        if self.verbose:
+            self.logger.info('Training your model for these params: {}'.format(dic))
+        df = pd.DataFrame(dic, columns=param_list)
         df = pd.get_dummies(df)
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
         for i in missing_inputs:
