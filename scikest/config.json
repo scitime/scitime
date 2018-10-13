@@ -6,7 +6,7 @@
         "min_samples_split":[2, 4, 10],
         "min_samples_leaf":[1, 5, 10],
         "min_weight_fraction_leaf":[0.1, 0.25, 0.5],
-        "max_features":["auto", 10, 20, 50],
+        "max_features":["auto", 10, 20, 50, 100],
         "max_leaf_nodes":[2, 4, 10],
         "min_impurity_decrease":[1, 5, 10],
         "min_impurity_split":[1, 5, 10],

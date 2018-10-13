@@ -129,6 +129,10 @@ class RFest(LogMixin):
 
         if self.verbose:
             self.logger.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
+        #adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
+        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
+        for i in missing_inputs:
+            data[i]=0
         #Reshaping into arrays
         X = (data[self.estimation_inputs]
              ._get_numeric_data()
@@ -210,6 +214,7 @@ class RFest(LogMixin):
             self.logger.info('Training your model for these params: {}'.format(dic))
         df = pd.DataFrame(dic, columns=param_list)
         df = pd.get_dummies(df)
+        # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
         for i in missing_inputs:
             df[i]=0
