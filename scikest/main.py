@@ -146,7 +146,7 @@ class RFest(LogMixin):
                 json.dump([algo.intercept_]+list(algo.coef_), outfile)
         if self.verbose:
             self.logger.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
-        path = get_path(self.algo_estimator + '_estimator.pkl')
+        path = get_path('models')+'/'+self.algo_estimator + '_estimator.pkl'
         joblib.dump(algo, path)
         if self.verbose:
             self.logger.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
@@ -180,7 +180,7 @@ class RFest(LogMixin):
         else:
             if self.verbose:
                 self.logger.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
-            path = get_path(self.algo_estimator + '_estimator.pkl')
+            path = get_path('models')+'/'+self.algo_estimator + '_estimator.pkl'
             estimator = joblib.load(path)
         #Retrieving all parameters of interest
         inputs = []
