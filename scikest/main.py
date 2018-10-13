@@ -76,7 +76,6 @@ class RFest(LogMixin):
             self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
-        #rf_parameters_list = self.raw_estimation_inputs
         rf_parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
