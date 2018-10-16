@@ -14,7 +14,7 @@ import pandas as pd
 
 warnings.simplefilter("ignore")
 
-class RFest(LogMixin):
+class Estimator(LogMixin):
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
     ALGO = 'RF'
@@ -28,7 +28,8 @@ class RFest(LogMixin):
         self.verbose = verbose
         self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']]+[i+'_'+str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
-    def _check_feature_condition(self, f, p):
+    @staticmethod
+    def _check_feature_condition(f, p):
         """
         makes sure the rf training doesn't break when f>p
 
@@ -104,6 +105,7 @@ class RFest(LogMixin):
 
         return (inputs, outputs)
 
+    @timeit
     def _model_fit(self,generate_data=True,df=None,outputs=None):
         """
         builds the actual training time estimator
