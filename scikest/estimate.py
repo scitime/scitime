@@ -43,8 +43,8 @@ class Estimator(Trainer, LogMixin):
                 coefs = json.load(f)
         else:
             if self.verbose:
-                self.logger.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
-            path = get_path('models') + '/' + self.algo_estimator + '_estimator.pkl'
+                self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
+            path = f'get_path("models")/{self.algo_estimator}_estimator.pkl'
             estimator = joblib.load(path)
         # Retrieving all parameters of interest
         inputs = []
@@ -72,7 +72,7 @@ class Estimator(Trainer, LogMixin):
         # Making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose:
-            self.logger.info('Training your model for these params: {}'.format(dic))
+            self.logger.info(f'Training your model for these params: {dic}')
         df = pd.DataFrame(dic, columns=param_list)
         df = pd.get_dummies(df)
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
@@ -92,5 +92,5 @@ class Estimator(Trainer, LogMixin):
                  .as_matrix())
             pred = estimator.predict(X)
         if self.verbose:
-            self.logger.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
+            self.logger.info(f'Training your model should take ~ {pred[0]} seconds')
         return pred

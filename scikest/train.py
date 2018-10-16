@@ -103,7 +103,7 @@ class Trainer(LogMixin):
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
-                        self.logger.info('data added for {p} which outputs {s} seconds'.format(p=dict(zip(external_parameters_list + rf_parameters_list, thisInput)),s=thisOutput))
+                        self.logger.info(f'data added for {dict(zip(external_parameters_list + rf_parameters_list, thisInput))} which outputs {thisOutput} seconds')
 
                     add_data_to_csv(thisInput, thisOutput)
 
@@ -137,7 +137,7 @@ class Trainer(LogMixin):
             algo=RandomForestRegressor()
 
         if self.verbose:
-            self.logger.info('Fitting ' + self.algo_estimator + ' to estimate training durations')
+            self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations')
         #adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
         for i in missing_inputs:
@@ -157,11 +157,11 @@ class Trainer(LogMixin):
             with open('coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo.intercept_]+list(algo.coef_), outfile)
         if self.verbose:
-            self.logger.info('Saving ' + self.algo_estimator + ' to ' + self.algo_estimator + '_estimator.pkl')
-        path = get_path('models')+'/'+self.algo_estimator + '_estimator.pkl'
+            self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_estimator.pkl')
+        path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
         joblib.dump(algo, path)
         if self.verbose:
-            self.logger.info('R squared on train set is {}'.format(r2_score(y_train, algo.predict(X_train))))
+            self.logger.info(f'R squared on train set is {r2_score(y_train, algo.predict(X_train))}')
         y_pred_test = algo.predict(X_test)
         MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
         y_pred_train = algo.predict(X_train)
@@ -169,10 +169,12 @@ class Trainer(LogMixin):
         #with open('MAPE.txt', 'w') as f:
             #f.write(str(MAPE))
         if self.verbose:
-            self.logger.info('MAPE on train set is: {}'.format(MAPE_train))
-            self.logger.info('MAPE on test set is: {}'.format(MAPE_test))
-            self.logger.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
-            self.logger.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
+            self.logger.info(f'''
+            MAPE on train set is: {MAPE_train}
+            MAPE on test set is: {MAPE_test} 
+            RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))} 
+            RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
+
         return algo
 
 # TODO
