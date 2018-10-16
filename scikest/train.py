@@ -5,12 +5,13 @@ from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 import joblib
 from sklearn import linear_model
-from utils import LogMixin, add_data_to_csv, get_path, config, timeit
+from utils import LogMixin, get_path, config, timeit
 import warnings
 import itertools
 import os
 import json
 import pandas as pd
+import csv
 
 warnings.simplefilter("ignore")
 
@@ -51,6 +52,20 @@ class Trainer(LogMixin):
                 return True
             else:
                 return False
+
+    @staticmethod
+    def _add_data_to_csv(thisInput, thisOutput):
+        """
+        writes into a csv row by row
+
+        :param thisInput: input
+        :param thisOutput: output
+        :return:
+        """
+        with open(r'result.csv', 'a+') as file:
+            writer = csv.writer(file)
+            thisRow = list(thisInput) + [thisOutput]
+            writer.writerows([thisRow])
 
     def _measure_time(self, n, p, rf_params):
         """
@@ -105,7 +120,7 @@ class Trainer(LogMixin):
                     if self.verbose:
                         self.logger.info(f'data added for {dict(zip(external_parameters_list + rf_parameters_list, thisInput))} which outputs {thisOutput} seconds')
 
-                    add_data_to_csv(thisInput, thisOutput)
+                    self._add_data_to_csv(thisInput, thisOutput)
 
         inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])

@@ -44,7 +44,7 @@ class Estimator(Trainer, LogMixin):
         else:
             if self.verbose:
                 self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
-            path = f'get_path("models")/{self.algo_estimator}_estimator.pkl'
+            path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
             estimator = joblib.load(path)
         # Retrieving all parameters of interest
         inputs = []
@@ -77,6 +77,8 @@ class Estimator(Trainer, LogMixin):
         df = pd.get_dummies(df)
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
+        if self.verbose & len(missing_inputs)>0:
+            self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
         for i in missing_inputs:
             df[i] = 0
 

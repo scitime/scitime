@@ -8,10 +8,9 @@ class LogMixin(object):
     @property
     def logger(self):
         name = '.'.join([self.__module__, self.__class__.__name__])
-        FORMAT = '%(asctime)-15s - %(name)s - %(message)s'
-        logging.basicConfig(format=FORMAT)
+        FORMAT = '%(levelname)s:%(message)s'
+        logging.basicConfig(format=FORMAT, level=logging.DEBUG)
         logger = logging.getLogger(name)
-        logger.setLevel(logging.INFO)
         return logger
 
 def timeit(method):
@@ -26,19 +25,6 @@ def timeit(method):
         return result
 
     return timed
-
-def add_data_to_csv(thisInput, thisOutput):
-    """
-    writes into a csv row by row
-
-    :param thisInput: input
-    :param thisOutput: output
-    :return:
-    """
-    with open(r'result.csv', 'a+') as file:
-        writer = csv.writer(file)
-        thisRow = list(thisInput) + [thisOutput]
-        writer.writerows([thisRow])
 
 def get_path(file):
     """
