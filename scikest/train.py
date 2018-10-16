@@ -14,7 +14,7 @@ import pandas as pd
 
 warnings.simplefilter("ignore")
 
-class Estimator(LogMixin):
+class Trainer(LogMixin):
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
     ALGO = 'RF'
@@ -26,7 +26,12 @@ class Estimator(LogMixin):
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']]+[i+'_'+str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
+        self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params[
+            'internal_params'].keys() if i not in self.params['dummy_inputs']] + [i + '_' + str(k) for i in
+                                                                                  self.params['internal_params'].keys()
+                                                                                  if i in self.params['dummy_inputs']
+                                                                                  for k in
+                                                                                  self.params['internal_params'][i]]
 
     @staticmethod
     def _check_feature_condition(f, p):
@@ -106,7 +111,7 @@ class Estimator(LogMixin):
         return (inputs, outputs)
 
     @timeit
-    def _model_fit(self,generate_data=True,df=None,outputs=None):
+    def model_fit(self,generate_data=True,df=None,outputs=None):
         """
         builds the actual training time estimator
 
@@ -167,74 +172,6 @@ class Estimator(LogMixin):
             self.logger.info('RMSE on train set is {}'.format(np.sqrt(mean_squared_error(y_train, y_pred_train))))
             self.logger.info('RMSE on test set is {}'.format(np.sqrt(mean_squared_error(y_test, y_pred_test))))
         return algo
-
-    def estimate_duration(self, X, algo):
-        """
-        predicts training runtime for a given training
-
-        :param X: np.array of inputs to be trained
-        :param algo: algo used to predict runtimee
-        :return: predicted runtime
-        :rtype: float
-        """
-        if self.algo_estimator == 'LR':
-            if self.verbose:
-                self.logger.info('Loading LR coefs from json file')
-            with open('coefs/lr_coefs.json', 'r') as f:
-                coefs= json.load(f)
-        else:
-            if self.verbose:
-                self.logger.info('Fetching estimator: ' + self.algo_estimator + '_estimator.pkl')
-            path = get_path('models')+'/'+self.algo_estimator + '_estimator.pkl'
-            estimator = joblib.load(path)
-        #Retrieving all parameters of interest
-        inputs = []
-        n = X.shape[0]
-        inputs.append(n)
-        p = X.shape[1]
-        inputs.append(p)
-        params = algo.get_params()
-        param_list = list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
-
-        for i in self.params['internal_params'].keys():
-            #Handling n_jobs=-1 case
-            if (i == 'n_jobs'):
-                if (params[i] == -1):
-                    inputs.append(self.num_cpu)
-                else:
-                    inputs.append(params[i])
-                    
-            else:
-                if i in self.params['dummy_inputs']:
-                    #To make dummy 
-                    inputs.append(str(params[i]))
-                else:    
-                    inputs.append(params[i])
-        #Making dummy
-        dic = dict(zip(param_list, [[i] for i in inputs]))
-        if self.verbose:
-            self.logger.info('Training your model for these params: {}'.format(dic))
-        df = pd.DataFrame(dic, columns=param_list)
-        df = pd.get_dummies(df)
-        # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
-        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
-        for i in missing_inputs:
-            df[i]=0
-
-        df=df[self.estimation_inputs]        
-        if self.algo_estimator == 'LR':
-            pred = coefs[0]
-            for i in range(df.shape[1]):
-                pred += df.ix[0,i]*coefs[i+1]
-        else:
-            X = (df[self.estimation_inputs]
-             ._get_numeric_data()
-             .dropna(axis=0, how='any')
-             .as_matrix())
-            pred = estimator.predict(X)
-        if self.verbose:
-            self.logger.info('Training your model should take ~ ' + str(pred[0]) + ' seconds')
-        return pred
 
 # TODO
 # Adding n*log(n)*v (supposedly = runtime of training in big o notation)
