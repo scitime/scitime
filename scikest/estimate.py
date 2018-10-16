@@ -13,7 +13,6 @@ class Estimator(Trainer, LogMixin):
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         super().__init__(verbose, algo_estimator, algo)
         self.algo_estimator = algo_estimator
-        self.num_cpu = os.cpu_count()
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
@@ -23,6 +22,10 @@ class Estimator(Trainer, LogMixin):
                                                                                   if i in self.params['dummy_inputs']
                                                                                   for k in
                                                                                   self.params['internal_params'][i]]
+
+    @property
+    def num_cpu(self):
+        return os.cpu_count()
 
     def estimate_duration(self, X, algo):
         """

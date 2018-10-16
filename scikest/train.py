@@ -22,7 +22,6 @@ class Trainer(LogMixin):
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.drop_rate = drop_rate
         self.algo_estimator = algo_estimator
-        self.num_cpu = os.cpu_count()
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
@@ -32,6 +31,9 @@ class Trainer(LogMixin):
                                                                                   if i in self.params['dummy_inputs']
                                                                                   for k in
                                                                                   self.params['internal_params'][i]]
+    @property
+    def num_cpu(self):
+        return os.cpu_count()
 
     @staticmethod
     def _check_feature_condition(f, p):
