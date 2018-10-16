@@ -44,7 +44,7 @@ class Trainer(LogMixin):
         :param p: num feature param
         :return: bool
         """
-        if (type(f) != int):
+        if type(f) != int:
             return True
         else:
             if f <= p:
@@ -110,7 +110,7 @@ class Trainer(LogMixin):
         inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
-        return (inputs, outputs)
+        return inputs, outputs
 
     @timeit
     def model_fit(self,generate_data=True,df=None,outputs=None):

@@ -57,8 +57,8 @@ class Estimator(Trainer, LogMixin):
 
         for i in self.params['internal_params'].keys():
             # Handling n_jobs=-1 case
-            if (i == 'n_jobs'):
-                if (params[i] == -1):
+            if i == 'n_jobs':
+                if params[i] == -1:
                     inputs.append(self.num_cpu)
                 else:
                     inputs.append(params[i])
