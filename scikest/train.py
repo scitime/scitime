@@ -37,23 +37,6 @@ class Trainer(LogMixin):
         return os.cpu_count()
 
     @staticmethod
-    def _check_feature_condition(f, p):
-        """
-        makes sure the rf training doesn't break when f>p
-
-        :param f: max feature param
-        :param p: num feature param
-        :return: bool
-        """
-        if type(f) != int:
-            return True
-        else:
-            if f <= p:
-                return True
-            else:
-                return False
-
-    @staticmethod
     def _add_data_to_csv(thisInput, thisOutput):
         """
         writes into a csv row by row
@@ -103,24 +86,25 @@ class Trainer(LogMixin):
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
         for permutation in itertools.product(*concat_dic.values()):
-            n = permutation[0]
-            p = permutation[1]
-            f = permutation[7]
+            n, p = permutation[0], permutation[1]
 
             rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
+            final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
             #Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
                 #Handling max_features > p case
-                if self._check_feature_condition(f,p):
+                try:
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
                     thisInput = permutation
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
-                        self.logger.info(f'data added for {dict(zip(external_parameters_list + rf_parameters_list, thisInput))} which outputs {thisOutput} seconds')
+                        self.logger.info(f'data added for {final_params} which outputs {thisOutput} seconds')
 
                     self._add_data_to_csv(thisInput, thisOutput)
+                except Exception as e:
+                    self.logger.warning(f'model fit for {final_params} throws an error')
 
         inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
