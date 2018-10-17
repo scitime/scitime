@@ -32,8 +32,8 @@ class Estimator(Trainer, LogMixin):
 
 
     @timeout(1)
-    def fit(self, X, y, algo):
-        """starts fitting the model to make sure the fit is legit"""
+    def _fit_start(self, X, y, algo):
+        """starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec"""
         algo.fit(X, y)
         time.sleep(1)
 
@@ -47,7 +47,7 @@ class Estimator(Trainer, LogMixin):
         :rtype: float
         """
         try:
-            self.fit(X=X, y=y, algo=algo)
+            self._fit_start(X=X, y=y, algo=algo)
         except Exception as e:
             if e.__class__.__name__ != 'TimeoutError':
                 raise e
