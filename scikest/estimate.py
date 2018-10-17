@@ -1,10 +1,13 @@
 from train import Trainer
 import joblib
-from utils import LogMixin, get_path, config
+from utils import LogMixin, get_path, config, timeout
 import os
 import json
 import pandas as pd
+import time
+import warnings
 
+warnings.simplefilter("ignore")
 
 class Estimator(Trainer, LogMixin):
     ALGO_ESTIMATOR = 'LR'
@@ -27,7 +30,14 @@ class Estimator(Trainer, LogMixin):
     def num_cpu(self):
         return os.cpu_count()
 
-    def estimate_duration(self, X, algo):
+
+    @timeout(1)
+    def fit(self, X, y, algo):
+        """starts fitting the model to make sure the fit is legit"""
+        algo.fit(X, y)
+        time.sleep(1)
+
+    def estimate_duration(self, X, y, algo):
         """
         predicts training runtime for a given training
 
@@ -36,63 +46,72 @@ class Estimator(Trainer, LogMixin):
         :return: predicted runtime
         :rtype: float
         """
-        if self.algo_estimator == 'LR':
-            if self.verbose:
-                self.logger.info('Loading LR coefs from json file')
-            with open('coefs/lr_coefs.json', 'r') as f:
-                coefs = json.load(f)
-        else:
-            if self.verbose:
-                self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
-            path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
-            estimator = joblib.load(path)
-        # Retrieving all parameters of interest
-        inputs = []
-        n = X.shape[0]
-        inputs.append(n)
-        p = X.shape[1]
-        inputs.append(p)
-        params = algo.get_params()
-        param_list = list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
-
-        for i in self.params['internal_params'].keys():
-            # Handling n_jobs=-1 case
-            if i == 'n_jobs':
-                if params[i] == -1:
-                    inputs.append(self.num_cpu)
-                else:
-                    inputs.append(params[i])
-
+        try:
+            self.fit(X=X, y=y, algo=algo)
+        except Exception as e:
+            if e.__class__.__name__ != 'TimeoutError':
+                raise e
             else:
-                if i in self.params['dummy_inputs']:
-                    # To make dummy
-                    inputs.append(str(params[i]))
-                else:
-                    inputs.append(params[i])
-        # Making dummy
-        dic = dict(zip(param_list, [[i] for i in inputs]))
-        if self.verbose:
-            self.logger.info(f'Training your model for these params: {dic}')
-        df = pd.DataFrame(dic, columns=param_list)
-        df = pd.get_dummies(df)
-        # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
-        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
-        if self.verbose & len(missing_inputs)>0:
-            self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
-        for i in missing_inputs:
-            df[i] = 0
+                if self.verbose:
+                    self.logger.info('The model would fit. Moving on')
 
-        df = df[self.estimation_inputs]
-        if self.algo_estimator == 'LR':
-            pred = coefs[0]
-            for i in range(df.shape[1]):
-                pred += df.ix[0, i] * coefs[i + 1]
-        else:
-            X = (df[self.estimation_inputs]
-                 ._get_numeric_data()
-                 .dropna(axis=0, how='any')
-                 .as_matrix())
-            pred = estimator.predict(X)
-        if self.verbose:
-            self.logger.info(f'Training your model should take ~ {pred[0]} seconds')
-        return pred
+                if self.algo_estimator == 'LR':
+                    if self.verbose:
+                        self.logger.info('Loading LR coefs from json file')
+                    with open('coefs/lr_coefs.json', 'r') as f:
+                        coefs = json.load(f)
+                else:
+                    if self.verbose:
+                        self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
+                    path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
+                    estimator = joblib.load(path)
+                # Retrieving all parameters of interest
+                inputs = []
+                n = X.shape[0]
+                inputs.append(n)
+                p = X.shape[1]
+                inputs.append(p)
+                params = algo.get_params()
+                param_list = list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
+
+                for i in self.params['internal_params'].keys():
+                    # Handling n_jobs=-1 case
+                    if i == 'n_jobs':
+                        if params[i] == -1:
+                            inputs.append(self.num_cpu)
+                        else:
+                            inputs.append(params[i])
+
+                    else:
+                        if i in self.params['dummy_inputs']:
+                            # To make dummy
+                            inputs.append(str(params[i]))
+                        else:
+                            inputs.append(params[i])
+                # Making dummy
+                dic = dict(zip(param_list, [[i] for i in inputs]))
+                if self.verbose:
+                    self.logger.info(f'Training your model for these params: {dic}')
+                df = pd.DataFrame(dic, columns=param_list)
+                df = pd.get_dummies(df)
+                # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
+                missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
+                if self.verbose & len(missing_inputs)>0:
+                    self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
+                for i in missing_inputs:
+                    df[i] = 0
+
+                df = df[self.estimation_inputs]
+                if self.algo_estimator == 'LR':
+                    pred = coefs[0]
+                    for i in range(df.shape[1]):
+                        pred += df.ix[0, i] * coefs[i + 1]
+                else:
+                    X = (df[self.estimation_inputs]
+                         ._get_numeric_data()
+                         .dropna(axis=0, how='any')
+                         .as_matrix())
+                    pred = estimator.predict(X)
+                if self.verbose:
+                    self.logger.info(f'Training your model should take ~ {pred[0]} seconds')
+                return pred
