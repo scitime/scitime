@@ -113,6 +113,7 @@ class Estimator(Trainer, LogMixin):
         predicts training runtime for a given training
 
         :param X: np.array of inputs to be trained
+        :param y: np.array of outputs to be trained
         :param algo: algo used to predict runtime
         :return: predicted runtime
         :rtype: float
