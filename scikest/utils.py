@@ -9,6 +9,7 @@ import warnings
 
 warnings.simplefilter("ignore")
 
+
 class LogMixin(object):
     @property
     def logger(self):
@@ -17,6 +18,7 @@ class LogMixin(object):
         logging.basicConfig(format=FORMAT, level=logging.DEBUG)
         logger = logging.getLogger(name)
         return logger
+
 
 def timeit(method):
     """takes method and wraps it in a timer"""
@@ -31,11 +33,13 @@ def timeit(method):
 
     return timed
 
+
 def get_path(file):
     """
     returns current path
     """
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
+
 
 def config(key):
     """
@@ -50,8 +54,10 @@ def config(key):
 class TimeoutError(Exception):
     pass
 
+
 def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
     """checks if a function does not throw an instant error without actually running the entire function"""
+
     def decorator(func):
         def _handle_timeout(signum, frame):
             raise TimeoutError(error_message)

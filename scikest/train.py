@@ -15,6 +15,7 @@ import csv
 
 warnings.simplefilter("ignore")
 
+
 class Trainer(LogMixin):
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
@@ -32,6 +33,7 @@ class Trainer(LogMixin):
                                                                                   if i in self.params['dummy_inputs']
                                                                                   for k in
                                                                                   self.params['internal_params'][i]]
+
     @property
     def num_cpu(self):
         return os.cpu_count()
@@ -60,10 +62,10 @@ class Trainer(LogMixin):
         :return: runtime
         :rtype: float
         """
-        #Genrating dummy inputs / outputs
+        # Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
         y = np.random.rand(n, )
-        #Fitting rf
+        # Fitting rf
         clf = RandomForestRegressor(**rf_params)
         start_time = time.time()
         clf.fit(X, y)
@@ -85,15 +87,16 @@ class Trainer(LogMixin):
         rf_parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
+
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-
             rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
             final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
-            #Computing only for (1-self.drop_rate) % of the data
+
+            # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
-                #Handling max_features > p case
+                # Handling max_features > p case
                 try:
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
                     thisInput = permutation
@@ -112,7 +115,7 @@ class Trainer(LogMixin):
         return inputs, outputs
 
     @timeit
-    def model_fit(self,generate_data=True,df=None,outputs=None):
+    def model_fit(self, generate_data=True, df=None, outputs=None):
         """
         builds the actual training time estimator
 
@@ -133,44 +136,52 @@ class Trainer(LogMixin):
         if self.algo_estimator == 'LR':
             algo = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
-            algo=RandomForestRegressor()
+            algo = RandomForestRegressor()
 
         if self.verbose:
             self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations')
-        #adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
+
+        # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
         for i in missing_inputs:
-            data[i]=0
-        #Reshaping into arrays
-        X = (data[self.estimation_inputs]
+            data[i] = 0
+
+        # Reshaping into arrays
+        x = (data[self.estimation_inputs]
              ._get_numeric_data()
              .dropna(axis=0, how='any')
              .as_matrix())
         y = outputs['output'].dropna(axis=0, how='any').as_matrix()
-        #Diving into train/test
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
-        algo.fit(X_train, y_train)
+
+        # Diving into train/test
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
+        algo.fit(x_train, y_train)
+
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
             with open('coefs/lr_coefs.json', 'w') as outfile:
-                json.dump([algo.intercept_]+list(algo.coef_), outfile)
+                json.dump([algo.intercept_] + list(algo.coef_), outfile)
         if self.verbose:
             self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_estimator.pkl')
+
         path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
         joblib.dump(algo, path)
+
         if self.verbose:
-            self.logger.info(f'R squared on train set is {r2_score(y_train, algo.predict(X_train))}')
-        y_pred_test = algo.predict(X_test)
-        MAPE_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-        y_pred_train = algo.predict(X_train)
-        MAPE_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
-        #with open('MAPE.txt', 'w') as f:
-            #f.write(str(MAPE))
+            self.logger.info(f'R squared on train set is {r2_score(y_train, algo.predict(x_train))}')
+
+        y_pred_test = algo.predict(x_test)
+        mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
+        y_pred_train = algo.predict(x_train)
+        mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
+        # with open('mape.txt', 'w') as f:
+        # f.write(str(mape))
+
         if self.verbose:
             self.logger.info(f'''
-            MAPE on train set is: {MAPE_train}
-            MAPE on test set is: {MAPE_test} 
+            MAPE on train set is: {mape_train}
+            MAPE on test set is: {mape_test} 
             RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))} 
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
@@ -178,4 +189,4 @@ class Trainer(LogMixin):
 
 # TODO
 # Adding n*log(n)*v (supposedly = runtime of training in big o notation)
-#X_1=np.append(X,np.array(X[:,1]*X[:,0]*np.log(X[:,0])).reshape(432,1),axis=1)
+# X_1=np.append(X,np.array(X[:,1]*X[:,0]*np.log(X[:,0])).reshape(432,1),axis=1)

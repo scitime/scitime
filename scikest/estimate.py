@@ -9,6 +9,7 @@ import warnings
 
 warnings.simplefilter("ignore")
 
+
 class Estimator(Trainer, LogMixin):
     ALGO_ESTIMATOR = 'LR'
     ALGO = 'RF'
@@ -29,7 +30,6 @@ class Estimator(Trainer, LogMixin):
     @property
     def num_cpu(self):
         return os.cpu_count()
-
 
     @timeout(1)
     def _fit_start(self, X, y, algo):
@@ -57,12 +57,14 @@ class Estimator(Trainer, LogMixin):
                 self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
             path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
             estimator = joblib.load(path)
+
         # Retrieving all parameters of interest
         inputs = []
         n = X.shape[0]
         inputs.append(n)
         p = X.shape[1]
         inputs.append(p)
+
         params = algo.get_params()
         param_list = list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
 
@@ -84,8 +86,10 @@ class Estimator(Trainer, LogMixin):
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose:
             self.logger.info(f'Training your model for these params: {dic}')
+
         df = pd.DataFrame(dic, columns=param_list)
         df = pd.get_dummies(df)
+
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
         if self.verbose & len(missing_inputs) > 0:
@@ -95,19 +99,19 @@ class Estimator(Trainer, LogMixin):
 
         df = df[self.estimation_inputs]
         if self.algo_estimator == 'LR':
-            pred = coefs[0]
+            prediction = coefs[0]
             for i in range(df.shape[1]):
-                pred += df.ix[0, i] * coefs[i + 1]
+                prediction += df.ix[0, i] * coefs[i + 1]
         else:
             X = (df[self.estimation_inputs]
                  ._get_numeric_data()
                  .dropna(axis=0, how='any')
                  .as_matrix())
-            pred = estimator.predict(X)
-        if self.verbose:
-            self.logger.info(f'Training your model should take ~ {pred[0]} seconds')
-        return pred
+            prediction = estimator.predict(X)
 
+        if self.verbose:
+            self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
+        return prediction
 
     def estimate_duration(self, X, y, algo):
         """
@@ -128,4 +132,3 @@ class Estimator(Trainer, LogMixin):
                 if self.verbose:
                     self.logger.info('The model would fit. Moving on')
                 return self._estimate(X, algo)
-
