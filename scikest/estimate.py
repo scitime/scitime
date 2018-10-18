@@ -34,6 +34,7 @@ class Estimator(Trainer, LogMixin):
     @timeout(1)
     def _fit_start(self, X, y, algo):
         """starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec"""
+        algo.verbose = 0
         algo.fit(X, y)
         time.sleep(1)
 
