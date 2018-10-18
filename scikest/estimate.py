@@ -1,12 +1,14 @@
-from train import Trainer
-import joblib
-from utils import LogMixin, get_path, config, timeout
 import os
+
+import joblib
 import json
 import pandas as pd
 import time
-import warnings
 
+from scikest.utils import LogMixin, get_path, config, timeout
+from scikest.train import Trainer
+
+import warnings
 warnings.simplefilter("ignore")
 
 

@@ -1,12 +1,14 @@
+import os
+
 import logging
 import json
 import time
+
 from functools import wraps
 import errno
 import signal
-import os
-import warnings
 
+import warnings
 warnings.simplefilter("ignore")
 
 

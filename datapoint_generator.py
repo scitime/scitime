@@ -1,8 +1,8 @@
-from main import RFest
+from scikest.train import Trainer
 import pandas as pd
 import time
 
-generator=RFest()
+generator=Trainer()
 generator.drop_rate=0.999
 generator.rows_range=[500000, 1000000,10000000]
 generator.max_depth_range=[10,50,100,200]
