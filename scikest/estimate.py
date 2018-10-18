@@ -93,10 +93,11 @@ class Estimator(Trainer, LogMixin):
         df = pd.get_dummies(df)
 
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
-        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
-        if self.verbose & len(missing_inputs) > 0:
+        inputs_to_fill = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
+        missing_inputs = list(set(list(df.columns)) - set(list((self.estimation_inputs))))
+        if self.verbose and (len(missing_inputs) > 0):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
-        for i in missing_inputs:
+        for i in inputs_to_fill:
             df[i] = 0
 
         df = df[self.estimation_inputs]
