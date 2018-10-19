@@ -19,6 +19,7 @@ warnings.simplefilter("ignore")
 
 from scikest.utils import LogMixin, get_path, config, timeit
 
+
 class Trainer(LogMixin):
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
