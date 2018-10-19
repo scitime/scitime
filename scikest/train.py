@@ -13,11 +13,11 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from scikest.utils import LogMixin, get_path, config, timeit
-
 import warnings
+
 warnings.simplefilter("ignore")
 
+from scikest.utils import LogMixin, get_path, config, timeit
 
 class Trainer(LogMixin):
     ALGO_ESTIMATOR = 'LR'

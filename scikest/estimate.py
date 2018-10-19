@@ -5,11 +5,11 @@ import json
 import pandas as pd
 import time
 
-from scikest.utils import LogMixin, get_path, config, timeout
-from scikest.train import Trainer
-
 import warnings
 warnings.simplefilter("ignore")
+
+from scikest.utils import LogMixin, get_path, config, timeout
+from scikest.train import Trainer
 
 
 class Estimator(Trainer, LogMixin):
@@ -17,7 +17,7 @@ class Estimator(Trainer, LogMixin):
     ALGO = 'RF'
 
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
-        super().__init__(verbose, algo_estimator, algo)
+        super().__init__(verbose=verbose, algo_estimator=algo_estimator, algo=algo)
         self.algo_estimator = algo_estimator
         self.algo = algo
         self.params = config(self.algo)
