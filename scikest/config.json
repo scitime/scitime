@@ -75,8 +75,10 @@
         5,
         50,
         100
-      ],
-      "memory":[]
-    }
+      ]
+    },
+    "other_params": [
+      "memory"
+    ]
   }
 }

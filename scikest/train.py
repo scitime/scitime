@@ -32,7 +32,7 @@ class Trainer(LogMixin):
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = [i for i in self.params['external_params'].keys()] \
+        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
         + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
         + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
@@ -92,21 +92,20 @@ class Trainer(LogMixin):
         outputs = []
         rf_parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
-        self.params['external_params']['memory']=[self.memory.total]
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[3:]))
-            final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
+            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
 
             # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
+                final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
                 # Handling max_features > p case
                 try:
+                    thisInput = [self.memory.total] + [i for i in permutation]
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
-                    thisInput = permutation
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
@@ -116,7 +115,7 @@ class Trainer(LogMixin):
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
+        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
