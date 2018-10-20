@@ -48,7 +48,7 @@ class Trainer(LogMixin):
         return psutil.virtual_memory()
     
     @staticmethod
-    def _add_data_to_csv(input, output):
+    def _add_data_to_csv(row_input, row_output):
         """
         writes into a csv row by row
 
@@ -58,7 +58,7 @@ class Trainer(LogMixin):
         """
         with open(r'result.csv', 'a+') as file:
             writer = csv.writer(file)
-            row = list(input) + [output]
+            row = list(row_input) + [row_output]
             writer.writerows([row])
 
     def _measure_time(self, n, p, params):
@@ -114,14 +114,14 @@ class Trainer(LogMixin):
                 final_params = dict(zip(external_parameters_list + parameters_list, permutation))
                 # Handling max_features > p case
                 try:
-                    input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
-                    output = self._measure_time(n, p, parameters_dic)
-                    outputs.append(output)
-                    inputs.append(input)
+                    row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
+                    row_output = self._measure_time(n, p, parameters_dic)
+                    outputs.append(row_output)
+                    inputs.append(row_input)
                     if self.verbose:
-                        self.logger.info(f'data added for {final_params} which outputs {output} seconds')
+                        self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
 
-                    self._add_data_to_csv(input, output)
+                    self._add_data_to_csv(row_input, row_output)
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
