@@ -137,7 +137,7 @@ class Trainer(LogMixin):
 
         :param generate_data: bool (if set to True, calls _generate_data)
         :param df: pd.DataFrame chosen as input
-        :param output: pd.DataFrame chosen as output
+        :param outputs: pd.DataFrame chosen as output
         :return: algo
         :rtype: pickle file
         """
