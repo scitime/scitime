@@ -1,7 +1,7 @@
 {
   "supported_algos": [
     "RF",
-    "SVM"
+    "SVC"
   ],
   "RF": {
     "type": "regression",
@@ -88,7 +88,7 @@
       "num_cpu"
     ]
   },
-  "SVM": {
+  "SVC": {
     "type": "classification",
     "internal_params": {
       "C": [

@@ -11,6 +11,7 @@ import itertools
 
 from sklearn import linear_model
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVC
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 
@@ -72,11 +73,18 @@ class Trainer(LogMixin):
         """
         # Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
-        y = np.random.rand(n, )
+        if self.params["type"] == "regression":
+            y = np.random.rand(n, )
+        if self.params["type"] == "classification":
+            y = np.random.randint(0, 2, n)
         # Fitting model
-        clf = RandomForestRegressor(**params)
+        if self.algo == "RF":
+            model = RandomForestRegressor(**params)
+        if self.algo == "SVC":
+            model = SVC(**params)
+
         start_time = time.time()
-        clf.fit(X, y)
+        model.fit(X, y)
         elapsed_time = time.time() - start_time
         return elapsed_time
 
