@@ -97,7 +97,7 @@ class Trainer(LogMixin):
 
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
+            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[3:]))
             final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
 
             # Computing only for (1-self.drop_rate) % of the data
@@ -114,7 +114,6 @@ class Trainer(LogMixin):
 
                     self._add_data_to_csv(thisInput, thisOutput)
                 except Exception as e:
-                    print(e)
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
         inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
