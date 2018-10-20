@@ -1,4 +1,5 @@
 import os
+import psutil
 
 import numpy as np
 import pandas as pd
@@ -31,17 +32,18 @@ class Trainer(LogMixin):
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params[
-            'internal_params'].keys() if i not in self.params['dummy_inputs']] + [i + '_' + str(k) for i in
-                                                                                  self.params['internal_params'].keys()
-                                                                                  if i in self.params['dummy_inputs']
-                                                                                  for k in
-                                                                                  self.params['internal_params'][i]]
+        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
+        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
+        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     @property
     def num_cpu(self):
         return os.cpu_count()
 
+    @property
+    def memory(self):
+        return psutil.virtual_memory()
+    
     @staticmethod
     def _add_data_to_csv(thisInput, thisOutput):
         """
@@ -95,15 +97,15 @@ class Trainer(LogMixin):
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
-            final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
 
             # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
+                final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
                 # Handling max_features > p case
                 try:
+                    thisInput = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
-                    thisInput = permutation
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
@@ -113,7 +115,7 @@ class Trainer(LogMixin):
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
+        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
@@ -164,7 +166,7 @@ class Trainer(LogMixin):
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
-            with open('coefs/lr_coefs.json', 'w') as outfile:
+            with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo.intercept_] + list(algo.coef_), outfile)
         if self.verbose:
             self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_estimator.pkl')

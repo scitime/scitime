@@ -1,4 +1,5 @@
 import os
+import psutil
 
 import joblib
 import json
@@ -22,7 +23,7 @@ class Estimator(Trainer, LogMixin):
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params[
+        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] + [i for i in self.params[
             'internal_params'].keys() if i not in self.params['dummy_inputs']] + [i + '_' + str(k) for i in
                                                                                   self.params['internal_params'].keys()
                                                                                   if i in self.params['dummy_inputs']
@@ -32,6 +33,10 @@ class Estimator(Trainer, LogMixin):
     @property
     def num_cpu(self):
         return os.cpu_count()
+
+    @property
+    def memory(self):
+        return psutil.virtual_memory()
 
     @timeout(1)
     def _fit_start(self, X, y, algo):
@@ -53,7 +58,7 @@ class Estimator(Trainer, LogMixin):
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
-                coefs = json.load(f)
+                coefs = json.load(f)              
         else:
             if self.verbose:
                 self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
@@ -62,13 +67,16 @@ class Estimator(Trainer, LogMixin):
 
         # Retrieving all parameters of interest
         inputs = []
+        inputs.append(self.memory.total)
+        inputs.append(self.memory.available)
+        inputs.append(self.num_cpu)
         n = X.shape[0]
         inputs.append(n)
         p = X.shape[1]
         inputs.append(p)
 
         params = algo.get_params()
-        param_list = list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
+        param_list = self.params['other_params'] + list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
 
         for i in self.params['internal_params'].keys():
             # Handling n_jobs=-1 case
@@ -99,7 +107,6 @@ class Estimator(Trainer, LogMixin):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
         for i in inputs_to_fill:
             df[i] = 0
-
         df = df[self.estimation_inputs]
         if self.algo_estimator == 'LR':
             prediction = coefs[0]
