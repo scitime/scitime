@@ -118,7 +118,6 @@ class Trainer(LogMixin):
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        print(inputs,external_parameters_list + rf_parameters_list + ['memory'])
         inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list + ['memory'] )
         outputs = pd.DataFrame(outputs, columns=['output'])
 
