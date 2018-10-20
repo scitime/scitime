@@ -140,7 +140,7 @@
       "shrinking": [
         true,
         false
-      ]
+      ],
       "tol": [
         0.001,
         0.002,
