@@ -58,7 +58,7 @@ class Estimator(Trainer, LogMixin):
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
-                coefs = json.load(f)
+                coefs = json.load(f)              
         else:
             if self.verbose:
                 self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
@@ -68,6 +68,8 @@ class Estimator(Trainer, LogMixin):
         # Retrieving all parameters of interest
         inputs = []
         inputs.append(self.memory.total)
+        inputs.append(self.memory.available)
+        inputs.append(self.num_cpu)
         n = X.shape[0]
         inputs.append(n)
         p = X.shape[1]
@@ -105,7 +107,6 @@ class Estimator(Trainer, LogMixin):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
         for i in inputs_to_fill:
             df[i] = 0
-
         df = df[self.estimation_inputs]
         if self.algo_estimator == 'LR':
             prediction = coefs[0]

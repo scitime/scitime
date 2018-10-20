@@ -78,7 +78,9 @@
       ]
     },
     "other_params": [
-      "memory"
+      "total_memory"
+      , "available_memory"
+      , "num_cpu"
     ]
   }
 }

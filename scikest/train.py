@@ -104,7 +104,7 @@ class Trainer(LogMixin):
                 final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
                 # Handling max_features > p case
                 try:
-                    thisInput = [self.memory.total] + [i for i in permutation]
+                    thisInput = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
@@ -166,7 +166,7 @@ class Trainer(LogMixin):
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
-            with open('coefs/lr_coefs.json', 'w') as outfile:
+            with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo.intercept_] + list(algo.coef_), outfile)
         if self.verbose:
             self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_estimator.pkl')
