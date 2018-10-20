@@ -32,12 +32,9 @@ class Trainer(LogMixin):
         self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = [i for i in self.params['external_params'].keys()] + [i for i in self.params[
-            'internal_params'].keys() if i not in self.params['dummy_inputs']] + [i + '_' + str(k) for i in
-                                                                                  self.params['internal_params'].keys()
-                                                                                  if i in self.params['dummy_inputs']
-                                                                                  for k in
-                                                                                  self.params['internal_params'][i]]
+        self.estimation_inputs = [i for i in self.params['external_params'].keys()] \
+        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
+        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     @property
     def num_cpu(self):
@@ -95,6 +92,7 @@ class Trainer(LogMixin):
         outputs = []
         rf_parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
+        self.params['external_params']['memory']=[self.memory.total]
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
         for permutation in itertools.product(*concat_dic.values()):
@@ -108,7 +106,7 @@ class Trainer(LogMixin):
                 # Handling max_features > p case
                 try:
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
-                    thisInput = list(permutation) + [self.memory.total]
+                    thisInput = permutation
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
@@ -116,9 +114,10 @@ class Trainer(LogMixin):
 
                     self._add_data_to_csv(thisInput, thisOutput)
                 except Exception as e:
+                    print(e)
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list + ['memory'] )
+        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
