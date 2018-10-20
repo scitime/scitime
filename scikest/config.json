@@ -1,5 +1,6 @@
 {
   "RF": {
+    "type": "regression",
     "internal_params": {
       "n_estimators": [
         10,
@@ -78,9 +79,95 @@
       ]
     },
     "other_params": [
-      "total_memory"
-      , "available_memory"
-      , "num_cpu"
+      "total_memory",
+      "available_memory",
+      "num_cpu"
+    ]
+  },
+  "SVM": {
+    "type": "classification",
+    "internal_params": {
+      'C': [
+        0.5,
+        1.0,
+        1.5,
+        2
+      ],
+      "cache_size": [
+        50,
+        100,
+        200,
+        500,
+        1000
+      ],
+      "coef0": [
+        0.0,
+        1,
+        2
+      ],
+      "decision_function_shape": [
+        "ovr",
+        "ovo"
+      ],
+      "degree": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "gamma": [
+        "auto",
+        "scale"
+      ],
+      "kernel": [
+        "linear",
+        "poly",
+        "rbf",
+        "sigmoid",
+        "precomputed"
+      ],
+      "max_iter": [
+        10,
+        20,
+        100,
+        200,
+        -1
+      ],
+      "probability": [
+        true,
+        false
+      ],
+      "shrinking": [
+        true,
+        false
+      ]
+      "tol": [
+        0.001,
+        0.002,
+        0.003
+      ]
+    },
+    "dummy_inputs": [
+      "kernel",
+      "gamma",
+      "decision_function_shape"
+    ],
+    "external_params": {
+      "num_rows": [
+        100,
+        1000,
+        10000
+      ],
+      "num_features": [
+        5,
+        50,
+        100
+      ]
+    },
+    "other_params": [
+      "total_memory",
+      "available_memory",
+      "num_cpu"
     ]
   }
 }
