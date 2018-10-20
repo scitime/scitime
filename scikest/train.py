@@ -1,4 +1,5 @@
 import os
+import psutil
 
 import numpy as np
 import pandas as pd
@@ -42,6 +43,10 @@ class Trainer(LogMixin):
     def num_cpu(self):
         return os.cpu_count()
 
+    @property
+    def memory(self):
+        return psutil.virtual_memory()
+    
     @staticmethod
     def _add_data_to_csv(thisInput, thisOutput):
         """
@@ -103,7 +108,7 @@ class Trainer(LogMixin):
                 # Handling max_features > p case
                 try:
                     thisOutput = self._measure_time(n, p, rf_parameters_dic)
-                    thisInput = permutation
+                    thisInput = list(permutation) + [self.memory.total]
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
@@ -113,7 +118,8 @@ class Trainer(LogMixin):
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list)
+        print(inputs,external_parameters_list + rf_parameters_list + ['memory'])
+        inputs = pd.DataFrame(inputs, columns=external_parameters_list + rf_parameters_list + ['memory'] )
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
