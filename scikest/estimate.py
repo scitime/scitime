@@ -18,17 +18,18 @@ class Estimator(Trainer, LogMixin):
     ALGO = 'RF'
 
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
+        self.algo = algo
+        if self.algo not in config("supported_algos"):
+            raise ValueError(f'{self.algo} not currently supported by this package')
         super().__init__(verbose=verbose, algo_estimator=algo_estimator, algo=algo)
         self.algo_estimator = algo_estimator
-        self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] + [i for i in self.params[
-            'internal_params'].keys() if i not in self.params['dummy_inputs']] + [i + '_' + str(k) for i in
-                                                                                  self.params['internal_params'].keys()
-                                                                                  if i in self.params['dummy_inputs']
-                                                                                  for k in
-                                                                                  self.params['internal_params'][i]]
+        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
+                                 + [i for i in self.params['internal_params'].keys() if
+                                    i not in self.params['dummy_inputs']] \
+                                 + [i + '_' + str(k) for i in self.params['internal_params'].keys() if
+                                    i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     @property
     def num_cpu(self):

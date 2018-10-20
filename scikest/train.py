@@ -27,9 +27,11 @@ class Trainer(LogMixin):
     ALGO = 'RF'
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
+        self.algo = algo
+        if self.algo not in config("supported_algos"):
+            raise ValueError(f'{self.algo} not currently supported by this package')
         self.drop_rate = drop_rate
         self.algo_estimator = algo_estimator
-        self.algo = algo
         self.params = config(self.algo)
         self.verbose = verbose
         self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \

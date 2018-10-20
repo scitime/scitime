@@ -1,4 +1,8 @@
 {
+  "supported_algos": [
+    "RF",
+    "SVM"
+  ],
   "RF": {
     "type": "regression",
     "internal_params": {
