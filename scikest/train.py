@@ -58,21 +58,21 @@ class Trainer(LogMixin):
             thisRow = list(thisInput) + [thisOutput]
             writer.writerows([thisRow])
 
-    def _measure_time(self, n, p, rf_params):
+    def _measure_time(self, n, p, params):
         """
         generates dummy fits and tracks the training runtime
 
         :param n: number of observations
         :param p: number of features
-        :param rf_params: rf params included in the estimation
+        :param params: model params included in the estimation
         :return: runtime
         :rtype: float
         """
         # Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
         y = np.random.rand(n, )
-        # Fitting rf
-        clf = RandomForestRegressor(**rf_params)
+        # Fitting model
+        clf = RandomForestRegressor(**params)
         start_time = time.time()
         clf.fit(X, y)
         elapsed_time = time.time() - start_time
@@ -90,22 +90,22 @@ class Trainer(LogMixin):
             self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
-        rf_parameters_list = list(self.params['internal_params'].keys())
+        parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
+            parameters_dic = dict(zip(parameters_list, permutation[2:]))
 
             # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
-                final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
+                final_params = dict(zip(external_parameters_list + parameters_list, permutation))
                 # Handling max_features > p case
                 try:
                     thisInput = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
-                    thisOutput = self._measure_time(n, p, rf_parameters_dic)
+                    thisOutput = self._measure_time(n, p, parameters_dic)
                     outputs.append(thisOutput)
                     inputs.append(thisInput)
                     if self.verbose:
@@ -115,7 +115,7 @@ class Trainer(LogMixin):
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + rf_parameters_list)
+        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
