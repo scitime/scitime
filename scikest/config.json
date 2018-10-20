@@ -87,7 +87,7 @@
   "SVM": {
     "type": "classification",
     "internal_params": {
-      'C': [
+      "C": [
         0.5,
         1.0,
         1.5,
