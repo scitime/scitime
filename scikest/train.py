@@ -155,7 +155,7 @@ class Trainer(LogMixin):
             algo = RandomForestRegressor()
 
         if self.verbose:
-            self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations')
+            self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
 
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
@@ -179,9 +179,9 @@ class Trainer(LogMixin):
             with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo.intercept_] + list(algo.coef_), outfile)
         if self.verbose:
-            self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_estimator.pkl')
+            self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_{self.algo}_estimator.pkl')
 
-        path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
+        path = f'{get_path("models")}/{self.algo_estimator}_{self.algo}_estimator.pkl'
         joblib.dump(algo, path)
 
         if self.verbose:

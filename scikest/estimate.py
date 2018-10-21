@@ -15,13 +15,9 @@ from scikest.train import Trainer
 
 class Estimator(Trainer, LogMixin):
     ALGO_ESTIMATOR = 'LR'
-    ALGO = 'RandomForestRegressor'
 
-    def __init__(self, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
-        self.algo = algo
-        if self.algo not in config("supported_algos"):
-            raise ValueError(f'{self.algo} not currently supported by this package')
-        super().__init__(verbose=verbose, algo_estimator=algo_estimator, algo=algo)
+    def __init__(self, algo_estimator=ALGO_ESTIMATOR, verbose=True):
+        super().__init__(verbose=verbose, algo_estimator=algo_estimator)
         self.algo_estimator = algo_estimator
         self.params = config(self.algo)
         self.verbose = verbose
@@ -46,6 +42,18 @@ class Estimator(Trainer, LogMixin):
         algo.fit(X, y)
         time.sleep(1)
 
+    @staticmethod
+    def _fetch_name(algo):
+        """
+        retrieves algo name from sklearn model
+
+        :param algo: sklearn model
+        :return: algo name
+        :rtype: str
+        """
+
+        return str(algo).split('(')[0]
+
     def _estimate(self, X, algo):
         """
         estimates given that the fit starts
@@ -55,6 +63,10 @@ class Estimator(Trainer, LogMixin):
         :return: predicted runtime
         :rtype: float
         """
+        algo_name = self._fetch_name(algo)
+        if self._fetch_name(algo_name) not in config("supported_algos"):
+            raise ValueError(f'{algo_name} not currently supported by this package')
+
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
@@ -62,8 +74,8 @@ class Estimator(Trainer, LogMixin):
                 coefs = json.load(f)              
         else:
             if self.verbose:
-                self.logger.info(f'Fetching estimator: {self.algo_estimator}_estimator.pkl')
-            path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
+                self.logger.info(f'Fetching estimator: {self.algo_estimator}_{algo_name}_estimator.pkl')
+            path = f'{get_path("models")}/{self.algo_estimator}_{algo_name}_estimator.pkl'
             estimator = joblib.load(path)
 
         # Retrieving all parameters of interest
