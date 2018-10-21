@@ -1,9 +1,9 @@
 {
   "supported_algos": [
-    "RF",
+    "RandomForestRegressor",
     "SVC"
   ],
-  "RF": {
+  "RandomForestRegressor": {
     "type": "regression",
     "internal_params": {
       "n_estimators": [

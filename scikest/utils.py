@@ -37,9 +37,7 @@ def timeit(method):
 
 
 def get_path(file):
-    """
-    returns current path
-    """
+    """returns current path"""
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), file)
 
 

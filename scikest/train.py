@@ -25,7 +25,7 @@ from scikest.utils import LogMixin, get_path, config, timeit
 class Trainer(LogMixin):
     ALGO_ESTIMATOR = 'LR'
     DROP_RATE = 0.9
-    ALGO = 'RF'
+    ALGO = 'RandomForestRegressor'
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.algo = algo
@@ -78,7 +78,7 @@ class Trainer(LogMixin):
         if self.params["type"] == "classification":
             y = np.random.randint(0, 2, n)
         # Fitting model
-        if self.algo == "RF":
+        if self.algo == "RandomForestRegressor":
             model = RandomForestRegressor(**params)
         if self.algo == "SVC":
             model = SVC(**params)

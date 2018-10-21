@@ -15,7 +15,7 @@ from scikest.train import Trainer
 
 class Estimator(Trainer, LogMixin):
     ALGO_ESTIMATOR = 'LR'
-    ALGO = 'RF'
+    ALGO = 'RandomForestRegressor'
 
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.algo = algo
