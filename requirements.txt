@@ -1,4 +1,6 @@
+joblib==0.12.5
 pandas==0.20.3
 numpy==1.13.3
+psutils==5.4.7
 scipy==1.0.0
 scikit-learn==0.19.1
