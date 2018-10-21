@@ -23,7 +23,7 @@ from scikest.utils import LogMixin, get_path, config, timeit
 
 
 class Trainer(LogMixin):
-    ALGO_ESTIMATOR = 'LR'
+    ALGO_ESTIMATOR = 'RF'
     DROP_RATE = 0.9
     ALGO = 'RandomForestRegressor'
 
@@ -61,13 +61,14 @@ class Trainer(LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
-    def _measure_time(self, n, p, params):
+    def _measure_time(self, n, p, params, num_cat=None):
         """
         generates dummy fits and tracks the training runtime
 
         :param n: number of observations
         :param p: number of features
         :param params: model params included in the estimation
+        :param num_cat: number of categories if classification algo
         :return: runtime
         :rtype: float
         """
@@ -76,7 +77,7 @@ class Trainer(LogMixin):
         if self.params["type"] == "regression":
             y = np.random.rand(n, )
         if self.params["type"] == "classification":
-            y = np.random.randint(0, 2, n)
+            y = np.random.randint(0, num_cat, n)
         # Fitting model
         if self.algo == "RandomForestRegressor":
             model = RandomForestRegressor(**params)
@@ -106,8 +107,11 @@ class Trainer(LogMixin):
 
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-            parameters_dic = dict(zip(parameters_list, permutation[2:]))
-
+            if self.params["type"] == "classification":
+                num_cat = permutation[2]
+                parameters_dic = dict(zip(parameters_list, permutation[3:]))
+            else:
+                parameters_dic = dict(zip(parameters_list, permutation[2:]))
             # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
@@ -115,7 +119,10 @@ class Trainer(LogMixin):
                 # Handling max_features > p case
                 try:
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
-                    row_output = self._measure_time(n, p, parameters_dic)
+                    if self.params["type"] == "classification":
+                        row_output = self._measure_time(n, p, parameters_dic, num_cat)
+                    else:
+                        row_output = self._measure_time(n, p, parameters_dic)
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose:

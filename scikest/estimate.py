@@ -4,6 +4,7 @@ import psutil
 import joblib
 import json
 import pandas as pd
+import numpy as np
 import time
 
 import warnings
@@ -14,18 +15,12 @@ from scikest.train import Trainer
 
 
 class Estimator(Trainer, LogMixin):
-    ALGO_ESTIMATOR = 'LR'
+    ALGO_ESTIMATOR = 'RF'
 
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, verbose=True):
         super().__init__(verbose=verbose, algo_estimator=algo_estimator)
         self.algo_estimator = algo_estimator
-        self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
-                                 + [i for i in self.params['internal_params'].keys() if
-                                    i not in self.params['dummy_inputs']] \
-                                 + [i + '_' + str(k) for i in self.params['internal_params'].keys() if
-                                    i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     @property
     def num_cpu(self):
@@ -54,11 +49,12 @@ class Estimator(Trainer, LogMixin):
 
         return str(algo).split('(')[0]
 
-    def _estimate(self, X, algo):
+    def _estimate(self, X, y, algo):
         """
         estimates given that the fit starts
 
         :param X: np.array of inputs to be trained
+        :param y: np.array of outputs to be trained
         :param algo: algo used to predict runtime
         :return: predicted runtime
         :rtype: float
@@ -66,6 +62,13 @@ class Estimator(Trainer, LogMixin):
         algo_name = self._fetch_name(algo)
         if self._fetch_name(algo_name) not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
+
+        params = config(algo_name)
+        estimation_inputs = params['other_params'] + [i for i in params['external_params'].keys()] \
+                                 + [i for i in params['internal_params'].keys() if
+                                    i not in params['dummy_inputs']] \
+                                 + [i + '_' + str(k) for i in params['internal_params'].keys() if
+                                    i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
         if self.algo_estimator == 'LR':
             if self.verbose:
@@ -87,24 +90,27 @@ class Estimator(Trainer, LogMixin):
         inputs.append(n)
         p = X.shape[1]
         inputs.append(p)
+        if params["type"] == "classification":
+            num_cat = len(np.unique(y))
+            inputs.append(num_cat)
 
-        params = algo.get_params()
-        param_list = self.params['other_params'] + list(self.params['external_params'].keys()) + list(self.params['internal_params'].keys())
+        algo_params = algo.get_params()
+        param_list = params['other_params'] + list(params['external_params'].keys()) + list(params['internal_params'].keys())
 
-        for i in self.params['internal_params'].keys():
+        for i in params['internal_params'].keys():
             # Handling n_jobs=-1 case
             if i == 'n_jobs':
-                if params[i] == -1:
+                if algo_params[i] == -1:
                     inputs.append(self.num_cpu)
                 else:
-                    inputs.append(params[i])
+                    inputs.append(algo_params[i])
 
             else:
                 if i in self.params['dummy_inputs']:
                     # To make dummy
-                    inputs.append(str(params[i]))
+                    inputs.append(str(algo_params[i]))
                 else:
-                    inputs.append(params[i])
+                    inputs.append(algo_params[i])
         # Making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose:
@@ -114,19 +120,19 @@ class Estimator(Trainer, LogMixin):
         df = pd.get_dummies(df)
 
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
-        inputs_to_fill = list(set(list(self.estimation_inputs)) - set(list((df.columns))))
-        missing_inputs = list(set(list(df.columns)) - set(list((self.estimation_inputs))))
+        inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
+        missing_inputs = list(set(list(df.columns)) - set(list((estimation_inputs))))
         if self.verbose and (len(missing_inputs) > 0):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
         for i in inputs_to_fill:
             df[i] = 0
-        df = df[self.estimation_inputs]
+        df = df[estimation_inputs]
         if self.algo_estimator == 'LR':
             prediction = coefs[0]
             for i in range(df.shape[1]):
                 prediction += df.ix[0, i] * coefs[i + 1]
         else:
-            X = (df[self.estimation_inputs]
+            X = (df[estimation_inputs]
                  ._get_numeric_data()
                  .dropna(axis=0, how='any')
                  .as_matrix())
@@ -154,4 +160,4 @@ class Estimator(Trainer, LogMixin):
             else:
                 if self.verbose:
                     self.logger.info('The model would fit. Moving on')
-                return self._estimate(X, algo)
+                return self._estimate(X, y, algo)

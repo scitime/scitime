@@ -120,15 +120,13 @@
         5
       ],
       "gamma": [
-        "auto",
-        "scale"
+        "auto"
       ],
       "kernel": [
         "linear",
         "poly",
         "rbf",
-        "sigmoid",
-        "precomputed"
+        "sigmoid"
       ],
       "max_iter": [
         10,
@@ -166,6 +164,12 @@
         5,
         50,
         100
+      ],
+      "num_categories": [
+        2,
+        3,
+        5,
+        10
       ]
     },
     "other_params": [
