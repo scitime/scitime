@@ -202,7 +202,3 @@ class Trainer(LogMixin):
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
         return algo
-
-# TODO
-# Adding n*log(n)*v (supposedly = runtime of training in big o notation)
-# X_1=np.append(X,np.array(X[:,1]*X[:,0]*np.log(X[:,0])).reshape(432,1),axis=1)
