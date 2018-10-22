@@ -29,8 +29,6 @@ class Trainer(LogMixin):
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.algo = algo
-        if self.algo not in config("supported_algos"):
-            raise ValueError(f'{self.algo} not currently supported by this package')
         self.drop_rate = drop_rate
         self.algo_estimator = algo_estimator
         self.verbose = verbose
@@ -45,6 +43,8 @@ class Trainer(LogMixin):
 
     @property
     def params(self):
+        if self.algo not in config("supported_algos"):
+            raise ValueError(f'{self.algo} not currently supported by this package')
         return config(self.algo)
 
     @property
