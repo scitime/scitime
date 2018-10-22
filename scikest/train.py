@@ -33,7 +33,6 @@ class Trainer(LogMixin):
             raise ValueError(f'{self.algo} not currently supported by this package')
         self.drop_rate = drop_rate
         self.algo_estimator = algo_estimator
-        self.params = config(self.algo)
         self.verbose = verbose
 
     @property
@@ -43,6 +42,10 @@ class Trainer(LogMixin):
     @property
     def memory(self):
         return psutil.virtual_memory()
+
+    @property
+    def params(self):
+        return config(self.algo)
 
     @property
     def estimation_inputs(self):
