@@ -35,9 +35,6 @@ class Trainer(LogMixin):
         self.algo_estimator = algo_estimator
         self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
-        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
-        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     @property
     def num_cpu(self):
@@ -46,6 +43,17 @@ class Trainer(LogMixin):
     @property
     def memory(self):
         return psutil.virtual_memory()
+
+    @property
+    def estimation_inputs(self):
+        """
+        retrieves estimation inputs (made dummy)
+
+        :return: list of inputs
+        """
+        return self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
+        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
+        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
     
     @staticmethod
     def _add_data_to_csv(row_input, row_output):
