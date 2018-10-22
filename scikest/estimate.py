@@ -49,6 +49,20 @@ class Estimator(Trainer, LogMixin):
 
         return str(algo).split('(')[0]
 
+    @staticmethod
+    def _fetch_inputs(params):
+        """
+        retrieves estimation inputs (made dummy)
+
+        :param params: dict data
+        :return: list of inputs
+        """
+        return params['other_params'] + [i for i in params['external_params'].keys()] \
+        + [i for i in params['internal_params'].keys() if
+           i not in params['dummy_inputs']] \
+        + [i + '_' + str(k) for i in params['internal_params'].keys() if
+           i in params['dummy_inputs'] for k in params['internal_params'][i]]
+
     def _estimate(self, X, y, algo):
         """
         estimates given that the fit starts
@@ -64,11 +78,7 @@ class Estimator(Trainer, LogMixin):
             raise ValueError(f'{algo_name} not currently supported by this package')
 
         params = config(algo_name)
-        estimation_inputs = params['other_params'] + [i for i in params['external_params'].keys()] \
-                                 + [i for i in params['internal_params'].keys() if
-                                    i not in params['dummy_inputs']] \
-                                 + [i + '_' + str(k) for i in params['internal_params'].keys() if
-                                    i in params['dummy_inputs'] for k in params['internal_params'][i]]
+        estimation_inputs = self._fetch_inputs(params)
 
         if self.algo_estimator == 'LR':
             if self.verbose:
