@@ -156,7 +156,7 @@ class Trainer(LogMixin):
         :param generate_data: bool (if set to True, calls _generate_data)
         :param df: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
-        :return: algo
+        :return: algo_estimator
         :rtype: pickle file
         """
         if generate_data:
@@ -168,9 +168,9 @@ class Trainer(LogMixin):
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
         if self.algo_estimator == 'LR':
-            algo = linear_model.LinearRegression()
+            algo_estimator = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
-            algo = RandomForestRegressor()
+            algo_estimator = RandomForestRegressor()
 
         if self.verbose:
             self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
@@ -189,25 +189,25 @@ class Trainer(LogMixin):
 
         # Diving into train/test
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
-        algo.fit(x_train, y_train)
+        algo_estimator.fit(x_train, y_train)
 
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
             with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
-                json.dump([algo.intercept_] + list(algo.coef_), outfile)
+                json.dump([algo_estimator.intercept_] + list(algo_estimator.coef_), outfile)
         if self.verbose:
             self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_{self.algo}_estimator.pkl')
 
         path = f'{get_path("models")}/{self.algo_estimator}_{self.algo}_estimator.pkl'
-        joblib.dump(algo, path)
+        joblib.dump(algo_estimator, path)
 
         if self.verbose:
-            self.logger.info(f'R squared on train set is {r2_score(y_train, algo.predict(x_train))}')
+            self.logger.info(f'R squared on train set is {r2_score(y_train, algo_estimator.predict(x_train))}')
 
-        y_pred_test = algo.predict(x_test)
+        y_pred_test = algo_estimator.predict(x_test)
         mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-        y_pred_train = algo.predict(x_train)
+        y_pred_train = algo_estimator.predict(x_train)
         mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         # with open('mape.txt', 'w') as f:
         # f.write(str(mape))
@@ -219,4 +219,4 @@ class Trainer(LogMixin):
             RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))} 
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
-        return algo
+        return algo_estimator
