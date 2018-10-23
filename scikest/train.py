@@ -12,6 +12,7 @@ import itertools
 from sklearn import linear_model
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVC
+from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 

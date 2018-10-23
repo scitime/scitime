@@ -1,7 +1,8 @@
 {
   "supported_algos": [
     "RandomForestRegressor",
-    "SVC"
+    "SVC",
+    "KMeans"
   ],
   "RandomForestRegressor": {
     "type": "regression",
@@ -170,6 +171,67 @@
         3,
         5,
         10
+      ]
+    },
+    "other_params": [
+      "total_memory",
+      "available_memory",
+      "num_cpu"
+    ]
+  },
+  "KMeans": {
+    "type": "unsupervised",
+    "internal_params": {
+      "algorithm": [
+        "auto"
+      ],
+      "copy_x": [
+        "True"
+      ],
+      "init": [
+        "k-means++"
+      ],
+      "max_iter": [
+        300
+      ],
+      "n_clusters": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "n_init": 10,
+      "n_jobs": [
+        1,
+        2,
+        5,
+        8
+      ],
+      "precompute_distances": [
+        "auto"
+      ],
+      "tol": [
+        0.0001,
+        0.0002,
+        0.0003
+      ]
+    },
+    "dummy_inputs": [
+      "precompute_distances",
+      "init",
+      "algorithm"
+    ],
+    "external_params": {
+      "num_rows": [
+        100,
+        1000,
+        10000
+      ],
+      "num_features": [
+        5,
+        50,
+        100
       ]
     },
     "other_params": [
