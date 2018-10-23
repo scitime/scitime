@@ -32,7 +32,7 @@ import numpy as np
 import time
 import pandas as pd
 from scikest.estimate import Estimator
-#example for rfregressor
+# example for rf regressor
 estimator = Estimator(algo_estimator='RF')
 rf= RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
            max_features=10, max_leaf_nodes=10, min_impurity_decrease=10,
