@@ -31,7 +31,7 @@ class Estimator(Trainer, LogMixin):
         return psutil.virtual_memory()
 
     @timeout(1)
-    def _fit_start(self, X=None, y=None, algo=None):
+    def _fit_start(self, algo, X, y=None):
         """starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec"""
         algo.verbose = 0
         algo_name = self._fetch_name(algo)
@@ -69,12 +69,12 @@ class Estimator(Trainer, LogMixin):
         + [i + '_' + str(k) for i in params['internal_params'].keys() if
            i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
-    def _estimate(self, X, y, algo):
+    def _estimate(self, algo, X, y=None):
         """
         estimates given that the fit starts
 
         :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained
+        :param y: np.array of outputs to be trained (set to None is unsupervised algo)
         :param algo: algo used to predict runtime
         :return: predicted runtime
         :rtype: float
@@ -158,22 +158,22 @@ class Estimator(Trainer, LogMixin):
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
         return prediction
 
-    def estimate_duration(self, X=None, y=None, algo=None):
+    def estimate_duration(self, algo, X, y=None):
         """
         predicts training runtime for a given training
 
         :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained
+        :param y: np.array of outputs to be trained (set to None is unsupervised algo)
         :param algo: algo used to predict runtime
         :return: predicted runtime
         :rtype: float
         """
         try:
-            self._fit_start(X=X, y=y, algo=algo)
+            self._fit_start(algo=algo, X=X, y=y)
         except Exception as e:
             if e.__class__.__name__ != 'TimeoutError':
                 raise e
             else:
                 if self.verbose:
                     self.logger.info('The model would fit. Moving on')
-                return self._estimate(X, y, algo)
+                return self._estimate(algo, X, y)
