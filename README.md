@@ -47,7 +47,7 @@ rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
 
 X,y = np.random.rand(100000,10),np.random.rand(100000,1)
 # run the estimation
-estimator.estimate_duration(X,y, rf)
+estimator.estimate_duration(rf, X, y)
 
 # compare to the actual training time
 start_time = time.time()
