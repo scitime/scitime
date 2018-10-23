@@ -74,7 +74,7 @@ class Estimator(Trainer, LogMixin):
         estimates given that the fit starts
 
         :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained (set to None is unsupervised algo)
+        :param y: np.array of outputs to be trained (set to None if unsupervised algo)
         :param algo: algo used to predict runtime
         :return: predicted runtime
         :rtype: float
