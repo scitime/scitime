@@ -31,10 +31,16 @@ class Estimator(Trainer, LogMixin):
         return psutil.virtual_memory()
 
     @timeout(1)
-    def _fit_start(self, X, y, algo):
+    def _fit_start(self, X=None, y=None, algo=None):
         """starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec"""
         algo.verbose = 0
-        algo.fit(X, y)
+        algo_name = self._fetch_name(algo)
+        params = config(algo_name)
+        algo_type = params['type']
+        if algo_type == 'unsupervised':
+            algo.fit(X)
+        else:
+            algo.fit(X, y)
         time.sleep(1)
 
     @staticmethod
@@ -152,7 +158,7 @@ class Estimator(Trainer, LogMixin):
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
         return prediction
 
-    def estimate_duration(self, X, y, algo):
+    def estimate_duration(self, X=None, y=None, algo=None):
         """
         predicts training runtime for a given training
 

@@ -95,9 +95,14 @@ class Trainer(LogMixin):
             model = RandomForestRegressor(**params)
         if self.algo == "SVC":
             model = SVC(**params)
+        if self.algo == "KMeans":
+            model = KMeans(**params)
 
         start_time = time.time()
-        model.fit(X, y)
+        if self.params["type"] == "unsupervised":
+            model.fit(X)
+        else:
+            model.fit(X, y)
         elapsed_time = time.time() - start_time
         return elapsed_time
 
