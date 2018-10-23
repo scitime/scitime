@@ -10,7 +10,7 @@ Python version: 3.6.3
 ```
 #### How to run train.py?
 
-After pulling the master branch (`git pull origin master`),
+After pulling the master branch (`git pull origin master`) and setting the environment (described above),
 run `ipython` and:
 
 ```
