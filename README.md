@@ -15,9 +15,11 @@ run `ipython` and:
 
 ```
 from scikest.train import Trainer
+
 # example of data generation for rf regressor
 trainer = Trainer(drop_rate=0.99999, verbose=True, algo='RandomForestRegressor')
 inputs, outputs = trainer._generate_data()
+
 # then fitting the model
 algo_estimator = trainer.model_fit(generate_data=False, df=inputs, outputs=outputs)
 # this should overwrite the pickle file located at scikest/models/{your_model}
@@ -31,7 +33,9 @@ from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import time
 import pandas as pd
+
 from scikest.estimate import Estimator
+
 # example for rf regressor
 estimator = Estimator(algo_estimator='RF')
 rf= RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
@@ -44,6 +48,7 @@ rf= RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
 X,y=np.random.rand(100000,10),np.random.rand(100000,1)
 # run the estimation
 estimator.estimate_duration(X,y, rf)
+
 # compare to the actual training time
 start_time = time.time()
 rf.fit(X,y)
