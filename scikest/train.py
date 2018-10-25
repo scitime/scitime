@@ -205,7 +205,7 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
 
-        #@nathan to clarify the missing inputs thing 
+        #@nathan to clarify the missing inputs thing
         # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
         for i in missing_inputs:
@@ -222,11 +222,13 @@ class Trainer(LogMixin):
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
         algo_estimator.fit(x_train, y_train)
 
+        #@nathan do we only do the LR case here? why not the RF?
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
             with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([algo_estimator.intercept_] + list(algo_estimator.coef_), outfile)
+
         if self.verbose:
             self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_{self.algo}_estimator.pkl')
 
@@ -236,6 +238,7 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info(f'R squared on train set is {r2_score(y_train, algo_estimator.predict(x_train))}')
 
+        #MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
         y_pred_test = algo_estimator.predict(x_test)
         mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
         y_pred_train = algo_estimator.predict(x_train)
@@ -250,4 +253,5 @@ class Trainer(LogMixin):
             RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))}
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
+        #@nathan returning the estimator actually returns the pickle file!?
         return algo_estimator
