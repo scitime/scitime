@@ -26,15 +26,19 @@ from scikest.utils import LogMixin, get_path, config, timeit
 
 
 class Trainer(LogMixin):
-    ALGO_ESTIMATOR = 'RF'
-    DROP_RATE = 0.9
-    ALGO = 'RandomForestRegressor'
+    """
+    This class is used to instantiate an object for fitting the meta-algorithm
+    """
+    ALGO_ESTIMATOR = 'RF' #This is the meta-algorithm
+    DROP_RATE = 0.9 #The drop rate is used to fit the meta-algo on random parameters
+    ALGO = 'RandomForestRegressor' #The default estimated algorithm is a Random Forest from sklearn
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.algo = algo
         self.drop_rate = drop_rate
         self.algo_estimator = algo_estimator
         self.verbose = verbose
+        #@nathan when is self.params initilized?
 
     @property
     def num_cpu(self):
@@ -46,6 +50,11 @@ class Trainer(LogMixin):
 
     @property
     def params(self):
+        """
+        retrieves the estimated algorithm's parameters if the algo is supported
+
+        :return: dictionary
+        """
         if self.algo not in config("supported_algos"):
             raise ValueError(f'{self.algo} not currently supported by this package')
         return config(self.algo)
