@@ -63,7 +63,7 @@ class Estimator(Trainer, LogMixin):
 
         return str(algo).split('(')[0]
 
-    # @nathan same function as estimation_inputs in train.py? refactor? 
+    # @nathan same function as estimation_inputs in train.py? refactor?
     @staticmethod
     def _fetch_inputs(params):
         """
@@ -78,23 +78,26 @@ class Estimator(Trainer, LogMixin):
         + [i + '_' + str(k) for i in params['internal_params'].keys() if
            i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
+
     def _estimate(self, algo, X, y=None):
         """
-        estimates given that the fit starts
+        estimates the model's training time given that the fit starts
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None if unsupervised algo)
-        :param algo: algo used to predict runtime
+        :param algo: algo whose runtime the user wants to predict
         :return: predicted runtime
         :rtype: float
         """
-        algo_name = self._fetch_name(algo)
+        algo_name = self._fetch_name(algo) #this is the sklearn model of the user
         if self._fetch_name(algo_name) not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
 
         params = config(algo_name)
         estimation_inputs = self._fetch_inputs(params)
 
+
+        #@nathan  want to deprecate 'LR'?
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
@@ -136,6 +139,7 @@ class Estimator(Trainer, LogMixin):
                     inputs.append(str(algo_params[i]))
                 else:
                     inputs.append(algo_params[i])
+
         # Making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose:
@@ -173,7 +177,7 @@ class Estimator(Trainer, LogMixin):
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None is unsupervised algo)
-        :param algo: algo used to predict runtime
+        :param algo: algo whose runtime the user wants to predict
         :return: predicted runtime
         :rtype: float
         """
@@ -181,6 +185,7 @@ class Estimator(Trainer, LogMixin):
             self._fit_start(algo=algo, X=X, y=y)
         except Exception as e:
             if e.__class__.__name__ != 'TimeoutError':
+                #this means that the sklearn fit has raised a natural exception before we artificailly raised a timeout
                 raise e
             else:
                 if self.verbose:
