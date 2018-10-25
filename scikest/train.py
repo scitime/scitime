@@ -95,13 +95,14 @@ class Trainer(LogMixin):
         :return: runtime
         :rtype: float
         """
-        # Genrating dummy inputs / outputs
+        # Generating dummy inputs / outputs in [0,1)
         X = np.random.rand(n, p)
         if self.params["type"] == "regression":
             y = np.random.rand(n, )
         if self.params["type"] == "classification":
             y = np.random.randint(0, num_cat, n)
-        # Fitting model
+
+        # Select a model, the estimated algo
         if self.algo == "RandomForestRegressor":
             model = RandomForestRegressor(**params)
         if self.algo == "SVC":
@@ -109,6 +110,7 @@ class Trainer(LogMixin):
         if self.algo == "KMeans":
             model = KMeans(**params)
 
+        # Measure model execution time
         start_time = time.time()
         if self.params["type"] == "unsupervised":
             model.fit(X)
@@ -117,10 +119,12 @@ class Trainer(LogMixin):
         elapsed_time = time.time() - start_time
         return elapsed_time
 
+
     @timeit
     def _generate_data(self):
         """
-        measures training runtimes for a set of distinct parameters - saves results in a csv (row by row)
+        measures training runtimes for a set of distinct parameters
+        saves results in a csv (row by row)
 
         :return: inputs, outputs
         :rtype: pd.DataFrame
@@ -133,6 +137,9 @@ class Trainer(LogMixin):
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
+
+        # In this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is unsupervised)
+        # We use a drop rate to randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             if self.params["type"] == "classification":
@@ -140,6 +147,7 @@ class Trainer(LogMixin):
                 parameters_dic = dict(zip(parameters_list, permutation[3:]))
             else:
                 parameters_dic = dict(zip(parameters_list, permutation[2:]))
+
             # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
@@ -147,6 +155,8 @@ class Trainer(LogMixin):
                 # Handling max_features > p case
                 try:
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
+
+                    # This is where the models are fitted
                     if self.params["type"] == "classification":
                         row_output = self._measure_time(n, p, parameters_dic, num_cat)
                     else:
@@ -155,8 +165,8 @@ class Trainer(LogMixin):
                     inputs.append(row_input)
                     if self.verbose:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
-
                     self._add_data_to_csv(row_input, row_output)
+
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
@@ -176,6 +186,8 @@ class Trainer(LogMixin):
         :return: algo_estimator
         :rtype: pickle file
         """
+        # @nathan this boolean is not clear to me: please clarify the use case for false and raise exception if df and outputs are not given as arguments
+
         if generate_data:
             df, outputs = self._generate_data()
 
