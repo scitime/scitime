@@ -73,7 +73,7 @@ class Trainer(LogMixin):
     @staticmethod
     def _add_data_to_csv(row_input, row_output):
         """
-        writes into a csv row by row
+        writes into the csv results file row by row
 
         :param input: row inputs
         :param output: row output
@@ -86,7 +86,7 @@ class Trainer(LogMixin):
 
     def _measure_time(self, n, p, params, num_cat=None):
         """
-        generates dummy fits and tracks the training runtime
+        generates fits with the meta-algo using dummy data and tracks the training runtime
 
         :param n: number of observations
         :param p: number of features
