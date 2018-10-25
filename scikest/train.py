@@ -37,6 +37,7 @@ class Trainer(LogMixin):
         self.algo_estimator = algo_estimator #This is the meta-algorithm
         self.verbose = verbose
         #@nathan when is self.params initilized?
+        # it is line 51: when I define params(self) with the property decorator
 
     @property
     def num_cpu(self):
@@ -185,7 +186,7 @@ class Trainer(LogMixin):
         :rtype: pickle file
         """
         # @nathan this boolean is not clear to me: please clarify the use case for false and raise exception if df and outputs are not given as arguments
-
+        # if true you already generated some data so you dont want to call _generate_data. in that case yiu add the pregenerated data as an argument of the function (df and inputs)
         if generate_data:
             df, outputs = self._generate_data()
 
@@ -204,6 +205,9 @@ class Trainer(LogMixin):
             self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
 
         #@nathan to clarify the missing inputs thing
+        #missing input is when we m\are missing some columns: for instance if self.estimation_inputs contains
+        #max_features_auto, max_features_20 etc, then if one of these is not in data, we need to make sure to add a correspo nding column filled with zeros.
+        #this is even more relevant in estimate.py
         # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
         for i in missing_inputs:
@@ -221,6 +225,7 @@ class Trainer(LogMixin):
         algo_estimator.fit(x_train, y_train)
 
         #@nathan do we only do the LR case here? why not the RF?
+        #this was when we thought LR would be a great meta algo. we wanted to save the model by saving the coefs instead of pickle file, this is why it s only relevant for LR. but not useful now
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
@@ -252,4 +257,5 @@ class Trainer(LogMixin):
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
         #@nathan returning the estimator actually returns the pickle file!?
+        #yes, not sure that s necessary though
         return algo_estimator

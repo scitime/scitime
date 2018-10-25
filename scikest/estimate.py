@@ -64,6 +64,7 @@ class Estimator(Trainer, LogMixin):
         return str(algo).split('(')[0]
 
     # @nathan same function as estimation_inputs in train.py? refactor?
+    #yes exept it s not based on any class argument but on the algo called by the user, which is why it has to be a staticmethod instead of property
     @staticmethod
     def _fetch_inputs(params):
         """
@@ -98,6 +99,7 @@ class Estimator(Trainer, LogMixin):
 
 
         #@nathan  want to deprecate 'LR'?
+        #yes i intend to I think, tbd
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
