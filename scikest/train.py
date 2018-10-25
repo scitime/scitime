@@ -1,3 +1,5 @@
+
+#### IMPORTS ####
 import os
 import psutil
 
@@ -58,7 +60,7 @@ class Trainer(LogMixin):
         return self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
         + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
         + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
-    
+
     @staticmethod
     def _add_data_to_csv(row_input, row_output):
         """
@@ -221,8 +223,8 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info(f'''
             MAPE on train set is: {mape_train}
-            MAPE on test set is: {mape_test} 
-            RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))} 
+            MAPE on test set is: {mape_test}
+            RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))}
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
         return algo_estimator
