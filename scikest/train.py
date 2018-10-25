@@ -34,9 +34,9 @@ class Trainer(LogMixin):
     ALGO = 'RandomForestRegressor' #The default estimated algorithm is a Random Forest from sklearn
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
-        self.algo = algo
+        self.algo = algo #The end user will estimate the fitting time of this algo using the package
         self.drop_rate = drop_rate
-        self.algo_estimator = algo_estimator
+        self.algo_estimator = algo_estimator #This is the meta-algorithm
         self.verbose = verbose
         #@nathan when is self.params initilized?
 
@@ -196,6 +196,7 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
+        # We decide on a meta-algorithm
         if self.algo_estimator == 'LR':
             algo_estimator = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
@@ -204,7 +205,8 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
 
-        # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
+        #@nathan to clarify the missing inputs thing 
+        # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
         for i in missing_inputs:
             data[i] = 0
