@@ -1,5 +1,3 @@
-
-#### IMPORTS ####
 import os
 import psutil
 
@@ -29,9 +27,9 @@ class Trainer(LogMixin):
     """
     This class is used to instantiate an object for fitting the meta-algorithm
     """
-    ALGO_ESTIMATOR = 'RF' #This is the meta-algorithm
-    DROP_RATE = 0.9 #The drop rate is used to fit the meta-algo on random parameters
-    ALGO = 'RandomForestRegressor' #The default estimated algorithm is a Random Forest from sklearn
+    ALGO_ESTIMATOR = 'RF' # This is the meta-algorithm
+    DROP_RATE = 0.9 # The drop rate is used to fit the meta-algo on random parameters
+    ALGO = 'RandomForestRegressor' # The default estimated algorithm is a Random Forest from sklearn
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
         self.algo = algo #The end user will estimate the fitting time of this algo using the package

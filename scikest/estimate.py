@@ -15,11 +15,14 @@ from scikest.train import Trainer
 
 
 class Estimator(Trainer, LogMixin):
-    ALGO_ESTIMATOR = 'RF'
+    """
+    This class is used to instantiate an object that will estimate the running time of the user's model
+    """
+    ALGO_ESTIMATOR = 'RF' # This is the meta-algorithm
 
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, verbose=True):
         super().__init__(verbose=verbose, algo_estimator=algo_estimator)
-        self.algo_estimator = algo_estimator
+        self.algo_estimator = algo_estimator  # This is the meta-algorithm
         self.verbose = verbose
 
     @property
@@ -32,7 +35,12 @@ class Estimator(Trainer, LogMixin):
 
     @timeout(1)
     def _fit_start(self, algo, X, y=None):
-        """starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec"""
+        """
+        Starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec
+        Raises a TimeoutError if no other exception is raised before
+        Used in the estimate_duration function
+
+        """
         algo.verbose = 0
         algo_name = self._fetch_name(algo)
         params = config(algo_name)
@@ -55,6 +63,7 @@ class Estimator(Trainer, LogMixin):
 
         return str(algo).split('(')[0]
 
+    # @nathan same function as estimation_inputs in train.py? refactor? 
     @staticmethod
     def _fetch_inputs(params):
         """
@@ -90,7 +99,7 @@ class Estimator(Trainer, LogMixin):
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
-                coefs = json.load(f)              
+                coefs = json.load(f)
         else:
             if self.verbose:
                 self.logger.info(f'Fetching estimator: {self.algo_estimator}_{algo_name}_estimator.pkl')
