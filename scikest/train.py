@@ -11,6 +11,8 @@ import itertools
 
 from sklearn import linear_model
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.svm import SVC
+from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 
@@ -22,19 +24,15 @@ from scikest.utils import LogMixin, get_path, config, timeit
 
 
 class Trainer(LogMixin):
-    ALGO_ESTIMATOR = 'LR'
+    ALGO_ESTIMATOR = 'RF'
     DROP_RATE = 0.9
-    ALGO = 'RF'
+    ALGO = 'RandomForestRegressor'
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
+        self.algo = algo
         self.drop_rate = drop_rate
         self.algo_estimator = algo_estimator
-        self.algo = algo
-        self.params = config(self.algo)
         self.verbose = verbose
-        self.estimation_inputs = self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
-        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
-        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
 
     @property
     def num_cpu(self):
@@ -43,38 +41,68 @@ class Trainer(LogMixin):
     @property
     def memory(self):
         return psutil.virtual_memory()
+
+    @property
+    def params(self):
+        if self.algo not in config("supported_algos"):
+            raise ValueError(f'{self.algo} not currently supported by this package')
+        return config(self.algo)
+
+    @property
+    def estimation_inputs(self):
+        """
+        retrieves estimation inputs (made dummy)
+
+        :return: list of inputs
+        """
+        return self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
+        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
+        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
     
     @staticmethod
-    def _add_data_to_csv(thisInput, thisOutput):
+    def _add_data_to_csv(row_input, row_output):
         """
         writes into a csv row by row
 
-        :param thisInput: input
-        :param thisOutput: output
+        :param input: row inputs
+        :param output: row output
         :return:
         """
         with open(r'result.csv', 'a+') as file:
             writer = csv.writer(file)
-            thisRow = list(thisInput) + [thisOutput]
-            writer.writerows([thisRow])
+            row = list(row_input) + [row_output]
+            writer.writerows([row])
 
-    def _measure_time(self, n, p, rf_params):
+    def _measure_time(self, n, p, params, num_cat=None):
         """
         generates dummy fits and tracks the training runtime
 
         :param n: number of observations
         :param p: number of features
-        :param rf_params: rf params included in the estimation
+        :param params: model params included in the estimation
+        :param num_cat: number of categories if classification algo
         :return: runtime
         :rtype: float
         """
         # Genrating dummy inputs / outputs
         X = np.random.rand(n, p)
-        y = np.random.rand(n, )
-        # Fitting rf
-        clf = RandomForestRegressor(**rf_params)
+        if self.params["type"] == "regression":
+            y = np.random.rand(n, )
+        if self.params["type"] == "classification":
+            y = np.random.randint(0, num_cat, n)
+        # Fitting model
+        if self.algo == "RandomForestRegressor":
+            model = RandomForestRegressor(**params)
+        if self.algo == "SVC":
+            model = SVC(**params)
+        if self.algo == "KMeans":
+            model = KMeans(**params)
+
         start_time = time.time()
-        clf.fit(X, y)
+        if self.params["type"] == "unsupervised":
+            model.fit(X)
+        else:
+            model.fit(X, y)
         elapsed_time = time.time() - start_time
         return elapsed_time
 
@@ -90,32 +118,38 @@ class Trainer(LogMixin):
             self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
-        rf_parameters_list = list(self.params['internal_params'].keys())
+        parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-            rf_parameters_dic = dict(zip(rf_parameters_list, permutation[2:]))
-
+            if self.params["type"] == "classification":
+                num_cat = permutation[2]
+                parameters_dic = dict(zip(parameters_list, permutation[3:]))
+            else:
+                parameters_dic = dict(zip(parameters_list, permutation[2:]))
             # Computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
-                final_params = dict(zip(external_parameters_list + rf_parameters_list, permutation))
+                final_params = dict(zip(external_parameters_list + parameters_list, permutation))
                 # Handling max_features > p case
                 try:
-                    thisInput = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
-                    thisOutput = self._measure_time(n, p, rf_parameters_dic)
-                    outputs.append(thisOutput)
-                    inputs.append(thisInput)
+                    row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
+                    if self.params["type"] == "classification":
+                        row_output = self._measure_time(n, p, parameters_dic, num_cat)
+                    else:
+                        row_output = self._measure_time(n, p, parameters_dic)
+                    outputs.append(row_output)
+                    inputs.append(row_input)
                     if self.verbose:
-                        self.logger.info(f'data added for {final_params} which outputs {thisOutput} seconds')
+                        self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
 
-                    self._add_data_to_csv(thisInput, thisOutput)
+                    self._add_data_to_csv(row_input, row_output)
                 except Exception as e:
                     self.logger.warning(f'model fit for {final_params} throws an error')
 
-        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + rf_parameters_list)
+        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
@@ -127,8 +161,8 @@ class Trainer(LogMixin):
 
         :param generate_data: bool (if set to True, calls _generate_data)
         :param df: pd.DataFrame chosen as input
-        :param output: pd.DataFrame chosen as output
-        :return: algo
+        :param outputs: pd.DataFrame chosen as output
+        :return: algo_estimator
         :rtype: pickle file
         """
         if generate_data:
@@ -140,12 +174,12 @@ class Trainer(LogMixin):
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
         if self.algo_estimator == 'LR':
-            algo = linear_model.LinearRegression()
+            algo_estimator = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
-            algo = RandomForestRegressor()
+            algo_estimator = RandomForestRegressor()
 
         if self.verbose:
-            self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations')
+            self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
 
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
@@ -161,25 +195,25 @@ class Trainer(LogMixin):
 
         # Diving into train/test
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
-        algo.fit(x_train, y_train)
+        algo_estimator.fit(x_train, y_train)
 
         if self.algo_estimator == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
             with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
-                json.dump([algo.intercept_] + list(algo.coef_), outfile)
+                json.dump([algo_estimator.intercept_] + list(algo_estimator.coef_), outfile)
         if self.verbose:
-            self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_estimator.pkl')
+            self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_{self.algo}_estimator.pkl')
 
-        path = f'{get_path("models")}/{self.algo_estimator}_estimator.pkl'
-        joblib.dump(algo, path)
+        path = f'{get_path("models")}/{self.algo_estimator}_{self.algo}_estimator.pkl'
+        joblib.dump(algo_estimator, path)
 
         if self.verbose:
-            self.logger.info(f'R squared on train set is {r2_score(y_train, algo.predict(x_train))}')
+            self.logger.info(f'R squared on train set is {r2_score(y_train, algo_estimator.predict(x_train))}')
 
-        y_pred_test = algo.predict(x_test)
+        y_pred_test = algo_estimator.predict(x_test)
         mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-        y_pred_train = algo.predict(x_train)
+        y_pred_train = algo_estimator.predict(x_train)
         mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         # with open('mape.txt', 'w') as f:
         # f.write(str(mape))
@@ -191,8 +225,4 @@ class Trainer(LogMixin):
             RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))} 
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
-        return algo
-
-# TODO
-# Adding n*log(n)*v (supposedly = runtime of training in big o notation)
-# X_1=np.append(X,np.array(X[:,1]*X[:,0]*np.log(X[:,0])).reshape(432,1),axis=1)
+        return algo_estimator

@@ -1,5 +1,11 @@
 {
-  "RF": {
+  "supported_algos": [
+    "RandomForestRegressor",
+    "SVC",
+    "KMeans"
+  ],
+  "RandomForestRegressor": {
+    "type": "regression",
     "internal_params": {
       "n_estimators": [
         10,
@@ -78,9 +84,160 @@
       ]
     },
     "other_params": [
-      "total_memory"
-      , "available_memory"
-      , "num_cpu"
+      "total_memory",
+      "available_memory",
+      "num_cpu"
+    ]
+  },
+  "SVC": {
+    "type": "classification",
+    "internal_params": {
+      "C": [
+        0.5,
+        1.0,
+        1.5,
+        2
+      ],
+      "cache_size": [
+        50,
+        100,
+        200,
+        500,
+        1000
+      ],
+      "coef0": [
+        0.0,
+        1,
+        2
+      ],
+      "decision_function_shape": [
+        "ovr",
+        "ovo"
+      ],
+      "degree": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "gamma": [
+        "auto"
+      ],
+      "kernel": [
+        "linear",
+        "poly",
+        "rbf",
+        "sigmoid"
+      ],
+      "max_iter": [
+        10,
+        20,
+        100,
+        200,
+        -1
+      ],
+      "probability": [
+        true,
+        false
+      ],
+      "shrinking": [
+        true,
+        false
+      ],
+      "tol": [
+        0.001,
+        0.002,
+        0.003
+      ]
+    },
+    "dummy_inputs": [
+      "kernel",
+      "gamma",
+      "decision_function_shape"
+    ],
+    "external_params": {
+      "num_rows": [
+        100,
+        1000,
+        10000
+      ],
+      "num_features": [
+        5,
+        50,
+        100
+      ],
+      "num_categories": [
+        2,
+        3,
+        5,
+        10
+      ]
+    },
+    "other_params": [
+      "total_memory",
+      "available_memory",
+      "num_cpu"
+    ]
+  },
+  "KMeans": {
+    "type": "unsupervised",
+    "internal_params": {
+      "algorithm": [
+        "auto"
+      ],
+      "copy_x": [
+        "True"
+      ],
+      "init": [
+        "k-means++"
+      ],
+      "max_iter": [
+        300
+      ],
+      "n_clusters": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "n_init": [10],
+      "n_jobs": [
+        1,
+        2,
+        5,
+        8
+      ],
+      "precompute_distances": [
+        "auto"
+      ],
+      "tol": [
+        0.0001,
+        0.0002,
+        0.0003
+      ]
+    },
+    "dummy_inputs": [
+      "precompute_distances",
+      "init",
+      "algorithm"
+    ],
+    "external_params": {
+      "num_rows": [
+        100,
+        1000,
+        10000
+      ],
+      "num_features": [
+        5,
+        50,
+        100
+      ]
+    },
+    "other_params": [
+      "total_memory",
+      "available_memory",
+      "num_cpu"
     ]
   }
 }
