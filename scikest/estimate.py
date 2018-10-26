@@ -1,3 +1,4 @@
+"""Class used to instantiate an object that will estimate the running time of the user's model"""
 import os
 import psutil
 
@@ -8,6 +9,7 @@ import numpy as np
 import time
 
 import warnings
+
 warnings.simplefilter("ignore")
 
 from scikest.utils import LogMixin, get_path, config, timeout
@@ -15,11 +17,12 @@ from scikest.train import Trainer
 
 
 class Estimator(Trainer, LogMixin):
-    ALGO_ESTIMATOR = 'RF'
+    # default meta-algorithm
+    META_ALGO = 'RF'
 
-    def __init__(self, algo_estimator=ALGO_ESTIMATOR, verbose=True):
-        super().__init__(verbose=verbose, algo_estimator=algo_estimator)
-        self.algo_estimator = algo_estimator
+    def __init__(self, meta_algo=META_ALGO, verbose=True):
+        super().__init__(verbose=verbose, meta_algo=meta_algo)
+        self.meta_algo = meta_algo
         self.verbose = verbose
 
     @property
@@ -32,7 +35,15 @@ class Estimator(Trainer, LogMixin):
 
     @timeout(1)
     def _fit_start(self, algo, X, y=None):
-        """starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec"""
+        """
+        starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec
+        raises a TimeoutError if no other exception is raised before
+        used in the estimate_duration function
+
+        :param algo: algo used
+        :param X: inputs for the algo
+        :param y: outputs for the algo
+        """
         algo.verbose = 0
         algo_name = self._fetch_name(algo)
         params = config(algo_name)
@@ -64,21 +75,22 @@ class Estimator(Trainer, LogMixin):
         :return: list of inputs
         """
         return params['other_params'] + [i for i in params['external_params'].keys()] \
-        + [i for i in params['internal_params'].keys() if
-           i not in params['dummy_inputs']] \
-        + [i + '_' + str(k) for i in params['internal_params'].keys() if
-           i in params['dummy_inputs'] for k in params['internal_params'][i]]
+               + [i for i in params['internal_params'].keys() if
+                  i not in params['dummy_inputs']] \
+               + [i + '_' + str(k) for i in params['internal_params'].keys() if
+                  i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
     def _estimate(self, algo, X, y=None):
         """
-        estimates given that the fit starts
+        estimates the model's training time given that the fit starts
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None if unsupervised algo)
-        :param algo: algo used to predict runtime
+        :param algo: algo whose runtime the user wants to predict
         :return: predicted runtime
         :rtype: float
         """
+        # fetching sklearn model of the end user
         algo_name = self._fetch_name(algo)
         if self._fetch_name(algo_name) not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
@@ -86,18 +98,18 @@ class Estimator(Trainer, LogMixin):
         params = config(algo_name)
         estimation_inputs = self._fetch_inputs(params)
 
-        if self.algo_estimator == 'LR':
+        if self.meta_algo == 'LR':
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
-                coefs = json.load(f)              
+                coefs = json.load(f)
         else:
             if self.verbose:
-                self.logger.info(f'Fetching estimator: {self.algo_estimator}_{algo_name}_estimator.pkl')
-            path = f'{get_path("models")}/{self.algo_estimator}_{algo_name}_estimator.pkl'
+                self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+            path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
             estimator = joblib.load(path)
 
-        # Retrieving all parameters of interest
+        # retrieving all parameters of interest
         inputs = []
         inputs.append(self.memory.total)
         inputs.append(self.memory.available)
@@ -111,10 +123,11 @@ class Estimator(Trainer, LogMixin):
             inputs.append(num_cat)
 
         algo_params = algo.get_params()
-        param_list = params['other_params'] + list(params['external_params'].keys()) + list(params['internal_params'].keys())
+        param_list = params['other_params'] + list(params['external_params'].keys()) + list(
+            params['internal_params'].keys())
 
         for i in params['internal_params'].keys():
-            # Handling n_jobs=-1 case
+            # handling n_jobs=-1 case
             if i == 'n_jobs':
                 if algo_params[i] == -1:
                     inputs.append(self.num_cpu)
@@ -123,11 +136,12 @@ class Estimator(Trainer, LogMixin):
 
             else:
                 if i in self.params['dummy_inputs']:
-                    # To make dummy
+                    # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
                     inputs.append(algo_params[i])
-        # Making dummy
+
+        # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose:
             self.logger.info(f'Training your model for these params: {dic}')
@@ -143,7 +157,7 @@ class Estimator(Trainer, LogMixin):
         for i in inputs_to_fill:
             df[i] = 0
         df = df[estimation_inputs]
-        if self.algo_estimator == 'LR':
+        if self.meta_algo == 'LR':
             prediction = coefs[0]
             for i in range(df.shape[1]):
                 prediction += df.ix[0, i] * coefs[i + 1]
@@ -164,7 +178,7 @@ class Estimator(Trainer, LogMixin):
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None is unsupervised algo)
-        :param algo: algo used to predict runtime
+        :param algo: algo whose runtime the user wants to predict
         :return: predicted runtime
         :rtype: float
         """
@@ -172,6 +186,7 @@ class Estimator(Trainer, LogMixin):
             self._fit_start(algo=algo, X=X, y=y)
         except Exception as e:
             if e.__class__.__name__ != 'TimeoutError':
+                # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
                 raise e
             else:
                 if self.verbose:
