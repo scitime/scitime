@@ -99,12 +99,12 @@ class Estimator(Trainer, LogMixin):
         estimation_inputs = self._fetch_inputs(params)
 
         if self.meta_algo == 'LR':
-            if self.verbose:
+            if self.verbose >= 2:
                 self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
                 coefs = json.load(f)
         else:
-            if self.verbose:
+            if self.verbose >= 2:
                 self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
             path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
             estimator = joblib.load(path)
@@ -143,7 +143,7 @@ class Estimator(Trainer, LogMixin):
 
         # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
 
         df = pd.DataFrame(dic, columns=param_list)
@@ -152,7 +152,7 @@ class Estimator(Trainer, LogMixin):
         # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
         inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
         missing_inputs = list(set(list(df.columns)) - set(list((estimation_inputs))))
-        if self.verbose and (len(missing_inputs) > 0):
+        if self.verbose >= 1 and (len(missing_inputs) > 0):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
         for i in inputs_to_fill:
             df[i] = 0
@@ -168,7 +168,7 @@ class Estimator(Trainer, LogMixin):
                  .as_matrix())
             prediction = estimator.predict(X)
 
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
         return prediction
 
@@ -189,6 +189,6 @@ class Estimator(Trainer, LogMixin):
                 # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
                 raise e
             else:
-                if self.verbose:
+                if self.verbose >= 2:
                     self.logger.info('The model would fit. Moving on')
                 return self._estimate(algo, X, y)

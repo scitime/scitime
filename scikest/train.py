@@ -32,7 +32,7 @@ class Trainer(LogMixin):
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
 
-    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=True):
+    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0):
         # the end user will estimate the fitting time of self.algo using the package
         self.algo = algo
         self.drop_rate = drop_rate
@@ -128,7 +128,7 @@ class Trainer(LogMixin):
         :return: inputs, outputs
         :rtype: pd.DataFrame
         """
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
@@ -161,12 +161,13 @@ class Trainer(LogMixin):
                         row_output = self._measure_time(n, p, parameters_dic)
                     outputs.append(row_output)
                     inputs.append(row_input)
-                    if self.verbose:
+                    if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
                     self._add_data_to_csv(row_input, row_output)
 
                 except Exception as e:
-                    self.logger.warning(f'model fit for {final_params} throws an error')
+                    if self.verbose >= 1:
+                        self.logger.warning(f'model fit for {final_params} throws an error')
 
         inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
@@ -189,7 +190,7 @@ class Trainer(LogMixin):
 
         data = pd.get_dummies(df)
 
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
         # we decide on a meta-algorithm
@@ -198,7 +199,7 @@ class Trainer(LogMixin):
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor()
 
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
 
         # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
@@ -218,18 +219,18 @@ class Trainer(LogMixin):
         meta_algo.fit(x_train, y_train)
 
         if self.meta_algo == 'LR':
-            if self.verbose:
+            if self.verbose >= 2:
                 self.logger.info('Saving LR coefs in json file')
             with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
                 json.dump([meta_algo.intercept_] + list(meta_algo.coef_), outfile)
 
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
 
         path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
         joblib.dump(meta_algo, path)
 
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(x_train))}')
 
         # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
@@ -240,7 +241,7 @@ class Trainer(LogMixin):
         # with open('mape.txt', 'w') as f:
         # f.write(str(mape))
 
-        if self.verbose:
+        if self.verbose >= 2:
             self.logger.info(f'''
             MAPE on train set is: {mape_train}
             MAPE on test set is: {mape_test}
