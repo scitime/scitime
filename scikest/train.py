@@ -1,3 +1,4 @@
+"""Class used to instantiate an object for fitting the meta-algorithm"""
 import os
 import psutil
 
@@ -24,19 +25,19 @@ from scikest.utils import LogMixin, get_path, config, timeit
 
 
 class Trainer(LogMixin):
-    """
-    This class is used to instantiate an object for fitting the meta-algorithm
-    """
-    ALGO_ESTIMATOR = 'RF' # This is the meta-algorithm
-    DROP_RATE = 0.9 # The drop rate is used to fit the meta-algo on random parameters
-    ALGO = 'RandomForestRegressor' # The default estimated algorithm is a Random Forest from sklearn
+    # default meta-algorithm
+    ALGO_ESTIMATOR = 'RF'
+    # the drop rate is used to fit the meta-algo on random parameters
+    DROP_RATE = 0.9
+    # the default estimated algorithm is a Random Forest from sklearn
+    ALGO = 'RandomForestRegressor'
 
     def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
-        self.algo = algo #The end user will estimate the fitting time of this algo using the package
+        # the end user will estimate the fitting time of self.algo using the package
+        self.algo = algo
         self.drop_rate = drop_rate
-        self.algo_estimator = algo_estimator #This is the meta-algorithm
+        self.algo_estimator = algo_estimator
         self.verbose = verbose
-
 
     @property
     def num_cpu(self):
@@ -65,8 +66,9 @@ class Trainer(LogMixin):
         :return: list of inputs
         """
         return self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
-        + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
-        + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs'] for k in self.params['internal_params'][i]]
+               + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
+               + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs']
+                  for k in self.params['internal_params'][i]]
 
     @staticmethod
     def _add_data_to_csv(row_input, row_output):
@@ -93,14 +95,14 @@ class Trainer(LogMixin):
         :return: runtime
         :rtype: float
         """
-        # Generating dummy inputs / outputs in [0,1)
+        # generating dummy inputs / outputs in [0,1)
         X = np.random.rand(n, p)
         if self.params["type"] == "regression":
             y = np.random.rand(n, )
         if self.params["type"] == "classification":
             y = np.random.randint(0, num_cat, n)
 
-        # Select a model, the estimated algo
+        # selecting a model, the estimated algo
         if self.algo == "RandomForestRegressor":
             model = RandomForestRegressor(**params)
         if self.algo == "SVC":
@@ -108,7 +110,7 @@ class Trainer(LogMixin):
         if self.algo == "KMeans":
             model = KMeans(**params)
 
-        # Measure model execution time
+        # measuring model execution time
         start_time = time.time()
         if self.params["type"] == "unsupervised":
             model.fit(X)
@@ -116,7 +118,6 @@ class Trainer(LogMixin):
             model.fit(X, y)
         elapsed_time = time.time() - start_time
         return elapsed_time
-
 
     @timeit
     def _generate_data(self):
@@ -135,9 +136,8 @@ class Trainer(LogMixin):
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
-
-        # In this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is unsupervised)
-        # We use a drop rate to randomize the parameters that we use
+        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
+        # we use a drop rate to randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             if self.params["type"] == "classification":
@@ -146,15 +146,15 @@ class Trainer(LogMixin):
             else:
                 parameters_dic = dict(zip(parameters_list, permutation[2:]))
 
-            # Computing only for (1-self.drop_rate) % of the data
+            # computing only for (1-self.drop_rate) % of the data
             random_value = np.random.uniform()
             if random_value > self.drop_rate:
                 final_params = dict(zip(external_parameters_list + parameters_list, permutation))
-                # Handling max_features > p case
+                # handling max_features > p case
                 try:
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
 
-                    # This is where the models are fitted
+                    # fitting the models
                     if self.params["type"] == "classification":
                         row_output = self._measure_time(n, p, parameters_dic, num_cat)
                     else:
@@ -184,7 +184,6 @@ class Trainer(LogMixin):
         :return: algo_estimator
         :rtype: pickle file
         """
-
         if generate_data:
             df, outputs = self._generate_data()
 
@@ -193,7 +192,7 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
-        # We decide on a meta-algorithm
+        # we decide on a meta-algorithm
         if self.algo_estimator == 'LR':
             algo_estimator = linear_model.LinearRegression()
         if self.algo_estimator == 'RF':
@@ -202,20 +201,19 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
 
-
         # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
         for i in missing_inputs:
             data[i] = 0
 
-        # Reshaping into arrays
+        # reshaping into arrays
         x = (data[self.estimation_inputs]
              ._get_numeric_data()
              .dropna(axis=0, how='any')
              .as_matrix())
         y = outputs['output'].dropna(axis=0, how='any').as_matrix()
 
-        # Diving into train/test
+        # dividing into train/test
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
         algo_estimator.fit(x_train, y_train)
 
@@ -234,7 +232,7 @@ class Trainer(LogMixin):
         if self.verbose:
             self.logger.info(f'R squared on train set is {r2_score(y_train, algo_estimator.predict(x_train))}')
 
-        #MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
+        # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
         y_pred_test = algo_estimator.predict(x_test)
         mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
         y_pred_train = algo_estimator.predict(x_train)

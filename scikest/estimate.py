@@ -1,3 +1,4 @@
+"""Class used to instantiate an object that will estimate the running time of the user's model"""
 import os
 import psutil
 
@@ -8,6 +9,7 @@ import numpy as np
 import time
 
 import warnings
+
 warnings.simplefilter("ignore")
 
 from scikest.utils import LogMixin, get_path, config, timeout
@@ -15,14 +17,12 @@ from scikest.train import Trainer
 
 
 class Estimator(Trainer, LogMixin):
-    """
-    This class is used to instantiate an object that will estimate the running time of the user's model
-    """
-    ALGO_ESTIMATOR = 'RF' # This is the meta-algorithm
+    # default meta-algorithm
+    ALGO_ESTIMATOR = 'RF'
 
     def __init__(self, algo_estimator=ALGO_ESTIMATOR, verbose=True):
         super().__init__(verbose=verbose, algo_estimator=algo_estimator)
-        self.algo_estimator = algo_estimator  # This is the meta-algorithm
+        self.algo_estimator = algo_estimator
         self.verbose = verbose
 
     @property
@@ -36,10 +36,13 @@ class Estimator(Trainer, LogMixin):
     @timeout(1)
     def _fit_start(self, algo, X, y=None):
         """
-        Starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec
-        Raises a TimeoutError if no other exception is raised before
-        Used in the estimate_duration function
+        starts fitting the model to make sure the fit is legit, throws error if error happens before 1 sec
+        raises a TimeoutError if no other exception is raised before
+        used in the estimate_duration function
 
+        :param algo: algo used
+        :param X: inputs for the algo
+        :param y: outputs for the algo
         """
         algo.verbose = 0
         algo_name = self._fetch_name(algo)
@@ -72,11 +75,10 @@ class Estimator(Trainer, LogMixin):
         :return: list of inputs
         """
         return params['other_params'] + [i for i in params['external_params'].keys()] \
-        + [i for i in params['internal_params'].keys() if
-           i not in params['dummy_inputs']] \
-        + [i + '_' + str(k) for i in params['internal_params'].keys() if
-           i in params['dummy_inputs'] for k in params['internal_params'][i]]
-
+               + [i for i in params['internal_params'].keys() if
+                  i not in params['dummy_inputs']] \
+               + [i + '_' + str(k) for i in params['internal_params'].keys() if
+                  i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
     def _estimate(self, algo, X, y=None):
         """
@@ -88,14 +90,13 @@ class Estimator(Trainer, LogMixin):
         :return: predicted runtime
         :rtype: float
         """
-        algo_name = self._fetch_name(algo) #this is the sklearn model of the user
+        # fetching sklearn model of the end user
+        algo_name = self._fetch_name(algo)
         if self._fetch_name(algo_name) not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
 
         params = config(algo_name)
         estimation_inputs = self._fetch_inputs(params)
-
-
 
         if self.algo_estimator == 'LR':
             if self.verbose:
@@ -108,7 +109,7 @@ class Estimator(Trainer, LogMixin):
             path = f'{get_path("models")}/{self.algo_estimator}_{algo_name}_estimator.pkl'
             estimator = joblib.load(path)
 
-        # Retrieving all parameters of interest
+        # retrieving all parameters of interest
         inputs = []
         inputs.append(self.memory.total)
         inputs.append(self.memory.available)
@@ -122,10 +123,11 @@ class Estimator(Trainer, LogMixin):
             inputs.append(num_cat)
 
         algo_params = algo.get_params()
-        param_list = params['other_params'] + list(params['external_params'].keys()) + list(params['internal_params'].keys())
+        param_list = params['other_params'] + list(params['external_params'].keys()) + list(
+            params['internal_params'].keys())
 
         for i in params['internal_params'].keys():
-            # Handling n_jobs=-1 case
+            # handling n_jobs=-1 case
             if i == 'n_jobs':
                 if algo_params[i] == -1:
                     inputs.append(self.num_cpu)
@@ -134,12 +136,12 @@ class Estimator(Trainer, LogMixin):
 
             else:
                 if i in self.params['dummy_inputs']:
-                    # To make dummy
+                    # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
                     inputs.append(algo_params[i])
 
-        # Making dummy
+        # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose:
             self.logger.info(f'Training your model for these params: {dic}')
@@ -184,7 +186,7 @@ class Estimator(Trainer, LogMixin):
             self._fit_start(algo=algo, X=X, y=y)
         except Exception as e:
             if e.__class__.__name__ != 'TimeoutError':
-                #this means that the sklearn fit has raised a natural exception before we artificailly raised a timeout
+                # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
                 raise e
             else:
                 if self.verbose:
