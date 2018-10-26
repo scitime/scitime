@@ -26,17 +26,17 @@ from scikest.utils import LogMixin, get_path, config, timeit
 
 class Trainer(LogMixin):
     # default meta-algorithm
-    ALGO_ESTIMATOR = 'RF'
+    META_ALGO = 'RF'
     # the drop rate is used to fit the meta-algo on random parameters
     DROP_RATE = 0.9
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
 
-    def __init__(self, drop_rate=DROP_RATE, algo_estimator=ALGO_ESTIMATOR, algo=ALGO, verbose=True):
+    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=True):
         # the end user will estimate the fitting time of self.algo using the package
         self.algo = algo
         self.drop_rate = drop_rate
-        self.algo_estimator = algo_estimator
+        self.meta_algo = meta_algo
         self.verbose = verbose
 
     @property
@@ -181,7 +181,7 @@ class Trainer(LogMixin):
         :param generate_data: bool (if set to True, calls _generate_data)
         :param df: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
-        :return: algo_estimator
+        :return: meta_algo
         :rtype: pickle file
         """
         if generate_data:
@@ -193,13 +193,13 @@ class Trainer(LogMixin):
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
         # we decide on a meta-algorithm
-        if self.algo_estimator == 'LR':
-            algo_estimator = linear_model.LinearRegression()
-        if self.algo_estimator == 'RF':
-            algo_estimator = RandomForestRegressor()
+        if self.meta_algo == 'LR':
+            meta_algo = linear_model.LinearRegression()
+        if self.meta_algo == 'RF':
+            meta_algo = RandomForestRegressor()
 
         if self.verbose:
-            self.logger.info(f'Fitting {self.algo_estimator} to estimate training durations for model {self.algo}')
+            self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
 
         # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
         missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
@@ -215,27 +215,27 @@ class Trainer(LogMixin):
 
         # dividing into train/test
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
-        algo_estimator.fit(x_train, y_train)
+        meta_algo.fit(x_train, y_train)
 
-        if self.algo_estimator == 'LR':
+        if self.meta_algo == 'LR':
             if self.verbose:
                 self.logger.info('Saving LR coefs in json file')
             with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
-                json.dump([algo_estimator.intercept_] + list(algo_estimator.coef_), outfile)
+                json.dump([meta_algo.intercept_] + list(meta_algo.coef_), outfile)
 
         if self.verbose:
-            self.logger.info(f'Saving {self.algo_estimator} to {self.algo_estimator}_{self.algo}_estimator.pkl')
+            self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
 
-        path = f'{get_path("models")}/{self.algo_estimator}_{self.algo}_estimator.pkl'
-        joblib.dump(algo_estimator, path)
+        path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
+        joblib.dump(meta_algo, path)
 
         if self.verbose:
-            self.logger.info(f'R squared on train set is {r2_score(y_train, algo_estimator.predict(x_train))}')
+            self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(x_train))}')
 
         # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
-        y_pred_test = algo_estimator.predict(x_test)
+        y_pred_test = meta_algo.predict(x_test)
         mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-        y_pred_train = algo_estimator.predict(x_train)
+        y_pred_train = meta_algo.predict(x_train)
         mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         # with open('mape.txt', 'w') as f:
         # f.write(str(mape))
@@ -247,4 +247,4 @@ class Trainer(LogMixin):
             RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))}
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
-        return algo_estimator
+        return meta_algo

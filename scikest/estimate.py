@@ -18,11 +18,11 @@ from scikest.train import Trainer
 
 class Estimator(Trainer, LogMixin):
     # default meta-algorithm
-    ALGO_ESTIMATOR = 'RF'
+    META_ALGO = 'RF'
 
-    def __init__(self, algo_estimator=ALGO_ESTIMATOR, verbose=True):
-        super().__init__(verbose=verbose, algo_estimator=algo_estimator)
-        self.algo_estimator = algo_estimator
+    def __init__(self, meta_algo=META_ALGO, verbose=True):
+        super().__init__(verbose=verbose, meta_algo=meta_algo)
+        self.meta_algo = meta_algo
         self.verbose = verbose
 
     @property
@@ -98,15 +98,15 @@ class Estimator(Trainer, LogMixin):
         params = config(algo_name)
         estimation_inputs = self._fetch_inputs(params)
 
-        if self.algo_estimator == 'LR':
+        if self.meta_algo == 'LR':
             if self.verbose:
                 self.logger.info('Loading LR coefs from json file')
             with open('coefs/lr_coefs.json', 'r') as f:
                 coefs = json.load(f)
         else:
             if self.verbose:
-                self.logger.info(f'Fetching estimator: {self.algo_estimator}_{algo_name}_estimator.pkl')
-            path = f'{get_path("models")}/{self.algo_estimator}_{algo_name}_estimator.pkl'
+                self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+            path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
             estimator = joblib.load(path)
 
         # retrieving all parameters of interest
@@ -157,7 +157,7 @@ class Estimator(Trainer, LogMixin):
         for i in inputs_to_fill:
             df[i] = 0
         df = df[estimation_inputs]
-        if self.algo_estimator == 'LR':
+        if self.meta_algo == 'LR':
             prediction = coefs[0]
             for i in range(df.shape[1]):
                 prediction += df.ix[0, i] * coefs[i + 1]
