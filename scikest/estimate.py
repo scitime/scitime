@@ -92,7 +92,7 @@ class Estimator(Trainer, LogMixin):
         """
         # fetching sklearn model of the end user
         algo_name = self._fetch_name(algo)
-        if self._fetch_name(algo_name) not in config("supported_algos"):
+        if algo_name not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
 
         if self.meta_algo not in config('supported_meta_algos'):
