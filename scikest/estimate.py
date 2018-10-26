@@ -64,7 +64,7 @@ class Estimator(Trainer, LogMixin):
         :rtype: str
         """
 
-        return str(algo).split('(')[0]
+        return type(algo).__name__
 
     @staticmethod
     def _fetch_inputs(params):
