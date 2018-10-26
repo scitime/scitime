@@ -20,8 +20,8 @@ from scikest.train import Trainer
 trainer = Trainer(drop_rate=0.99999, verbose=True, algo='RandomForestRegressor')
 inputs, outputs = trainer._generate_data()
 
-# then fitting the model
-algo_estimator = trainer.model_fit(generate_data=False, df=inputs, outputs=outputs)
+# then fitting the meta model
+meta_algo = trainer.model_fit(generate_data=False, df=inputs, outputs=outputs)
 # this should overwrite the pickle file located at scikest/models/{your_model}
 ```
 #### How to run estimate.py?
@@ -37,7 +37,7 @@ import pandas as pd
 from scikest.estimate import Estimator
 
 # example for rf regressor
-estimator = Estimator(algo_estimator='RF')
+estimator = Estimator(meta_algo='RF')
 rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
            max_features=10, max_leaf_nodes=10, min_impurity_decrease=10,
            min_impurity_split=10, min_samples_leaf=10,
