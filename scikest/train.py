@@ -194,8 +194,8 @@ class Trainer(LogMixin):
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
         # we decide on a meta-algorithm
-        if self.meta_algo == 'LR':
-            meta_algo = linear_model.LinearRegression()
+        if self.meta_algo not in config('supported_meta_algos'):
+            raise ValueError(f'meta algo {self.meta_algo} currently not supported')
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor()
 
@@ -217,12 +217,6 @@ class Trainer(LogMixin):
         # dividing into train/test
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
         meta_algo.fit(x_train, y_train)
-
-        if self.meta_algo == 'LR':
-            if self.verbose >= 2:
-                self.logger.info('Saving LR coefs in json file')
-            with open('scikest/coefs/lr_coefs.json', 'w') as outfile:
-                json.dump([meta_algo.intercept_] + list(meta_algo.coef_), outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')

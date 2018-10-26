@@ -17,7 +17,7 @@ run `ipython` and:
 from scikest.train import Trainer
 
 # example of data generation for rf regressor
-trainer = Trainer(drop_rate=0.99999, verbose=True, algo='RandomForestRegressor')
+trainer = Trainer(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
 inputs, outputs = trainer._generate_data()
 
 # then fitting the meta model
@@ -37,7 +37,7 @@ import pandas as pd
 from scikest.estimate import Estimator
 
 # example for rf regressor
-estimator = Estimator(meta_algo='RF')
+estimator = Estimator(meta_algo='RF', verbose=3)
 rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
            max_features=10, max_leaf_nodes=10, min_impurity_decrease=10,
            min_impurity_split=10, min_samples_leaf=10,

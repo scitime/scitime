@@ -95,19 +95,16 @@ class Estimator(Trainer, LogMixin):
         if self._fetch_name(algo_name) not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
 
+        if self.meta_algo not in config('supported_meta_algos'):
+            raise ValueError(f'meta algo {self.meta_algo} currently not supported')
+
         params = config(algo_name)
         estimation_inputs = self._fetch_inputs(params)
 
-        if self.meta_algo == 'LR':
-            if self.verbose >= 2:
-                self.logger.info('Loading LR coefs from json file')
-            with open('coefs/lr_coefs.json', 'r') as f:
-                coefs = json.load(f)
-        else:
-            if self.verbose >= 2:
-                self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
-            path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
-            estimator = joblib.load(path)
+        if self.verbose >= 2:
+            self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+        path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
+        estimator = joblib.load(path)
 
         # retrieving all parameters of interest
         inputs = []
@@ -157,16 +154,12 @@ class Estimator(Trainer, LogMixin):
         for i in inputs_to_fill:
             df[i] = 0
         df = df[estimation_inputs]
-        if self.meta_algo == 'LR':
-            prediction = coefs[0]
-            for i in range(df.shape[1]):
-                prediction += df.ix[0, i] * coefs[i + 1]
-        else:
-            X = (df[estimation_inputs]
+
+        X = (df[estimation_inputs]
                  ._get_numeric_data()
                  .dropna(axis=0, how='any')
                  .as_matrix())
-            prediction = estimator.predict(X)
+        prediction = estimator.predict(X)
 
         if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
