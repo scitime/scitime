@@ -4,16 +4,13 @@ import psutil
 
 import numpy as np
 import pandas as pd
-import json
 import csv
 import time
 import joblib
 import itertools
+import importlib
 
-from sklearn import linear_model
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVC
-from sklearn.cluster import KMeans
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 
@@ -103,13 +100,8 @@ class Trainer(LogMixin):
             y = np.random.randint(0, num_cat, n)
 
         # selecting a model, the estimated algo
-        if self.algo == "RandomForestRegressor":
-            model = RandomForestRegressor(**params)
-        if self.algo == "SVC":
-            model = SVC(**params)
-        if self.algo == "KMeans":
-            model = KMeans(**params)
-
+        sub_module = importlib.import_module(config(self.algo)['module'])
+        model = getattr(sub_module, self.algo)(**params)
         # measuring model execution time
         start_time = time.time()
         if self.params["type"] == "unsupervised":

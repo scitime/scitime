@@ -8,6 +8,7 @@
     "KMeans"
   ],
   "RandomForestRegressor": {
+    "module": "sklearn.ensemble",
     "type": "regression",
     "internal_params": {
       "n_estimators": [
@@ -93,6 +94,7 @@
     ]
   },
   "SVC": {
+    "module": "sklearn.svm",
     "type": "classification",
     "internal_params": {
       "C": [
@@ -183,6 +185,7 @@
     ]
   },
   "KMeans": {
+    "module": "sklearn.cluster",
     "type": "unsupervised",
     "internal_params": {
       "algorithm": [
