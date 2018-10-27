@@ -100,7 +100,7 @@ class Trainer(LogMixin):
             y = np.random.randint(0, num_cat, n)
 
         # selecting a model, the estimated algo
-        sub_module = importlib.import_module(config(self.algo)['module'])
+        sub_module = importlib.import_module(self.params['module'])
         model = getattr(sub_module, self.algo)(**params)
         # measuring model execution time
         start_time = time.time()
