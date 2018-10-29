@@ -128,11 +128,14 @@ class Trainer(LogMixin):
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
+        algo_type = self.params["type"]
+        	
         # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
         # we use a drop rate to randomize the parameters that we use
+
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
-            if self.params["type"] == "classification":
+            if algo_type == "classification":
                 num_cat = permutation[2]
                 parameters_dic = dict(zip(parameters_list, permutation[3:]))
             else:
