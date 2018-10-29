@@ -105,7 +105,7 @@ class Trainer(LogMixin):
         model = getattr(sub_module, self.algo)(**params)
         # measuring model execution time
         start_time = time.time()
-        if self.params["type"] == "unsupervised":
+        if meta_params["type"] == "unsupervised":
             model.fit(X)
         else:
             model.fit(X, y)
