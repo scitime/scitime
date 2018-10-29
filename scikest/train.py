@@ -162,7 +162,7 @@ class Trainer(LogMixin):
 
                 except Exception as e:
                     if self.verbose >= 1:
-                        self.logger.warning(f'model fit for {final_params} throws an error')
+                        self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
 
         inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
