@@ -150,7 +150,7 @@ class Trainer(LogMixin):
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
 
                     # fitting the models
-                    if self.params["type"] == "classification":
+                    if algo_type == "classification":
                         row_output = self._measure_time(n, p, parameters_dic, num_cat)
                     else:
                         row_output = self._measure_time(n, p, parameters_dic)
