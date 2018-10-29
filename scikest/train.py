@@ -81,7 +81,7 @@ class Trainer(LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
-    def _measure_time(self, n, p, params, num_cat=None):
+    def _measure_time(self, n, p, params, num_cat=None, forValidation=None):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
@@ -109,7 +109,10 @@ class Trainer(LogMixin):
         else:
             model.fit(X, y)
         elapsed_time = time.time() - start_time
-        return elapsed_time
+        
+        if forValidation:
+            return elapsed_time,X,y
+        else: return elapsed_time
 
     @timeit
     def _generate_data(self):
