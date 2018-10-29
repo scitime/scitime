@@ -127,12 +127,9 @@ class Trainer(LogMixin):
         parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
-
         algo_type = self.params["type"]
-        	
         # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
         # we use a drop rate to randomize the parameters that we use
-
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             if algo_type == "classification":
@@ -162,7 +159,7 @@ class Trainer(LogMixin):
 
                 except Exception as e:
                     if self.verbose >= 1:
-                        self.logger.warning(f'model fit for {final_params} throws an error')
+                        self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
 
         inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
