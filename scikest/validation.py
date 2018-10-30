@@ -3,9 +3,6 @@ from scikest.train import Trainer
 from scikest.utils import LogMixin, get_path, config, timeout
 
 import numpy as np
-import pandas as pd
-import importlib
-import itertools
 
 
 class Validation(Estimator, Trainer, LogMixin):
