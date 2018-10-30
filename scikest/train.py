@@ -81,7 +81,7 @@ class Trainer(LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
-    def _measure_time(self, n, p, params, num_cat=None, forValidation=None):
+    def _measure_time(self, n, p, params, num_cat=None, for_validation=False):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
@@ -110,12 +110,12 @@ class Trainer(LogMixin):
             model.fit(X, y)
         elapsed_time = time.time() - start_time
         
-        if forValidation:
-            return elapsed_time,X,y
+        if for_validation:
+            return elapsed_time,X,y,model
         else: return elapsed_time
 
     @timeit
-    def _generate_data(self):
+    def _generate_data(self, validation_estimator=None):
         """
         measures training runtimes for a set of distinct parameters
         saves results in a csv (row by row)
@@ -127,12 +127,13 @@ class Trainer(LogMixin):
             self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
+        estimated_time_for_validation=[] #only used for model validation
         parameters_list = list(self.params['internal_params'].keys())
         external_parameters_list = list(self.params['external_params'].keys())
         concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
 
         algo_type = self.params["type"]
-        	
+
         # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
         # we use a drop rate to randomize the parameters that we use
 
@@ -154,11 +155,26 @@ class Trainer(LogMixin):
 
                     # fitting the models
                     if algo_type == "classification":
-                        row_output = self._measure_time(n, p, parameters_dic, num_cat)
+                        if validation_estimator!=None:
+                            row_output = self._measure_time(n, p, parameters_dic, num_cat, for_validation=True)
+                        else: row_output = self._measure_time(n, p, parameters_dic, num_cat)
                     else:
-                        row_output = self._measure_time(n, p, parameters_dic)
-                    outputs.append(row_output)
-                    inputs.append(row_input)
+                        if validation_estimator!=None:
+                            row_output = self._measure_time(n, p, parameters_dic, for_validation=True)
+                        else: row_output = self._measure_time(n, p, parameters_dic)
+
+                    if validation_estimator!=None:
+                        outputs.append(row_output[0])
+                        inputs.append(row_input)
+                        X=row_output[1]
+                        y=row_output[2]
+                        model=row_output[3]
+                        estimated_time_for_validation.append(validation_estimator(model,X,y))   
+
+                    else:    
+                        outputs.append(row_output)
+                        inputs.append(row_input)
+
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
                     self._add_data_to_csv(row_input, row_output)
@@ -170,7 +186,13 @@ class Trainer(LogMixin):
         inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
-        return inputs, outputs
+        if validation_estimator!=None: 
+            estimated_time = pd.DataFrame(estimated_time_for_validation , columns=['estimated_time'])
+            return inputs, outputs, estimated_time
+
+        else:  
+            return inputs, outputs
+            
 
     @timeit
     def model_fit(self, generate_data=True, df=None, outputs=None):
