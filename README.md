@@ -8,6 +8,12 @@ Python version: 3.6.3
 ❱ source env/bin/activate
 ❱ python setup.py install
 ```
+
+#### Testing
+Inside virtualenv:
+```
+(env)$ python -m pytest
+```
 #### How to run train.py?
 
 After pulling the master branch (`git pull origin master`) and setting the environment (described above),

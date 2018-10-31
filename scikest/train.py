@@ -206,7 +206,7 @@ class Trainer(LogMixin):
         :param df: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
         :return: meta_algo
-        :rtype: pickle file
+        :rtype: scikit learn model
         """
         if generate_data:
             df, outputs = self._generate_data()
