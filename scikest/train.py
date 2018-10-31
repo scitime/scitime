@@ -81,6 +81,23 @@ class Trainer(LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
+    def _generate_numbers(self, n, p, meta_params, num_cat=None):
+        """
+        generates random inputs / outputs
+
+        :param meta_params: params from json file (equivalent to self.params)
+        :param num_cat: number of categories if classification algo
+        :return: X or X & y (np arrays)
+        """
+        # generating dummy inputs / outputs in [0,1)
+        X = np.random.rand(n, p)
+        y = None
+        if meta_params["type"] == "regression":
+            y = np.random.rand(n, )
+        if meta_params["type"] == "classification":
+            y = np.random.randint(0, num_cat, n)
+        return X, y
+
     def _measure_time(self, n, p, meta_params, params, num_cat=None):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
@@ -93,16 +110,12 @@ class Trainer(LogMixin):
         :return: runtime
         :rtype: float
         """
-        # generating dummy inputs / outputs in [0,1)
-        X = np.random.rand(n, p)
-        if self.params["type"] == "regression":
-            y = np.random.rand(n, )
-        if self.params["type"] == "classification":
-            y = np.random.randint(0, num_cat, n)
-
         # selecting a model, the estimated algo
         sub_module = importlib.import_module(meta_params['module'])
         model = getattr(sub_module, self.algo)(**params)
+        # generate numbers
+        X, y = self._generate_numbers(n, p, meta_params, num_cat)
+
         # measuring model execution time
         start_time = time.time()
         if meta_params["type"] == "unsupervised":
