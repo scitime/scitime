@@ -233,8 +233,7 @@
     "external_params": {
       "num_rows": [
         100,
-        1000,
-        10000
+        1000
       ],
       "num_features": [
         5,
