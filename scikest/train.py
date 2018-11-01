@@ -139,6 +139,8 @@ class Trainer(LogMixin):
         inputs = []
         outputs = []
         num_cat = None
+        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
+        # we use a drop rate to randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             if algo_type == "classification":
@@ -185,8 +187,7 @@ class Trainer(LogMixin):
         external_parameters_list = list(meta_params['external_params'].keys())
         concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
         algo_type = meta_params["type"]
-        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
-        # we use a drop rate to randomize the parameters that we use
+
         inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
         inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
