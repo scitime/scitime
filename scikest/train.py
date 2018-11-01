@@ -138,6 +138,9 @@ class Trainer(LogMixin):
         """
         inputs = []
         outputs = []
+        num_cat = None
+        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
+        # we use a drop rate to randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             if algo_type == "classification":
@@ -153,14 +156,10 @@ class Trainer(LogMixin):
                 # handling max_features > p case
                 try:
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
-
                     # fitting the models
-                    if algo_type == "classification":
-                        X, y = self._generate_numbers(n, p, meta_params, num_cat)
-                        row_output = self._measure_time(X, y, meta_params, parameters_dic, num_cat)
-                    else:
-                        X, y = self._generate_numbers(n, p, meta_params)
-                        row_output = self._measure_time(X, y, meta_params, parameters_dic)
+                    X, y = self._generate_numbers(n, p, meta_params, num_cat)
+                    row_output = self._measure_time(X, y, meta_params, parameters_dic, num_cat)
+
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose >= 2:
@@ -188,8 +187,7 @@ class Trainer(LogMixin):
         external_parameters_list = list(meta_params['external_params'].keys())
         concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
         algo_type = meta_params["type"]
-        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
-        # we use a drop rate to randomize the parameters that we use
+
         inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
         inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
