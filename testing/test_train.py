@@ -7,9 +7,9 @@ class TestTrain(unittest.TestCase):
     inputs, outputs = None, None
 
     def setUp(self):
-        self.rf_trainer = Trainer(drop_rate=0.999995, verbose=0, algo='RandomForestRegressor')
-        self.svc_trainer = Trainer(drop_rate=0.999998, verbose=0, algo='SVC')
-        self.km_trainer = Trainer(drop_rate=0.993, verbose=0, algo='KMeans')
+        self.rf_trainer = Trainer(drop_rate=0.99999, verbose=0, algo='RandomForestRegressor')
+        self.svc_trainer = Trainer(drop_rate=0.999999, verbose=0, algo='SVC')
+        self.km_trainer = Trainer(drop_rate=0.99, verbose=0, algo='KMeans')
 
     def test_generate_data_rf(self):
         rf_inputs, rf_outputs = self.rf_trainer._generate_data()
