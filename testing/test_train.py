@@ -13,14 +13,15 @@ class TestTrain(unittest.TestCase):
     def test_generate_data(self):
         rf_inputs, rf_outputs = self.rf_trainer._generate_data()
         svc_inputs, svc_outputs = self.svc_trainer._generate_data()
+        TestTrain.rf_inputs = rf_inputs
+        TestTrain.rf_outputs = rf_outputs
+        TestTrain.svc_inputs = svc_inputs
+        TestTrain.svc_outputs = svc_outputs
         assert svc_inputs.shape[0] > 0
         assert svc_outputs.shape[0] > 0
         assert rf_inputs.shape[0] > 0
         assert rf_outputs.shape[0] > 0
-        TestTrain.rf_inputs = rf_inputs
-        TestTrain.rf_outputs = rf_outputs
-        TestTrain.svc_inputs = rf_inputs
-        TestTrain.svc_outputs = rf_outputs
+
 
     def test_model_fit(self):
         rf_meta_algo = self.rf_trainer.model_fit(generate_data=False, df=TestTrain.rf_inputs,
