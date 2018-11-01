@@ -99,12 +99,12 @@ class Trainer(LogMixin):
             y = np.random.randint(0, num_cat, n)
         return X, y
 
-    def _measure_time(self, n, p, meta_params, params, num_cat=None):
+    def _measure_time(self, X, y, meta_params, params, num_cat=None):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
-        :param n: number of observations
-        :param p: number of features
+        :param X: inputs
+        :param y: outputs
         :param params: model params included in the estimation
         :param meta_params: params from json file (equivalent to self.params)
         :param num_cat: number of categories if classification algo
@@ -114,9 +114,6 @@ class Trainer(LogMixin):
         # selecting a model, the estimated algo
         sub_module = importlib.import_module(meta_params['module'])
         model = getattr(sub_module, self.algo)(**params)
-        # generate numbers
-        X, y = self._generate_numbers(n, p, meta_params, num_cat)
-
         # measuring model execution time
         start_time = time.time()
         if meta_params["type"] == "unsupervised":
@@ -159,9 +156,11 @@ class Trainer(LogMixin):
 
                     # fitting the models
                     if algo_type == "classification":
-                        row_output = self._measure_time(n, p, meta_params, parameters_dic, num_cat)
+                        X, y = self._generate_numbers(n, p, meta_params, num_cat)
+                        row_output = self._measure_time(X, y, meta_params, parameters_dic, num_cat)
                     else:
-                        row_output = self._measure_time(n, p, meta_params, parameters_dic)
+                        X, y = self._generate_numbers(n, p, meta_params)
+                        row_output = self._measure_time(X, y, meta_params, parameters_dic)
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose >= 2:

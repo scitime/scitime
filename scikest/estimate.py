@@ -3,7 +3,6 @@ import os
 import psutil
 
 import joblib
-import json
 import pandas as pd
 import numpy as np
 import time
@@ -13,15 +12,13 @@ import warnings
 warnings.simplefilter("ignore")
 
 from scikest.utils import LogMixin, get_path, config, timeout
-from scikest.train import Trainer
 
 
-class Estimator(Trainer, LogMixin):
+class Estimator(LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
 
-    def __init__(self, meta_algo=META_ALGO, verbose=True):
-        super().__init__(verbose=verbose, meta_algo=meta_algo)
+    def __init__(self, meta_algo=META_ALGO, verbose=0):
         self.meta_algo = meta_algo
         self.verbose = verbose
 
@@ -128,7 +125,7 @@ class Estimator(Trainer, LogMixin):
                     inputs.append(algo_params[i])
 
             else:
-                if i in self.params['dummy_inputs']:
+                if i in params['dummy_inputs']:
                     # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
