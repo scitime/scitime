@@ -81,30 +81,45 @@ class Trainer(LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
-    def _measure_time(self, n, p, params, num_cat=None):
+    def _generate_numbers(self, n, p, meta_params, num_cat=None):
+        """
+        generates random inputs / outputs
+
+        :param meta_params: params from json file (equivalent to self.params)
+        :param num_cat: number of categories if classification algo
+        :return: X & y
+        :rtype: np arrays
+        """
+        # generating dummy inputs / outputs in [0,1)
+        X = np.random.rand(n, p)
+        y = None
+        if meta_params["type"] == "regression":
+            y = np.random.rand(n, )
+        if meta_params["type"] == "classification":
+            y = np.random.randint(0, num_cat, n)
+        return X, y
+
+    def _measure_time(self, n, p, meta_params, params, num_cat=None):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
         :param n: number of observations
         :param p: number of features
         :param params: model params included in the estimation
+        :param meta_params: params from json file (equivalent to self.params)
         :param num_cat: number of categories if classification algo
         :return: runtime
         :rtype: float
         """
-        # generating dummy inputs / outputs in [0,1)
-        X = np.random.rand(n, p)
-        if self.params["type"] == "regression":
-            y = np.random.rand(n, )
-        if self.params["type"] == "classification":
-            y = np.random.randint(0, num_cat, n)
-
         # selecting a model, the estimated algo
-        sub_module = importlib.import_module(self.params['module'])
+        sub_module = importlib.import_module(meta_params['module'])
         model = getattr(sub_module, self.algo)(**params)
+        # generate numbers
+        X, y = self._generate_numbers(n, p, meta_params, num_cat)
+
         # measuring model execution time
         start_time = time.time()
-        if self.params["type"] == "unsupervised":
+        if meta_params["type"] == "unsupervised":
             model.fit(X)
         else:
             model.fit(X, y)
@@ -112,24 +127,20 @@ class Trainer(LogMixin):
         return elapsed_time
 
     @timeit
-    def _generate_data(self):
+    def _permute(self, concat_dic, parameters_list, external_parameters_list, meta_params, algo_type):
         """
-        measures training runtimes for a set of distinct parameters
-        saves results in a csv (row by row)
+        for loop over every possible param combination
 
+        :param concat_dic: all params + all values range dictionary
+        :param parameters_list: all internal parameters names
+        :param external_parameters_list: all external parameters names
+        :param meta_params: params from json file (equivalent to self.params)
+        :param algo_type: unsupervised / supervised / classification
         :return: inputs, outputs
-        :rtype: pd.DataFrame
+        :rtype: lists
         """
-        if self.verbose >= 2:
-            self.logger.info('Generating dummy training durations to create a training set')
         inputs = []
         outputs = []
-        parameters_list = list(self.params['internal_params'].keys())
-        external_parameters_list = list(self.params['external_params'].keys())
-        concat_dic = dict(**self.params['external_params'], **self.params['internal_params'])
-        algo_type = self.params["type"]
-        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
-        # we use a drop rate to randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
             n, p = permutation[0], permutation[1]
             if algo_type == "classification":
@@ -148,9 +159,9 @@ class Trainer(LogMixin):
 
                     # fitting the models
                     if algo_type == "classification":
-                        row_output = self._measure_time(n, p, parameters_dic, num_cat)
+                        row_output = self._measure_time(n, p, meta_params, parameters_dic, num_cat)
                     else:
-                        row_output = self._measure_time(n, p, parameters_dic)
+                        row_output = self._measure_time(n, p, meta_params, parameters_dic)
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose >= 2:
@@ -160,8 +171,28 @@ class Trainer(LogMixin):
                 except Exception as e:
                     if self.verbose >= 1:
                         self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
+        return inputs, outputs
 
-        inputs = pd.DataFrame(inputs, columns=self.params['other_params'] + external_parameters_list + parameters_list)
+    @timeit
+    def _generate_data(self):
+        """
+        measures training runtimes for a set of distinct parameters
+        saves results in a csv (row by row)
+
+        :return: inputs, outputs
+        :rtype: pd.DataFrame
+        """
+        if self.verbose >= 2:
+            self.logger.info('Generating dummy training durations to create a training set')
+        meta_params = self.params
+        parameters_list = list(meta_params['internal_params'].keys())
+        external_parameters_list = list(meta_params['external_params'].keys())
+        concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
+        algo_type = meta_params["type"]
+        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
+        # we use a drop rate to randomize the parameters that we use
+        inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
+        inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs
@@ -175,7 +206,7 @@ class Trainer(LogMixin):
         :param df: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
         :return: meta_algo
-        :rtype: pickle file
+        :rtype: scikit learn model
         """
         if generate_data:
             df, outputs = self._generate_data()

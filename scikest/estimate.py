@@ -106,15 +106,11 @@ class Estimator(Trainer, LogMixin):
         path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
         estimator = joblib.load(path)
 
-        # retrieving all parameters of interest
-        inputs = []
-        inputs.append(self.memory.total)
-        inputs.append(self.memory.available)
-        inputs.append(self.num_cpu)
         n = X.shape[0]
-        inputs.append(n)
         p = X.shape[1]
-        inputs.append(p)
+        # retrieving all parameters of interest
+        inputs = [self.memory.total, self.memory.available, self.num_cpu, n, p]
+
         if params["type"] == "classification":
             num_cat = len(np.unique(y))
             inputs.append(num_cat)
