@@ -14,7 +14,7 @@ class TestTrain(unittest.TestCase):
         self.svc_trainer = Trainer(drop_rate=0.999999, verbose=0, algo='SVC')
         self.km_trainer = Trainer(drop_rate=0.99, verbose=0, algo='KMeans')
 
-    def test_generate_data_supervised(self):
+    def test_generate_data_regression(self):
         rf_inputs, rf_outputs = self.rf_trainer._generate_data()
 
         TestTrain.rf_inputs = rf_inputs
@@ -41,7 +41,7 @@ class TestTrain(unittest.TestCase):
         assert km_inputs.shape[0] > 0
         assert km_outputs.shape[0] > 0
 
-    def test_model_fit_supervised(self):
+    def test_model_fit_regression(self):
         rf_meta_algo = self.rf_trainer.model_fit(generate_data=False, df=TestTrain.rf_inputs,
                                                  outputs=TestTrain.rf_outputs)
         assert type(rf_meta_algo).__name__ == 'RandomForestRegressor'

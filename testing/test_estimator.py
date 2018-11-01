@@ -26,19 +26,22 @@ class TestEstimate(unittest.TestCase):
         assert kmeans_name == 'KMeans'
 
 
-    def test_estimate_duration(self):
+    def test_estimate_duration_regression(self):
         rf = RandomForestRegressor()
-        svc = SVC()
-        kmeans = KMeans()
         X, y_continuous = np.random.rand(10000, 10), np.random.rand(10000, 1)
-        y_class = np.random.randint(0, 4, 10000)
-        # run the estimation
         rf_duration = self.estimator.estimate_duration(rf, X, y_continuous)
-        svc_duration = self.estimator.estimate_duration(svc, X, y_class)
-        kmeans_duration = self.estimator.estimate_duration(kmeans, X)
-
         assert type(rf_duration[0]) == np.float64
+
+    def test_estimate_duration_classification(self):
+        svc = SVC()
+        X, y_class = np.random.rand(10000, 10), np.random.randint(0, 4, 10000)
+        svc_duration = self.estimator.estimate_duration(svc, X, y_class)
         assert type(svc_duration[0]) == np.float64
+
+    def test_estimate_duration_unsupervised(self):
+        kmeans = KMeans()
+        X = np.random.rand(10000, 10)
+        kmeans_duration = self.estimator.estimate_duration(kmeans, X)
         assert type(kmeans_duration[0]) == np.float64
 
 
