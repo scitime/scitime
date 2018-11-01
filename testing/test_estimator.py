@@ -14,6 +14,8 @@ class TestEstimate(unittest.TestCase):
 
     def test_fetch_name(self):
         rf = RandomForestRegressor()
+        svc = SVC()
+        kmeans = KMeans()
         name = self.estimator._fetch_name(rf)
         assert name == 'RandomForestRegressor'
 
