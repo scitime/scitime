@@ -42,17 +42,17 @@ class TestTrain(unittest.TestCase):
         assert km_outputs.shape[0] > 0
 
     def test_model_fit_regression(self):
-        rf_meta_algo = self.rf_trainer.model_fit(generate_data=False, df=TestTrain.rf_inputs,
+        rf_meta_algo = self.rf_trainer.model_fit(generate_data=False, inputs=TestTrain.rf_inputs,
                                                  outputs=TestTrain.rf_outputs)
         assert type(rf_meta_algo).__name__ == 'RandomForestRegressor'
 
     def test_model_fit_classification(self):
-        svc_meta_algo = self.svc_trainer.model_fit(generate_data=False, df=TestTrain.svc_inputs,
+        svc_meta_algo = self.svc_trainer.model_fit(generate_data=False, inputs=TestTrain.svc_inputs,
                                                    outputs=TestTrain.svc_outputs)
         assert type(svc_meta_algo).__name__ == 'RandomForestRegressor'
 
     def test_model_fit_unsupervised(self):
-        km_meta_algo = self.km_trainer.model_fit(generate_data=False, df=TestTrain.km_inputs,
+        km_meta_algo = self.km_trainer.model_fit(generate_data=False, inputs=TestTrain.km_inputs,
                                                  outputs=TestTrain.km_outputs)
 
         assert type(km_meta_algo).__name__ == 'RandomForestRegressor'
