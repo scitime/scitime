@@ -187,11 +187,8 @@ class Trainer(Estimator, LogMixin):
                 except Exception as e:
                     if self.verbose >= 1:
                         self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
-        
-        if not validation:
-            return inputs, outputs
-        else:     
-            return inputs, outputs, estimated_outputs
+
+        return inputs, outputs, estimated_outputs
 
     @timeit
     def _generate_data(self, validation=False):
@@ -205,24 +202,22 @@ class Trainer(Estimator, LogMixin):
         """
         if self.verbose >= 2:
             self.logger.info('Generating dummy training durations to create a training set')
+
         meta_params = self.params
         parameters_list = list(meta_params['internal_params'].keys())
         external_parameters_list = list(meta_params['external_params'].keys())
         concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
         algo_type = meta_params["type"]
 
-        inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, validation)   
+        inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, validation)
         
-        if  validation:
+        if validation:
             estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
 
         inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
-        if not validation:
-            return inputs, outputs  
-        else:     
-            return inputs, outputs, estimated_outputs 
+        return inputs, outputs, estimated_outputs
 
     @timeit 
     def model_validate(self):
@@ -236,8 +231,8 @@ class Trainer(Estimator, LogMixin):
 
         actual_values = actual_estimates_df[1]['output']
         estimated_values = actual_estimates_df[2]['estimated_outputs']
-        avg_weighted_error=np.dot(actual_values,actual_values-estimated_values)/sum(actual_values)
-        return(actual_estimates_df,avg_weighted_error)
+        avg_weighted_error = np.dot(actual_values, actual_values-estimated_values)/sum(actual_values)
+        return actual_estimates_df, avg_weighted_error
 
     @timeit
     def model_fit(self, generate_data=True, df=None, outputs=None):
@@ -251,7 +246,7 @@ class Trainer(Estimator, LogMixin):
         :rtype: scikit learn model
         """
         if generate_data:
-            df, outputs = self._generate_data()
+            df, outputs, _ = self._generate_data()
 
         data = pd.get_dummies(df)
 
