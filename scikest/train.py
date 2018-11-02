@@ -36,7 +36,7 @@ class Trainer(Estimator, LogMixin):
         self.drop_rate = drop_rate
         self.meta_algo = meta_algo
         self.verbose = verbose
-        self.validation= validation
+        self.validation = validation
 
 
     @property
@@ -189,10 +189,10 @@ class Trainer(Estimator, LogMixin):
                     if self.verbose >= 1:
                         self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
         
-        if self.validation:
+        if not self.validation:
+            return inputs, outputs
+        else:     
             return inputs, outputs, estimated_outputs
-        else: 
-            return inputs, outputs 
 
     @timeit
     def _generate_data(self):
@@ -211,11 +211,11 @@ class Trainer(Estimator, LogMixin):
         concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
         algo_type = meta_params["type"]
 
-        if self.validation:
+        if not self.validation:
+            inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
+        else:     
             inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
             estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
-        else: 
-            inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
 
         inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
