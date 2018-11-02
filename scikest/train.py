@@ -179,7 +179,6 @@ class Trainer(Estimator, LogMixin):
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
                     self._add_data_to_csv(row_input, row_output)
-
                     if validation:
                         row_estimated_output = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
