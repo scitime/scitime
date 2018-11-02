@@ -29,10 +29,8 @@ class Trainer(Estimator, LogMixin):
     DROP_RATE = 0.9
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
-    # Validation Boolean to evaluate model performance
-    VALIDATION = False
 
-    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0, validation=VALIDATION):
+    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0, validation=False):
         # the end user will estimate the fitting time of self.algo using the package
         self.algo = algo
         self.drop_rate = drop_rate
@@ -104,7 +102,7 @@ class Trainer(Estimator, LogMixin):
             y = np.random.randint(0, num_cat, n)
         return X, y
 
-    def _measure_time(self, X, y, meta_params, params, num_cat=None):
+    def _measure_time(self, model, X, y, meta_params, params, num_cat=None):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
@@ -116,8 +114,6 @@ class Trainer(Estimator, LogMixin):
         :return: runtime
         :rtype: float
         """
-        # selecting a model, the estimated algo
-        model=self._get_model(meta_params, params)
         # measuring model execution time
         start_time = time.time()
         if meta_params["type"] == "unsupervised":
@@ -128,6 +124,14 @@ class Trainer(Estimator, LogMixin):
         return elapsed_time
 
     def _get_model(self, meta_params, params):
+        """
+        builds the sklearn model to be fitted 
+
+        :param params: model params included in the estimation
+        :param meta_params: params from json file (equivalent to self.params)
+        :return: model
+        :rtype: scikit-learn model
+        """        
         sub_module = importlib.import_module(meta_params['module'])
         model = getattr(sub_module, self.algo)(**params)
         return model
@@ -167,9 +171,10 @@ class Trainer(Estimator, LogMixin):
                 # handling max_features > p case
                 try:
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
+                    model = self._get_model(meta_params, parameters_dic)
                     # fitting the models
                     X, y = self._generate_numbers(n, p, meta_params, num_cat)
-                    row_output = self._measure_time(X, y, meta_params, parameters_dic, num_cat)
+                    row_output = self._measure_time(model, X, y, meta_params, parameters_dic, num_cat)
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose >= 2:
@@ -177,7 +182,6 @@ class Trainer(Estimator, LogMixin):
                     self._add_data_to_csv(row_input, row_output)
 
                     if self.validation:
-                        model = self._get_model(meta_params, parameters_dic)
                         row_estimated_output = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
 
@@ -187,7 +191,8 @@ class Trainer(Estimator, LogMixin):
         
         if self.validation:
             return inputs, outputs, estimated_outputs
-        else: return inputs, outputs 
+        else: 
+            return inputs, outputs 
 
     @timeit
     def _generate_data(self):
@@ -209,15 +214,16 @@ class Trainer(Estimator, LogMixin):
         if self.validation:
             inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
             estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
-        else: inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
+        else: 
+            inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
 
         inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
-        if self.validation:
-            return inputs, outputs, estimated_outputs
-        else: 
-            return inputs, outputs    
+        if not self.validation:
+            return inputs, outputs  
+        else:     
+            return inputs, outputs, estimated_outputs              
 
     @timeit
     def model_fit(self, generate_data=True, df=None, outputs=None):
