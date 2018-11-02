@@ -220,24 +220,49 @@ class Trainer(Estimator, LogMixin):
 
         return inputs, outputs, estimated_outputs
 
+    def _transform_data(self, inputs, outputs):
+        """
+        transforms the data before fitting the meta model
+
+        :param inputs: pd.DataFrame chosen as input
+        :param outputs: pd.DataFrame chosen as output
+        :return: X, y
+        :rtype: np arrays
+        """
+        data = pd.get_dummies(inputs)
+
+        if self.verbose >= 2:
+            self.logger.info('Model inputs: {}'.format(list(data.columns)))
+
+        # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
+        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
+        for i in missing_inputs:
+            data[i] = 0
+
+        # reshaping into arrays
+        X = (data[self.estimation_inputs]
+             ._get_numeric_data()
+             .dropna(axis=0, how='any')
+             .as_matrix())
+        y = outputs['output'].dropna(axis=0, how='any').as_matrix()
+
+        return X, y
+
     @timeit
-    def model_fit(self, generate_data=True, df=None, outputs=None):
+    def model_fit(self, generate_data=True, inputs=None, outputs=None):
         """
         builds the actual training time estimator
 
         :param generate_data: bool (if set to True, calls _generate_data)
-        :param df: pd.DataFrame chosen as input
+        :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
         :return: meta_algo
         :rtype: scikit learn model
         """
         if generate_data:
-            df, outputs, _ = self._generate_data()
+            inputs, outputs, _ = self._generate_data()
 
-        data = pd.get_dummies(df)
-
-        if self.verbose >= 2:
-            self.logger.info('Model inputs: {}'.format(list(data.columns)))
+        X, y = self._transform_data(inputs, outputs)
 
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
@@ -248,21 +273,9 @@ class Trainer(Estimator, LogMixin):
         if self.verbose >= 2:
             self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
 
-        # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
-        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
-        for i in missing_inputs:
-            data[i] = 0
-
-        # reshaping into arrays
-        x = (data[self.estimation_inputs]
-             ._get_numeric_data()
-             .dropna(axis=0, how='any')
-             .as_matrix())
-        y = outputs['output'].dropna(axis=0, how='any').as_matrix()
-
         # dividing into train/test
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
-        meta_algo.fit(x_train, y_train)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+        meta_algo.fit(X_train, y_train)
 
         if self.verbose >= 2:
             self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
@@ -271,12 +284,12 @@ class Trainer(Estimator, LogMixin):
         joblib.dump(meta_algo, path)
 
         if self.verbose >= 2:
-            self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(x_train))}')
+            self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
 
         # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
-        y_pred_test = meta_algo.predict(x_test)
+        y_pred_test = meta_algo.predict(X_test)
         mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-        y_pred_train = meta_algo.predict(x_train)
+        y_pred_train = meta_algo.predict(X_train)
         mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         # with open('mape.txt', 'w') as f:
         # f.write(str(mape))
@@ -303,4 +316,5 @@ class Trainer(Estimator, LogMixin):
         actual_values = outputs['output']
         estimated_values = estimated_outputs['estimated_outputs']
         avg_weighted_error = np.dot(actual_values, actual_values - estimated_values) / sum(actual_values)
+
         return inputs, outputs, estimated_outputs, avg_weighted_error
