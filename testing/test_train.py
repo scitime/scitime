@@ -3,8 +3,6 @@ import unittest
 import warnings
 import numpy as np
 
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-
 from scikest.train import Trainer
 
 
