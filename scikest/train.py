@@ -22,7 +22,7 @@ from scikest.estimate import Estimator
 from scikest.utils import LogMixin, get_path, config, timeit
 
 
-class Trainer(Estimator, LogMixin):   
+class Trainer(Estimator, LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
     # the drop rate is used to fit the meta-algo on random parameters
@@ -129,7 +129,7 @@ class Trainer(Estimator, LogMixin):
         :param meta_params: params from json file (equivalent to self.params)
         :return: model
         :rtype: scikit-learn model
-        """        
+        """
         sub_module = importlib.import_module(meta_params['module'])
         model = getattr(sub_module, self.algo)(**params)
         return model
@@ -208,8 +208,9 @@ class Trainer(Estimator, LogMixin):
         concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
         algo_type = meta_params["type"]
 
-        inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, validation)
-        
+        inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list,
+                                                           meta_params, algo_type, validation)
+
         if validation:
             estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
 
@@ -217,21 +218,6 @@ class Trainer(Estimator, LogMixin):
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs, estimated_outputs
-
-    @timeit 
-    def model_validate(self):
-        """
-        measures training runtimes and compares to actual runtimes once the model has been trained
-
-        :return: results dataframe and error rate
-        :rtype: pd.DataFrame and float
-        """   
-        actual_estimates_df = self._generate_data(validation=True)
-
-        actual_values = actual_estimates_df[1]['output']
-        estimated_values = actual_estimates_df[2]['estimated_outputs']
-        avg_weighted_error = np.dot(actual_values, actual_values-estimated_values)/sum(actual_values)
-        return actual_estimates_df, avg_weighted_error
 
     @timeit
     def model_fit(self, generate_data=True, df=None, outputs=None):
@@ -302,3 +288,18 @@ class Trainer(Estimator, LogMixin):
             RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
 
         return meta_algo
+
+    @timeit
+    def model_validate(self):
+        """
+        measures training runtimes and compares to actual runtimes once the model has been trained
+
+        :return: results dataframe and error rate
+        :rtype: pd.DataFrame and float
+        """
+        inputs, outputs, estimated_outputs = self._generate_data(validation=True)
+
+        actual_values = outputs['output']
+        estimated_values = estimated_outputs['estimated_outputs']
+        avg_weighted_error = np.dot(actual_values, actual_values - estimated_values) / sum(actual_values)
+        return inputs, outputs, estimated_outputs, avg_weighted_error
