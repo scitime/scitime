@@ -69,9 +69,9 @@ class Trainer(Estimator, LogMixin):
                   for k in self.params['internal_params'][i]]
 
     @staticmethod
-    def _add_data_to_csv(row_input, row_output):
+    def _add_row_to_csv(row_input, row_output):
         """
-        writes into the csv results file row by row
+        writes a row into the csv results file
 
         :param input: row inputs
         :param output: row output
@@ -178,7 +178,7 @@ class Trainer(Estimator, LogMixin):
                     inputs.append(row_input)
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
-                    self._add_data_to_csv(row_input, row_output)
+                    self._add_row_to_csv(row_input, row_output)
                     if validation:
                         row_estimated_output = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
