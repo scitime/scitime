@@ -316,4 +316,5 @@ class Trainer(Estimator, LogMixin):
         actual_values = outputs['output']
         estimated_values = estimated_outputs['estimated_outputs']
         avg_weighted_error = np.dot(actual_values, actual_values - estimated_values) / sum(actual_values)
+
         return inputs, outputs, estimated_outputs, avg_weighted_error
