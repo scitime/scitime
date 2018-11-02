@@ -27,8 +27,8 @@ trainer = Trainer(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
 inputs, outputs, _ = trainer._generate_data()
 
 # then fitting the meta model
-meta_algo = trainer.model_fit(generate_data=False, df=inputs, outputs=outputs)
-# this should overwrite the pickle file located at scikest/models/{your_model}
+meta_algo = trainer.model_fit(generate_data=False, inputs=inputs, outputs=outputs)
+# this should locally overwrite the pickle file located at scikest/models/{your_model}
 ```
 #### How to run estimate.py?
 
