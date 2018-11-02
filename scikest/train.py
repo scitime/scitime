@@ -82,7 +82,8 @@ class Trainer(Estimator, LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
-    def _generate_numbers(self, n, p, meta_params, num_cat=None):
+    @staticmethod
+    def _generate_numbers(n, p, meta_params, num_cat=None):
         """
         generates random inputs / outputs
 
@@ -100,7 +101,8 @@ class Trainer(Estimator, LogMixin):
             y = np.random.randint(0, num_cat, n)
         return X, y
 
-    def _measure_time(self, model, X, y, meta_params):
+    @staticmethod
+    def _measure_time(model, X, y, meta_params):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
