@@ -69,9 +69,9 @@ class Trainer(Estimator, LogMixin):
                   for k in self.params['internal_params'][i]]
 
     @staticmethod
-    def _add_data_to_csv(row_input, row_output):
+    def _add_row_to_csv(row_input, row_output):
         """
-        writes into the csv results file row by row
+        writes a row into the csv results file
 
         :param input: row inputs
         :param output: row output
@@ -82,7 +82,8 @@ class Trainer(Estimator, LogMixin):
             row = list(row_input) + [row_output]
             writer.writerows([row])
 
-    def _generate_numbers(self, n, p, meta_params, num_cat=None):
+    @staticmethod
+    def _generate_numbers(n, p, meta_params, num_cat=None):
         """
         generates random inputs / outputs
 
@@ -100,15 +101,14 @@ class Trainer(Estimator, LogMixin):
             y = np.random.randint(0, num_cat, n)
         return X, y
 
-    def _measure_time(self, model, X, y, meta_params, params, num_cat=None):
+    @staticmethod
+    def _measure_time(model, X, y, meta_params):
         """
         generates fits with the meta-algo using dummy data and tracks the training runtime
 
         :param X: inputs
         :param y: outputs
-        :param params: model params included in the estimation
         :param meta_params: params from json file (equivalent to self.params)
-        :param num_cat: number of categories if classification algo
         :return: runtime
         :rtype: float
         """
@@ -156,29 +156,30 @@ class Trainer(Estimator, LogMixin):
         # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
         # we use a drop rate to randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
-            n, p = permutation[0], permutation[1]
-            if algo_type == "classification":
-                num_cat = permutation[2]
-                parameters_dic = dict(zip(parameters_list, permutation[3:]))
-            else:
-                parameters_dic = dict(zip(parameters_list, permutation[2:]))
-
             # computing only for (1-self.drop_rate) % of the data
+            # making sure the dataset is not empty (at least 2 data points to pass the model fit)
             random_value = np.random.uniform()
-            if random_value > self.drop_rate:
+            if (random_value > self.drop_rate) | (len(inputs) < 2):
+                n, p = permutation[0], permutation[1]
+                if algo_type == "classification":
+                    num_cat = permutation[2]
+                    parameters_dic = dict(zip(parameters_list, permutation[3:]))
+                else:
+                    parameters_dic = dict(zip(parameters_list, permutation[2:]))
                 final_params = dict(zip(external_parameters_list + parameters_list, permutation))
-                # handling max_features > p case
+
                 try:
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
                     model = self._get_model(meta_params, parameters_dic)
                     # fitting the models
                     X, y = self._generate_numbers(n, p, meta_params, num_cat)
-                    row_output = self._measure_time(model, X, y, meta_params, parameters_dic, num_cat)
+                    row_output = self._measure_time(model, X, y, meta_params)
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
-                    self._add_data_to_csv(row_input, row_output)
+
+                    self._add_row_to_csv(row_input, row_output)
                     if validation:
                         row_estimated_output = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
