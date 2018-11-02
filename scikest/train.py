@@ -30,14 +30,12 @@ class Trainer(Estimator, LogMixin):
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
 
-    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0, validation=False):
+    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0):
         # the end user will estimate the fitting time of self.algo using the package
         self.algo = algo
         self.drop_rate = drop_rate
         self.meta_algo = meta_algo
         self.verbose = verbose
-        self.validation = validation
-
 
     @property
     def num_cpu(self):
@@ -137,7 +135,7 @@ class Trainer(Estimator, LogMixin):
         return model
 
     @timeit
-    def _permute(self, concat_dic, parameters_list, external_parameters_list, meta_params, algo_type):
+    def _permute(self, concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, validation=False):
         """
         for loop over every possible param combination
 
@@ -146,6 +144,7 @@ class Trainer(Estimator, LogMixin):
         :param external_parameters_list: all external parameters names
         :param meta_params: params from json file (equivalent to self.params)
         :param algo_type: unsupervised / supervised / classification
+        :param validation: boolean, set true if data is used for validation, use only once the model has been trained
         :return: inputs, outputs
         :rtype: lists
         """
@@ -181,7 +180,7 @@ class Trainer(Estimator, LogMixin):
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
                     self._add_data_to_csv(row_input, row_output)
 
-                    if self.validation:
+                    if validation:
                         row_estimated_output = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
 
@@ -189,17 +188,18 @@ class Trainer(Estimator, LogMixin):
                     if self.verbose >= 1:
                         self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
         
-        if not self.validation:
+        if not validation:
             return inputs, outputs
         else:     
             return inputs, outputs, estimated_outputs
 
     @timeit
-    def _generate_data(self):
+    def _generate_data(self, validation=False):
         """
         measures training runtimes for a set of distinct parameters
         saves results in a csv (row by row)
 
+        :param validation: boolean, set true if data is used for validation, use only once the model has been trained
         :return: inputs, outputs
         :rtype: pd.DataFrame
         """
@@ -211,19 +211,33 @@ class Trainer(Estimator, LogMixin):
         concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
         algo_type = meta_params["type"]
 
-        if not self.validation:
-            inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
-        else:     
-            inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type)
+        inputs, outputs = self._permute(concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, validation)   
+        
+        if  validation:
             estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
 
         inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
         outputs = pd.DataFrame(outputs, columns=['output'])
 
-        if not self.validation:
+        if not validation:
             return inputs, outputs  
         else:     
-            return inputs, outputs, estimated_outputs              
+            return inputs, outputs, estimated_outputs 
+
+    @timeit 
+    def model_validate(self):
+        """
+        measures training runtimes and compares to actual runtimes once the model has been trained
+
+        :return: results dataframe and error rate
+        :rtype: pd.DataFrame and float
+        """   
+        actual_estimates_df = self._generate_data(validation=True)
+
+        actual_values = actual_estimates_df[1]['output']
+        estimated_values = actual_estimates_df[2]['estimated_outputs']
+        avg_weighted_error=np.dot(actual_values,actual_values-estimated_values)/sum(actual_values)
+        return(actual_estimates_df,avg_weighted_error)
 
     @timeit
     def model_fit(self, generate_data=True, df=None, outputs=None):
