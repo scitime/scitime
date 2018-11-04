@@ -77,7 +77,7 @@ class Trainer(Estimator, LogMixin):
         :param output: row output
         :return:
         """
-        with open(r'result.csv', 'a+') as file:
+        with open(r'result.csv', 'w+') as file:
             writer = csv.writer(file)
             row = list(row_input) + [row_output]
             writer.writerows([row])
