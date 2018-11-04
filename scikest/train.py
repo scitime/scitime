@@ -169,10 +169,10 @@ class Trainer(Estimator, LogMixin):
                 final_params = dict(zip(external_parameters_list + parameters_list, permutation))
 
                 try:
-                    row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
                     model = self._get_model(meta_params, parameters_dic)
                     # fitting the models
                     X, y = self._generate_numbers(n, p, meta_params, num_cat)
+                    row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
                     row_output = self._measure_time(model, X, y, meta_params)
                     outputs.append(row_output)
                     inputs.append(row_input)
