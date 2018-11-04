@@ -77,7 +77,7 @@ class Trainer(Estimator, LogMixin):
         :param output: row output
         :return:
         """
-        with open(r'result.csv', 'w+') as file:
+        with open(f'{get_path("result.csv")}', 'a+') as file:
             writer = csv.writer(file)
             row = list(row_input) + [row_output]
             writer.writerows([row])
@@ -179,8 +179,9 @@ class Trainer(Estimator, LogMixin):
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
 
-                    self._add_row_to_csv(row_input, row_output)
-                    if validation:
+                    if not validation:
+                        self._add_row_to_csv(row_input, row_output)
+                    else:
                         row_estimated_output = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
 
