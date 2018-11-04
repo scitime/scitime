@@ -23,7 +23,7 @@ setup(
         'pytest-sugar'
     ],
     package_data={
-        # If any package contains *.txt files, include them:
+        # include json and pkl files
         '': ['*.json', 'models/*.pkl'],
     },
     include_package_data=True

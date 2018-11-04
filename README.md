@@ -6,7 +6,7 @@ Python version: 3.6.3
 ```
 ❱ virtualenv env
 ❱ source env/bin/activate
-❱ python setup.py install
+❱ pip install .
 ```
 
 #### Testing
