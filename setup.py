@@ -21,5 +21,10 @@ setup(
         'pytest',
         'pytest-cov',
         'pytest-sugar'
-    ]
+    ],
+    package_data={
+        # If any package contains *.txt files, include them:
+        '': ['*.json', 'models/*.pkl'],
+    },
+    include_package_data=True
 )
