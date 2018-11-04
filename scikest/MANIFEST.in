@@ -1,2 +1,0 @@
-include scikest/models/*.pkl
-include scikest/config.json
