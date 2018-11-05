@@ -77,7 +77,8 @@ class Trainer(Estimator, LogMixin):
         :param output: row output
         :return:
         """
-        with open(f'{get_path("result.csv")}', 'a+') as file:
+        csv_name = f'{self.algo}_result.csv'
+        with open(f'{get_path(csv_name)}', 'a+') as file:
             writer = csv.writer(file)
             row = list(row_input) + [row_output]
             writer.writerows([row])
@@ -174,6 +175,7 @@ class Trainer(Estimator, LogMixin):
                     X, y = self._generate_numbers(n, p, meta_params, num_cat)
                     row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
                     row_output = self._measure_time(model, X, y, meta_params)
+
                     outputs.append(row_output)
                     inputs.append(row_input)
                     if self.verbose >= 2:
