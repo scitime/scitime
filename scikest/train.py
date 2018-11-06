@@ -68,8 +68,7 @@ class Trainer(Estimator, LogMixin):
                + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs']
                   for k in self.params['internal_params'][i]]
 
-    @staticmethod
-    def _add_row_to_csv(row_input, row_output):
+    def _add_row_to_csv(self, row_input, row_output):
         """
         writes a row into the csv results file
 
