@@ -280,10 +280,9 @@ class Trainer(Estimator, LogMixin):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         meta_algo.fit(X_train, y_train)
 
-        if self.verbose >= 2:
-            self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
-
         if save_model:
+            if self.verbose >= 2:
+                self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
             path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
             joblib.dump(meta_algo, path)
 
