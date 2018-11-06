@@ -251,13 +251,14 @@ class Trainer(Estimator, LogMixin):
         return X, y
 
     @timeit
-    def model_fit(self, generate_data=True, inputs=None, outputs=None):
+    def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
         """
         builds the actual training time estimator
 
         :param generate_data: bool (if set to True, calls _generate_data)
         :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
+        :param save_model: boolean set to True if the model needs to be saved
         :return: meta_algo
         :rtype: scikit learn model
         """
@@ -282,8 +283,9 @@ class Trainer(Estimator, LogMixin):
         if self.verbose >= 2:
             self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
 
-        path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
-        joblib.dump(meta_algo, path)
+        if save_model:
+            path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
+            joblib.dump(meta_algo, path)
 
         if self.verbose >= 2:
             self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
