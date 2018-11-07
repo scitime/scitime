@@ -77,15 +77,32 @@ class Estimator(LogMixin):
                + [i + '_' + str(k) for i in params['internal_params'].keys() if
                   i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
-    def _estimate(self, algo, X, y=None):
+    def _estimate_intervals(self, estimator, X, percentile=95):
+        """
+        estimate the prediction intervals for one data-point
+        #inputs
+        :return: low and high values of the percentile-confidence interval
+        :rtype: tuple
+
+        """
+
+        preds = []
+        for pred in estimator.estimators_:
+            preds.append(pred.predict(X[x])[0])
+        err_down = np.percentile(preds, (100 - percentile) / 2. )
+        err_up = np.percentile(preds, 100 - (100 - percentile) / 2.)
+        return err_down, err_up
+
+    def _estimate(self, algo, X, y=None, percentile=95):
         """
         estimates the model's training time given that the fit starts
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None if unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
-        :return: predicted runtime
-        :rtype: float
+        :param percentile: prediction interval percentile
+        :return: predicted runtime, low and high values of the percentile-confidence interval
+        :rtype: tuple
         """
         # fetching sklearn model of the end user
         algo_name = self._fetch_name(algo)
@@ -154,9 +171,12 @@ class Estimator(LogMixin):
                  .as_matrix())
         prediction = estimator.predict(X)
 
+        errors = self._estimate_intervals(estimator, X, percentile)
+
         if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
-        return prediction
+            self.logger.info(f'The prediction interval is ~ {prediction[0]} seconds')
+        return prediction, errors[0], errors[1]
 
     def estimate_duration(self, algo, X, y=None):
         """
