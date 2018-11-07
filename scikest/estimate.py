@@ -77,13 +77,13 @@ class Estimator(LogMixin):
                + [i + '_' + str(k) for i in params['internal_params'].keys() if
                   i in params['dummy_inputs'] for k in params['internal_params'][i]]
 
-    def _estimate_intervals(self, estimator, X, percentile=95):
+    def _estimate_interval(self, estimator, X, percentile=95):
         """
         estimate the prediction intervals for one data-point
-        #inputs
+        :param estimator: the fitted random-forest meta-algo
+        :param X: parameters, the same as the ones fed in the meta-algo
         :return: low and high values of the percentile-confidence interval
         :rtype: tuple
-
         """
 
         preds = []
@@ -171,11 +171,15 @@ class Estimator(LogMixin):
                  .as_matrix())
         prediction = estimator.predict(X)
 
-        errors = self._estimate_intervals(estimator, X, percentile)
+        try:
+            errors = self._estimate_interval(estimator, X, percentile)
+        except Exception as e:
+            if self.verbose >= 1:
+                self.logger.warning(f'error interval estimation for throws a {e.__class__.__name__}')
 
         if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
-            self.logger.info(f'The prediction interval is ~ {prediction[0]} seconds')
+            self.logger.info(f'The {percentile}% prediction interval is [{errors[0]}, {errors[1]}] seconds')
         return prediction, errors[0], errors[1]
 
     def estimate_duration(self, algo, X, y=None):
