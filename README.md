@@ -28,7 +28,8 @@ inputs, outputs, _ = trainer._generate_data()
 
 # then fitting the meta model
 meta_algo = trainer.model_fit(generate_data=False, inputs=inputs, outputs=outputs)
-# this should locally overwrite the pickle file located at scikest/models/{your_model}
+# this should not locally overwrite the pickle file located at scikest/models/{your_model}
+# if you want to save the model, set the argument save_model to True
 ```
 #### How to run estimate.py?
 
