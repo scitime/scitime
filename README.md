@@ -6,7 +6,7 @@ Python version: 3.6.3
 ```
 ❱ virtualenv env
 ❱ source env/bin/activate
-❱ pip install -e git+ssh://git@github.com/nathan-toubiana/scikest.git
+❱ pip install -e "git+ssh://git@github.com/nathan-toubiana/scikest.git#egg=scikest"
 ```
 
 #### Testing
