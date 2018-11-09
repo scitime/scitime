@@ -85,6 +85,7 @@ class Estimator(LogMixin):
         :return: low and high values of the percentile-confidence interval
         :rtype: tuple
         """
+<<<<<<< HEAD
         if self.meta_algo == 'RF':
             preds = []
             for pred in estimator.estimators_:
@@ -95,6 +96,15 @@ class Estimator(LogMixin):
         else:
             #To be completed when/if we change the meta-algo
             pass
+=======
+
+        preds = []
+        for pred in estimator.estimators_:
+            preds.append(pred.predict(X[x])[0])
+        err_down = np.percentile(preds, (100 - percentile) / 2. )
+        err_up = np.percentile(preds, 100 - (100 - percentile) / 2.)
+        return err_down, err_up
+>>>>>>> 3daff78f88cd01cb48cffb02ad11ecc7905ffc51
 
     def _estimate(self, algo, X, y=None, percentile=95):
         """
