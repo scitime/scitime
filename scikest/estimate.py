@@ -90,13 +90,12 @@ class Estimator(LogMixin):
             preds = []
             for pred in estimator.estimators_:
                 preds.append(pred.predict(X)[0])
-            err_down = np.percentile(preds, (100 - percentile) / 2. )
-            err_up = np.percentile(preds, 100 - (100 - percentile) / 2.)
-            return err_down, err_up
+            lower_bound = np.percentile(preds, (100 - percentile) / 2. )
+            upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
+            return lower_bound, upper_bound
         else:
             #To be completed when/if we change the meta-algo
             pass
-
 
     def _estimate(self, algo, X, y=None, percentile=95):
         """
@@ -174,16 +173,13 @@ class Estimator(LogMixin):
                  ._get_numeric_data()
                  .dropna(axis=0, how='any')
                  .as_matrix())
-        prediction = estimator.predict(X)
-
-        
-        errors = self._estimate_interval(estimator, X, percentile)
-        
+        prediction = estimator.predict(X)     
+        lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
 
         if self.verbose >= 2:
             self.logger.info('Training your model should take ~ {:.2} seconds'.format(prediction[0]))
-            self.logger.info('The {}% prediction interval is [{:.2}, {:.2}] seconds'.format(percentile, errors[0], errors[1]))
-        return prediction[0], errors[0], errors[1]
+            self.logger.info('The {}% prediction interval is [{:.2}, {:.2}] seconds'.format(percentile, lower_bound, upper_bound))
+        return prediction[0], lower_bound, upper_bound
 
     def estimate_duration(self, algo, X, y=None):
         """
