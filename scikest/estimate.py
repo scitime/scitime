@@ -176,11 +176,9 @@ class Estimator(LogMixin):
                  .as_matrix())
         prediction = estimator.predict(X)
 
-        try:
-            errors = self._estimate_interval(estimator, X, percentile)
-        except Exception as e:
-            if self.verbose >= 1:
-                self.logger.warning(f'error interval estimation for throws a {e.__class__.__name__}')
+        
+        errors = self._estimate_interval(estimator, X, percentile)
+        
 
         if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
