@@ -89,7 +89,7 @@ class Estimator(LogMixin):
         if self.meta_algo == 'RF':
             preds = []
             for pred in estimator.estimators_:
-                preds.append(pred.predict(X[x])[0])
+                preds.append(pred.predict(X)[0])
             err_down = np.percentile(preds, (100 - percentile) / 2. )
             err_up = np.percentile(preds, 100 - (100 - percentile) / 2.)
             return err_down, err_up
@@ -181,9 +181,9 @@ class Estimator(LogMixin):
         
 
         if self.verbose >= 2:
-            self.logger.info(f'Training your model should take ~ {prediction[0]} seconds')
-            self.logger.info(f'The {percentile}% prediction interval is [{errors[0]}, {errors[1]}] seconds')
-        return prediction, errors[0], errors[1]
+            self.logger.info('Training your model should take ~ {:.2} seconds'.format(prediction[0]))
+            self.logger.info('The {}% prediction interval is [{:.2}, {:.2}] seconds'.format(percentile, errors[0], errors[1]))
+        return prediction[0], errors[0], errors[1]
 
     def estimate_duration(self, algo, X, y=None):
         """
