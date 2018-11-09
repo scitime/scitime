@@ -183,7 +183,7 @@ class Trainer(Estimator, LogMixin):
                     if not validation:
                         self._add_row_to_csv(row_input, row_output)
                     else:
-                        row_estimated_output = self._estimate(model, X, y)
+                        row_estimated_output, _, _ = self._estimate(model, X, y)
                         estimated_outputs.append(row_estimated_output)
 
                 except Exception as e:
