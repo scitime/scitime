@@ -12,14 +12,10 @@
     "type": "regression",
     "internal_params": {
       "n_estimators": [
-        10,
-        50,
-        100
+        10
       ],
       "max_depth": [
-        10,
-        50,
-        100
+        10
       ],
       "min_samples_split": [
         2,
@@ -33,29 +29,28 @@
       ],
       "min_weight_fraction_leaf": [
         0.1,
-        0.25,
         0.5
       ],
       "max_features": [
-        "auto",
+       "auto",
         10,
         20,
+        30,
+        40,
         50,
-        100
+        100,
+        200
       ],
       "max_leaf_nodes": [
         2,
-        4,
         10
       ],
       "min_impurity_decrease": [
         1,
-        5,
         10
       ],
       "min_impurity_split": [
         1,
-        5,
         10
       ],
       "bootstrap": [
@@ -68,7 +63,6 @@
       "n_jobs": [
         1,
         2,
-        5,
         8
       ]
     },
@@ -77,10 +71,10 @@
     ],
     "external_params": {
       "num_rows": [
-        50000000
+        1000
       ],
       "num_features": [
-        50,25
+        2
       ]
     },
     "other_params": [
