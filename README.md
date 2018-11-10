@@ -54,12 +54,12 @@ rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
 
 X,y = np.random.rand(100000,10),np.random.rand(100000,1)
 # run the estimation
-estimations = estimator.estimate_duration(rf, X, y)
+estimation, lower_bound, upper_bound = estimator.estimate_duration(rf, X, y)
 
 # compare to the actual training time
 start_time = time.time()
 rf.fit(X,y)
 elapsed_time = time.time() - start_time
 print("elapsed time: {:.2}".format(elapsed_time))
-print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimations[0], estimations[1], estimations[2]))
+print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
