@@ -9,6 +9,7 @@ import time
 import joblib
 import itertools
 import importlib
+import json
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error
@@ -55,18 +56,6 @@ class Trainer(Estimator, LogMixin):
         if self.algo not in config("supported_algos"):
             raise ValueError(f'{self.algo} not currently supported by this package')
         return config(self.algo)
-
-    @property
-    def estimation_inputs(self):
-        """
-        retrieves estimation inputs (made dummy)
-
-        :return: list of inputs
-        """
-        return self.params['other_params'] + [i for i in self.params['external_params'].keys()] \
-               + [i for i in self.params['internal_params'].keys() if i not in self.params['dummy_inputs']] \
-               + [i + '_' + str(k) for i in self.params['internal_params'].keys() if i in self.params['dummy_inputs']
-                  for k in self.params['internal_params'][i]]
 
     def _add_row_to_csv(self, row_input, row_output):
         """
@@ -236,19 +225,14 @@ class Trainer(Estimator, LogMixin):
         if self.verbose >= 2:
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
 
-        # adding 0 columns for columns that are not in the dataset, assuming it's only dummy columns
-        missing_inputs = list(set(list(self.estimation_inputs)) - set(list((data.columns))))
-        for i in missing_inputs:
-            data[i] = 0
-
         # reshaping into arrays
-        X = (data[self.estimation_inputs]
+        X = (data
              ._get_numeric_data()
              .dropna(axis=0, how='any')
              .as_matrix())
         y = outputs['output'].dropna(axis=0, how='any').as_matrix()
 
-        return X, y
+        return X, y, data.columns
 
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
@@ -265,7 +249,7 @@ class Trainer(Estimator, LogMixin):
         if generate_data:
             inputs, outputs, _ = self._generate_data()
 
-        X, y = self._transform_data(inputs, outputs)
+        X, y, cols = self._transform_data(inputs, outputs)
 
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
@@ -283,8 +267,12 @@ class Trainer(Estimator, LogMixin):
         if save_model:
             if self.verbose >= 2:
                 self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
-            path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
-            joblib.dump(meta_algo, path)
+            model_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
+            joblib.dump(meta_algo, model_path)
+
+            json_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.json'
+            with open(json_path, 'w') as outfile:
+                json.dump(list(cols), outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
