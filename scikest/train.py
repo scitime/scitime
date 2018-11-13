@@ -232,7 +232,7 @@ class Trainer(Estimator, LogMixin):
              .as_matrix())
         y = outputs['output'].dropna(axis=0, how='any').as_matrix()
 
-        return X, y, data.columns
+        return X, y, data.columns, inputs.columns
 
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
@@ -249,7 +249,7 @@ class Trainer(Estimator, LogMixin):
         if generate_data:
             inputs, outputs, _ = self._generate_data()
 
-        X, y, cols = self._transform_data(inputs, outputs)
+        X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
@@ -271,8 +271,9 @@ class Trainer(Estimator, LogMixin):
             joblib.dump(meta_algo, model_path)
 
             json_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.json'
+
             with open(json_path, 'w') as outfile:
-                json.dump(list(cols), outfile)
+                json.dump({"dummy":list(cols), "original":list(original_cols)}, outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')

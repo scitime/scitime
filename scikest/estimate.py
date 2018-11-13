@@ -116,7 +116,8 @@ class Estimator(LogMixin):
 
         json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
         params = config(algo_name)
-        estimation_inputs = self._fetch_inputs(json_path)
+        estimation_inputs = self._fetch_inputs(json_path)['dummy']
+        estimation_original_inputs = self._fetch_inputs(json_path)['original']
 
         if self.verbose >= 2:
             self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
@@ -159,20 +160,21 @@ class Estimator(LogMixin):
             self.logger.info(f'Training your model for these params: {dic}')
 
         df = pd.DataFrame(dic, columns=param_list)
+        forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
+
+        if len(forgotten_inputs) > 0:
+            raise ValueError(f'{forgotten_inputs} parameters missing')
+
         df = pd.get_dummies(df)
 
         # adding 0 columns for columns that are not in the dataset
-        inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
+        dummy_inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
         missing_inputs = list(set(list(df.columns)) - set(list((estimation_inputs))))
         if self.verbose >= 1 and (len(missing_inputs) > 0):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
 
-        for i in inputs_to_fill:
-            if i in list(params['internal_params'].keys()):
-                #if not dummy input, raise error
-                raise ValueError(f'{i} parameter missing')
-            else:
-                df[i] = 0
+        for i in dummy_inputs_to_fill:
+            df[i] = 0
 
         df = df[estimation_inputs]
 

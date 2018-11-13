@@ -1,16 +1,34 @@
-[
-  "total_memory",
-  "available_memory",
-  "num_cpu",
-  "num_rows",
-  "num_features",
-  "max_iter",
-  "n_clusters",
-  "n_init",
-  "n_jobs",
-  "tol",
-  "algorithm_auto",
-  "copy_x_True",
-  "init_k-means++",
-  "precompute_distances_auto"
-]
+{
+  "dummy": [
+    "total_memory",
+    "available_memory",
+    "num_cpu",
+    "num_rows",
+    "num_features",
+    "max_iter",
+    "n_clusters",
+    "n_init",
+    "n_jobs",
+    "tol",
+    "algorithm_auto",
+    "copy_x_True",
+    "init_k-means++",
+    "precompute_distances_auto"
+  ],
+  "original": [
+    "total_memory",
+    "available_memory",
+    "num_cpu",
+    "num_rows",
+    "num_features",
+    "algorithm",
+    "copy_x",
+    "init",
+    "max_iter",
+    "n_clusters",
+    "n_init",
+    "n_jobs",
+    "precompute_distances",
+    "tol"
+  ]
+}
