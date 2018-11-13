@@ -220,7 +220,7 @@ class Trainer(Estimator, LogMixin):
         :return: X, y
         :rtype: np arrays
         """
-        data = pd.get_dummies(inputs)
+        data = pd.get_dummies(inputs).fillna(0)
 
         if self.verbose >= 2:
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
