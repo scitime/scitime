@@ -271,7 +271,7 @@ class Trainer(Estimator, LogMixin):
         if self.meta_algo not in config('supported_meta_algos'):
             raise ValueError(f'meta algo {self.meta_algo} currently not supported')
         if self.meta_algo == 'RF':
-            meta_algo = RandomForestRegressor()
+            meta_algo = RandomForestRegressor(criterion='mse', max_depth=100, max_features=10)
 
         if self.verbose >= 2:
             self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
