@@ -6,6 +6,7 @@ import joblib
 import pandas as pd
 import numpy as np
 import time
+import json
 
 import warnings
 
@@ -14,11 +15,12 @@ warnings.simplefilter("ignore")
 from scikest.utils import LogMixin, get_path, config, timeout
 
 
+
 class Estimator(LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
 
-    def __init__(self, meta_algo=META_ALGO, verbose=0):
+    def __init__(self, meta_algo=META_ALGO, verbose=3):
         self.meta_algo = meta_algo
         self.verbose = verbose
 
@@ -64,18 +66,14 @@ class Estimator(LogMixin):
         return type(algo).__name__
 
     @staticmethod
-    def _fetch_inputs(params):
+    def _fetch_inputs(json_path):
         """
         retrieves estimation inputs (made dummy)
 
-        :param params: dict data
+        :param json_path: list of columns in json fils
         :return: list of inputs
         """
-        return params['other_params'] + [i for i in params['external_params'].keys()] \
-               + [i for i in params['internal_params'].keys() if
-                  i not in params['dummy_inputs']] \
-               + [i + '_' + str(k) for i in params['internal_params'].keys() if
-                  i in params['dummy_inputs'] for k in params['internal_params'][i]]
+        return json.load(open(get_path(json_path)))
 
     def _estimate_interval(self, estimator, X, percentile=95):
         """
@@ -116,13 +114,15 @@ class Estimator(LogMixin):
         if self.meta_algo not in config('supported_meta_algos'):
             raise ValueError(f'meta algo {self.meta_algo} currently not supported')
 
+        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
         params = config(algo_name)
-        estimation_inputs = self._fetch_inputs(params)
+        estimation_inputs = self._fetch_inputs(json_path)['dummy']
+        estimation_original_inputs = self._fetch_inputs(json_path)['original']
 
         if self.verbose >= 2:
             self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
-        path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
-        estimator = joblib.load(path)
+        model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
+        estimator = joblib.load(model_path)
 
         n = X.shape[0]
         p = X.shape[1]
@@ -150,23 +150,32 @@ class Estimator(LogMixin):
                     # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
-                    inputs.append(algo_params[i])
-
+                    if algo_params[i] is None:
+                        inputs.append(0)
+                    else:
+                        inputs.append(algo_params[i])
         # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
 
         df = pd.DataFrame(dic, columns=param_list)
+        forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
+
+        if len(forgotten_inputs) > 0:
+            raise ValueError(f'{forgotten_inputs} parameters missing')
+
         df = pd.get_dummies(df)
 
-        # adding 0 columns for columns that are not in the dataset, assuming it s only dummy columns
-        inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
+        # adding 0 columns for columns that are not in the dataset
+        dummy_inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
         missing_inputs = list(set(list(df.columns)) - set(list((estimation_inputs))))
         if self.verbose >= 1 and (len(missing_inputs) > 0):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
-        for i in inputs_to_fill:
+
+        for i in dummy_inputs_to_fill:
             df[i] = 0
+
         df = df[estimation_inputs]
 
         X = (df[estimation_inputs]

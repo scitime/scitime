@@ -15,6 +15,7 @@
         10
       ],
       "max_depth": [
+        null,
         10
       ],
       "min_samples_split": [
@@ -42,6 +43,7 @@
         200
       ],
       "max_leaf_nodes": [
+        null,
         2,
         10
       ],
@@ -50,6 +52,7 @@
         10
       ],
       "min_impurity_split": [
+        null,
         1,
         10
       ],
