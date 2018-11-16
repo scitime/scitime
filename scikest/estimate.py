@@ -12,7 +12,8 @@ import warnings
 
 warnings.simplefilter("ignore")
 
-from scikest.utils import LogMixin, get_path, config, timeout
+from scikest.utils import get_path, config, timeout
+from scikest.log import LogMixin
 
 class Estimator(LogMixin):
     # default meta-algorithm
