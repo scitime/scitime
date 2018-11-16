@@ -33,7 +33,7 @@
         0.5
       ],
       "max_features": [
-       "auto",
+        "auto",
         10,
         20,
         30,
@@ -70,8 +70,15 @@
       ]
     },
     "dummy_inputs": [
-      "max_features"
     ],
+    "semi_dummy_inputs": {
+      "max_depth": [
+        null
+      ],
+      "max_features": [
+        "auto"
+      ]
+    },
     "external_params": {
       "num_rows": [
         1000
