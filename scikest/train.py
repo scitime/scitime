@@ -223,10 +223,7 @@ class Trainer(Estimator, LogMixin):
         # first we transform semi dummy features
         semi_dummy_inputs = self.params['semi_dummy_inputs']
         # we add columns for each semi dummy features (*number of potential dummy values)
-        for key in semi_dummy_inputs:
-            for sub_key in semi_dummy_inputs[key]:
-                inputs[f'{key}_{sub_key}'] = inputs[f'{key}'].apply(lambda x: x == sub_key)
-                inputs[f'{key}'] = inputs[f'{key}'].apply(lambda x: None if x == sub_key else x)
+        inputs = self._add_semi_dummy(inputs, semi_dummy_inputs)
 
         #we then fill artifical (and natural) NAs with -1
 

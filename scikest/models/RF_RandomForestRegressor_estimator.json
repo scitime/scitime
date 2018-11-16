@@ -18,7 +18,9 @@
     "oob_score",
     "n_jobs",
     "max_depth_None",
-    "max_features_auto"
+    "max_features_auto",
+    "max_leaf_nodes_None",
+    "min_impurity_split_None"
   ],
   "original": [
     "total_memory",
@@ -39,6 +41,8 @@
     "oob_score",
     "n_jobs",
     "max_depth_None",
-    "max_features_auto"
+    "max_features_auto",
+    "max_leaf_nodes_None",
+    "min_impurity_split_None"
   ]
 }

@@ -14,8 +14,6 @@ warnings.simplefilter("ignore")
 
 from scikest.utils import LogMixin, get_path, config, timeout
 
-
-
 class Estimator(LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
@@ -74,6 +72,24 @@ class Estimator(LogMixin):
         :return: list of inputs
         """
         return json.load(open(get_path(json_path)))
+
+    def _add_semi_dummy(self, df, semi_dummy_inputs):
+        """
+        add columns for semi dummy inputs (continuous except for one or a few values)
+
+        :param df: df before made dummy
+        :param semi_dummy_inputs: from meta params
+        :return: df transformed with added columns
+        """
+        if self.verbose >= 2:
+            self.logger.info(f'Transforming dataset for semi dummy features')
+
+        for key in semi_dummy_inputs:
+            for sub_key in semi_dummy_inputs[key]:
+                df[f'{key}_{sub_key}'] = df[f'{key}'].apply(lambda x: x == sub_key)
+                df[f'{key}'] = df[f'{key}'].apply(lambda x: None if x == sub_key else x)
+
+        return df
 
     def _estimate_interval(self, estimator, X, percentile=95):
         """
@@ -162,17 +178,14 @@ class Estimator(LogMixin):
         # first we transform semi dummy features
         semi_dummy_inputs = params['semi_dummy_inputs']
         # we add columns for each semi dummy features (*number of potential dummy values)
-        for key in semi_dummy_inputs:
-            for sub_key in semi_dummy_inputs[key]:
-                df[f'{key}_{sub_key}'] = df[f'{key}'].apply(lambda x: x == sub_key)
-                df[f'{key}'] = df[f'{key}'].apply(lambda x: None if x == sub_key else x)
+        df = self._add_semi_dummy(df, semi_dummy_inputs)
 
         forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
 
         if len(forgotten_inputs) > 0:
             raise ValueError(f'{forgotten_inputs} parameters missing')
 
-        df = pd.get_dummies(df)
+        df = pd.get_dummies(df.fillna(-1))
 
         # adding 0 columns for columns that are not in the dataset
         dummy_inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
