@@ -150,16 +150,23 @@ class Estimator(LogMixin):
                     # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
-                    if algo_params[i] is None:
-                        inputs.append(0)
-                    else:
-                        inputs.append(algo_params[i])
+                    inputs.append(algo_params[i])
+
         # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
 
         df = pd.DataFrame(dic, columns=param_list)
+
+        # first we transform semi dummy features
+        semi_dummy_inputs = params['semi_dummy_inputs']
+        # we add columns for each semi dummy features (*number of potential dummy values)
+        for key in semi_dummy_inputs:
+            for sub_key in semi_dummy_inputs[key]:
+                df[f'{key}_{sub_key}'] = df[f'{key}'].apply(lambda x: x == sub_key)
+                df[f'{key}'] = df[f'{key}'].apply(lambda x: None if x == sub_key else x)
+
         forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
 
         if len(forgotten_inputs) > 0:
