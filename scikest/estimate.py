@@ -190,7 +190,8 @@ class Estimator(LogMixin):
 
         # adding 0 columns for columns that are not in the dataset
         dummy_inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
-        missing_inputs = list(set(list(df.columns)) - set(list((estimation_inputs))))
+        missing_inputs = list(set(list(algo_params.keys())) - set(list((params['internal_params'].keys()))))
+
         if self.verbose >= 1 and (len(missing_inputs) > 0):
             self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
 
