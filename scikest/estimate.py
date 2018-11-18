@@ -92,65 +92,15 @@ class Estimator(LogMixin):
 
         return df
 
-    def _estimate_interval(self, estimator, X, percentile=95):
-        """
-        estimate the prediction intervals for one data-point
-        :param estimator: the fitted random-forest meta-algo
-        :param X: parameters, the same as the ones fed in the meta-algo
-        :return: low and high values of the percentile-confidence interval
-        :rtype: tuple
-        """
-
-        if self.meta_algo == 'RF':
-            preds = []
-            for pred in estimator.estimators_:
-                preds.append(pred.predict(X)[0])
-            lower_bound = np.percentile(preds, (100 - percentile) / 2. )
-            upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
-            return lower_bound, upper_bound
-        else:
-            #To be completed when/if we change the meta-algo
-            pass
-
-    def _estimate(self, algo, X, y=None, percentile=95):
-        """
-        estimates the model's training time given that the fit starts
-
-        :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained (set to None if unsupervised algo)
-        :param algo: algo whose runtime the user wants to predict
-        :param percentile: prediction interval percentile
-        :return: predicted runtime, low and high values of the percentile-confidence interval
-        :rtype: tuple
-        """
-        # fetching sklearn model of the end user
-        algo_name = self._fetch_name(algo)
-        if algo_name not in config("supported_algos"):
-            raise ValueError(f'{algo_name} not currently supported by this package')
-
-        if self.meta_algo not in config('supported_meta_algos'):
-            raise ValueError(f'meta algo {self.meta_algo} currently not supported')
-
-        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
-        params = config(algo_name)
-        estimation_inputs = self._fetch_inputs(json_path)['dummy']
-        estimation_original_inputs = self._fetch_inputs(json_path)['original']
-
-        if self.verbose >= 2:
-            self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
-        model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
-        estimator = joblib.load(model_path)
-
+    def _fetch_params(self, params, algo_params, algo, X , y):
         n = X.shape[0]
         p = X.shape[1]
-        # retrieving all parameters of interest
         inputs = [self.memory.total, self.memory.available, self.num_cpu, n, p]
 
         if params["type"] == "classification":
             num_cat = len(np.unique(y))
             inputs.append(num_cat)
 
-        algo_params = algo.get_params()
         param_list = params['other_params'] + list(params['external_params'].keys()) + list(
             params['internal_params'].keys())
 
@@ -167,9 +117,12 @@ class Estimator(LogMixin):
                     # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
-                    inputs.append(algo_params[i])
-
-        # making dummy
+                    inputs.append(algo_params[i])   
+        
+        return param_list, inputs  
+        
+    def _tranform_params(self, param_list, params, algo_params, inputs, estimation_original_inputs, estimation_inputs):
+         # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
@@ -204,6 +157,70 @@ class Estimator(LogMixin):
                  ._get_numeric_data()
                  .dropna(axis=0, how='any')
                  .as_matrix())
+
+        return(X)                                            
+
+    def _estimate_interval(self, estimator, X, percentile=95):
+        """
+        estimate the prediction intervals for one data-point
+        :param estimator: the fitted random-forest meta-algo
+        :param X: parameters, the same as the ones fed in the meta-algo
+        :return: low and high values of the percentile-confidence interval
+        :rtype: tuple
+        """
+
+        if self.meta_algo == 'RF':
+            preds = []
+            for pred in estimator.estimators_:
+                preds.append(pred.predict(X)[0])
+            lower_bound = np.percentile(preds, (100 - percentile) / 2. )
+            upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
+            return lower_bound, upper_bound
+        else:
+            #To be completed when/if we change the meta-algo
+            pass
+
+    def _estimate(self, algo, X, y=None, percentile=95):
+        """
+        estimates the model's training time given that the fit starts
+
+        :param X: np.array of inputs to be trained
+        :param y: np.array of outputs to be trained (set to None if unsupervised algo)
+        :param algo: algo whose runtime the user wants to predict
+        :param percentile: prediction interval percentile
+        :return: predicted runtime, low and high values of the percentile-confidence interval
+        :rtype: tuple
+        """
+        # fetching sklearn model of the end user
+        algo_name = self._fetch_name(algo)
+        
+        if algo_name not in config("supported_algos"):
+            raise ValueError(f'{algo_name} not currently supported by this package')
+
+        if self.meta_algo not in config('supported_meta_algos'):
+            raise ValueError(f'meta algo {self.meta_algo} currently not supported')
+
+        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
+        estimation_inputs = self._fetch_inputs(json_path)['dummy']
+        estimation_original_inputs = self._fetch_inputs(json_path)['original']
+
+        if self.verbose >= 2:
+            self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+        model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
+        estimator = joblib.load(model_path)
+
+
+        params = config(algo_name)
+        algo_params = algo.get_params()
+
+        # retrieving all parameters of interest:
+        fetched_params = self._fetch_params(params, algo_params, algo, X, y)
+        param_list = fetched_params[0]
+        inputs = fetched_params[1]
+
+        # Transforming the inputs:
+        X = self._tranform_params(param_list, params, algo_params, inputs, estimation_original_inputs, estimation_inputs)
+
         prediction = estimator.predict(X)     
         lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
 
