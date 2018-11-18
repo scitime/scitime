@@ -119,20 +119,20 @@ class Estimator(LogMixin):
                 else:
                     inputs.append(algo_params[i])   
         
-        return param_list, inputs  
-        
-    def _tranform_params(self, param_list, params, algo_params, algo_name, inputs):
-        
-        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
-        estimation_inputs = self._fetch_inputs(json_path)['dummy']
-        estimation_original_inputs = self._fetch_inputs(json_path)['original']
-
-         # making dummy
+        # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
 
         df = pd.DataFrame(dic, columns=param_list)
+
+        return df, inputs  
+        
+    def _tranform_params(self, df, params, algo_params, algo_name, inputs):
+        
+        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
+        estimation_inputs = self._fetch_inputs(json_path)['dummy']
+        estimation_original_inputs = self._fetch_inputs(json_path)['original']
 
         # first we transform semi dummy features
         semi_dummy_inputs = params['semi_dummy_inputs']
@@ -216,11 +216,11 @@ class Estimator(LogMixin):
 
         # retrieving all parameters of interest:
         fetched_params = self._fetch_params(params, algo_params, algo, X, y)
-        param_list = fetched_params[0]
+        df = fetched_params[0]
         inputs = fetched_params[1]
 
         # Transforming the inputs:
-        X = self._tranform_params(param_list, params, algo_params, algo_name, inputs)
+        X = self._tranform_params(df, params, algo_params, algo_name, inputs)
 
         prediction = estimator.predict(X)     
         lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
