@@ -92,7 +92,7 @@ class Estimator(LogMixin):
 
         return df
 
-    def _fetch_params(self, params, algo_params, algo, X , y):
+    def _fetch_params(self, params, algo_params, algo, X, y):
         n = X.shape[0]
         p = X.shape[1]
         inputs = [self.memory.total, self.memory.available, self.num_cpu, n, p]
@@ -121,7 +121,12 @@ class Estimator(LogMixin):
         
         return param_list, inputs  
         
-    def _tranform_params(self, param_list, params, algo_params, inputs, estimation_original_inputs, estimation_inputs):
+    def _tranform_params(self, param_list, params, algo_params, algo_name, inputs):
+        
+        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
+        estimation_inputs = self._fetch_inputs(json_path)['dummy']
+        estimation_original_inputs = self._fetch_inputs(json_path)['original']
+
          # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose >= 2:
@@ -200,10 +205,6 @@ class Estimator(LogMixin):
         if self.meta_algo not in config('supported_meta_algos'):
             raise ValueError(f'meta algo {self.meta_algo} currently not supported')
 
-        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
-        estimation_inputs = self._fetch_inputs(json_path)['dummy']
-        estimation_original_inputs = self._fetch_inputs(json_path)['original']
-
         if self.verbose >= 2:
             self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
         model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
@@ -219,7 +220,7 @@ class Estimator(LogMixin):
         inputs = fetched_params[1]
 
         # Transforming the inputs:
-        X = self._tranform_params(param_list, params, algo_params, inputs, estimation_original_inputs, estimation_inputs)
+        X = self._tranform_params(param_list, params, algo_params, algo_name, inputs)
 
         prediction = estimator.predict(X)     
         lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
