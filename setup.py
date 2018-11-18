@@ -24,7 +24,7 @@ setup(
     ],
     package_data={
         # include json and pkl files
-        '': ['*.json', 'models/*.pkl'],
+        '': ['*.json', 'models/*.pkl', 'models/*.json'],
     },
     include_package_data=True
 )

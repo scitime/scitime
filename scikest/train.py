@@ -20,7 +20,8 @@ import warnings
 warnings.simplefilter("ignore")
 
 from scikest.estimate import Estimator
-from scikest.utils import LogMixin, get_path, config, timeit
+from scikest.utils import get_path, config, timeout
+from scikest.log import LogMixin, timeit
 
 
 class Trainer(Estimator, LogMixin):
@@ -220,7 +221,14 @@ class Trainer(Estimator, LogMixin):
         :return: X, y
         :rtype: np arrays
         """
-        data = pd.get_dummies(inputs.fillna(0))
+        # first we transform semi dummy features
+        semi_dummy_inputs = self.params['semi_dummy_inputs']
+        # we add columns for each semi dummy features (*number of potential dummy values)
+        inputs = self._add_semi_dummy(inputs, semi_dummy_inputs)
+
+        # we then fill artifical (and natural) NAs with -1
+
+        data = pd.get_dummies(inputs.fillna(-1))
 
         if self.verbose >= 2:
             self.logger.info('Model inputs: {}'.format(list(data.columns)))
@@ -273,7 +281,7 @@ class Trainer(Estimator, LogMixin):
             json_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.json'
 
             with open(json_path, 'w') as outfile:
-                json.dump({"dummy":list(cols), "original":list(original_cols)}, outfile)
+                json.dump({"dummy": list(cols), "original": list(original_cols)}, outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')

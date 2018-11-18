@@ -33,7 +33,7 @@
         0.5
       ],
       "max_features": [
-       "auto",
+        "auto",
         10,
         20,
         30,
@@ -70,14 +70,27 @@
       ]
     },
     "dummy_inputs": [
-      "max_features"
     ],
+    "semi_dummy_inputs": {
+      "max_depth": [
+        null
+      ],
+      "max_features": [
+        "auto"
+      ],
+      "max_leaf_nodes": [
+        null
+      ],
+      "min_impurity_split": [
+        null
+      ]
+    },
     "external_params": {
       "num_rows": [
         1000
       ],
       "num_features": [
-        2
+        20
       ]
     },
     "other_params": [
@@ -153,6 +166,7 @@
       "gamma",
       "decision_function_shape"
     ],
+    "semi_dummy_inputs": {},
     "external_params": {
       "num_rows": [
         100,
@@ -223,6 +237,7 @@
       "init",
       "algorithm"
     ],
+    "semi_dummy_inputs": {},
     "external_params": {
       "num_rows": [
         100,
