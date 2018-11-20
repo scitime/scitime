@@ -43,7 +43,7 @@ class Estimator(LogMixin):
         :param y: outputs for the algo
         """
         algo.verbose = 0
-        algo_name = self._fetch_name(algo)
+        algo_name = self._fetch_algo_metadata(algo)[0]
         params = config(algo_name)
         algo_type = params['type']
         if algo_type == 'unsupervised':
@@ -53,16 +53,16 @@ class Estimator(LogMixin):
         time.sleep(1)
 
     @staticmethod
-    def _fetch_name(algo):
+    def _fetch_algo_metadata(algo):
         """
         retrieves algo name from sklearn model
 
         :param algo: sklearn model
-        :return: algo name
-        :rtype: str
+        :return: algo name and parameters
+        :rtype: str, dict
         """
 
-        return type(algo).__name__
+        return type(algo).__name__, algo.get_params()
 
     @staticmethod
     def _fetch_inputs(json_path):
@@ -92,17 +92,18 @@ class Estimator(LogMixin):
 
         return df
 
-    def _fetch_params(self, params, algo_params, algo, X, y):
+    def _fetch_params(self, params, algo, X, y):
         """
         builds a dataframe of the params of the estimated model
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None if unsupervised algo)
-        :param algo_params: inputed parameters of algo whose runtime the user wants to predict
         :param params: all parameters of algo whose runtime the user wants to predict
+        :param algo: algo whose runtime the user wants to predict
         :return: dataframe of all inputed parameters
         :rtype: pandas dataframe
         """
+        algo_params=self._fetch_algo_metadata(algo)[1]
         n = X.shape[0]
         p = X.shape[1]
         inputs = [self.memory.total, self.memory.available, self.num_cpu, n, p]
@@ -138,16 +139,18 @@ class Estimator(LogMixin):
 
         return df  
         
-    def _tranform_params(self, df, params, algo_params, algo_name):
+    def _tranform_params(self, df, params, algo):
         """
         builds a dataframe of the params of the estimated model
 
-        :param algo_params: inputed parameters of algo whose runtime the user wants to predict
-        :param params: all parameters of algo whose runtime the user wants to predict
-        :param algo name: name of the estimated algo
+        :param df: dataframe of all inputed parameters
+        :param algo: algo whose runtime the user wants to predict
         :return: matrix of all relevant algo parameters and system features used to estimate algo training time
         :rtype: pandas matrix object  
         """
+        algo_metadata = self._fetch_algo_metadata(algo)
+        algo_name = algo_metadata[0]
+        algo_params = algo_metadata[1]
         json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
         estimation_inputs = self._fetch_inputs(json_path)['dummy']
         estimation_original_inputs = self._fetch_inputs(json_path)['original']
@@ -215,7 +218,8 @@ class Estimator(LogMixin):
         :rtype: tuple
         """
         # fetching sklearn model of the end user
-        algo_name = self._fetch_name(algo)
+        algo_metadata = self._fetch_algo_metadata(algo)
+        algo_name = algo_metadata[0]
         
         if algo_name not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
@@ -228,16 +232,13 @@ class Estimator(LogMixin):
         model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
         estimator = joblib.load(model_path)
 
-
         params = config(algo_name)
-        algo_params = algo.get_params()
 
         # retrieving all parameters of interest:
-        fetched_params = self._fetch_params(params, algo_params, algo, X, y)
-        df = fetched_params
+        df = self._fetch_params(params, algo, X, y)
 
         # Transforming the inputs:
-        X = self._tranform_params(df, params, algo_params, algo_name)
+        X = self._tranform_params(df, params, algo)
 
         prediction = estimator.predict(X)     
         lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
