@@ -93,6 +93,16 @@ class Estimator(LogMixin):
         return df
 
     def _fetch_params(self, params, algo_params, algo, X, y):
+        """
+        builds a dataframe of the params of the estimated model
+
+        :param X: np.array of inputs to be trained
+        :param y: np.array of outputs to be trained (set to None if unsupervised algo)
+        :param algo_params: inputed parameters of algo whose runtime the user wants to predict
+        :param params: all parameters of algo whose runtime the user wants to predict
+        :return: dataframe of all inputed parameters
+        :rtype: pandas dataframe
+        """
         n = X.shape[0]
         p = X.shape[1]
         inputs = [self.memory.total, self.memory.available, self.num_cpu, n, p]
@@ -126,10 +136,18 @@ class Estimator(LogMixin):
 
         df = pd.DataFrame(dic, columns=param_list)
 
-        return df, inputs  
+        return df  
         
-    def _tranform_params(self, df, params, algo_params, algo_name, inputs):
-        
+    def _tranform_params(self, df, params, algo_params, algo_name):
+        """
+        builds a dataframe of the params of the estimated model
+
+        :param algo_params: inputed parameters of algo whose runtime the user wants to predict
+        :param params: all parameters of algo whose runtime the user wants to predict
+        :param algo name: name of the estimated algo
+        :return: matrix of all relevant algo parameters and system features used to estimate algo training time
+        :rtype: pandas matrix object  
+        """
         json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
         estimation_inputs = self._fetch_inputs(json_path)['dummy']
         estimation_original_inputs = self._fetch_inputs(json_path)['original']
@@ -216,11 +234,10 @@ class Estimator(LogMixin):
 
         # retrieving all parameters of interest:
         fetched_params = self._fetch_params(params, algo_params, algo, X, y)
-        df = fetched_params[0]
-        inputs = fetched_params[1]
+        df = fetched_params
 
         # Transforming the inputs:
-        X = self._tranform_params(df, params, algo_params, algo_name, inputs)
+        X = self._tranform_params(df, params, algo_params, algo_name)
 
         prediction = estimator.predict(X)     
         lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
