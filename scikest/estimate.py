@@ -61,8 +61,11 @@ class Estimator(LogMixin):
         :return: algo name and parameters
         :rtype: str, dict
         """
+        algo_name = type(algo).__name__
+        algo_params = algo.get_params()
+        params = config(algo_name)
 
-        return type(algo).__name__, algo.get_params()
+        return algo_name, algo_params, params
 
     @staticmethod
     def _fetch_inputs(json_path):
@@ -92,18 +95,18 @@ class Estimator(LogMixin):
 
         return df
 
-    def _fetch_params(self, params, algo, X, y):
+    def _fetch_params(self, algo, X, y):
         """
         builds a dataframe of the params of the estimated model
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None if unsupervised algo)
-        :param params: all parameters of algo whose runtime the user wants to predict
         :param algo: algo whose runtime the user wants to predict
         :return: dataframe of all inputed parameters
         :rtype: pandas dataframe
         """
-        algo_params=self._fetch_algo_metadata(algo)[1]
+        algo_name, algo_params, params = self._fetch_algo_metadata(algo)
+
         n = X.shape[0]
         p = X.shape[1]
         inputs = [self.memory.total, self.memory.available, self.num_cpu, n, p]
@@ -139,7 +142,7 @@ class Estimator(LogMixin):
 
         return df  
         
-    def _tranform_params(self, df, params, algo):
+    def _tranform_params(self, algo, df):
         """
         builds a dataframe of the params of the estimated model
 
@@ -148,9 +151,8 @@ class Estimator(LogMixin):
         :return: matrix of all relevant algo parameters and system features used to estimate algo training time
         :rtype: pandas matrix object  
         """
-        algo_metadata = self._fetch_algo_metadata(algo)
-        algo_name = algo_metadata[0]
-        algo_params = algo_metadata[1]
+        algo_name, algo_params, params = self._fetch_algo_metadata(algo)
+
         json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
         estimation_inputs = self._fetch_inputs(json_path)['dummy']
         estimation_original_inputs = self._fetch_inputs(json_path)['original']
@@ -184,12 +186,12 @@ class Estimator(LogMixin):
                  .dropna(axis=0, how='any')
                  .as_matrix())
 
-        return(X)                                            
+        return X
 
-    def _estimate_interval(self, estimator, X, percentile=95):
+    def _estimate_interval(self, meta_estimator, X, percentile=95):
         """
         estimate the prediction intervals for one data-point
-        :param estimator: the fitted random-forest meta-algo
+        :param meta_estimator: the fitted random-forest meta-algo
         :param X: parameters, the same as the ones fed in the meta-algo
         :return: low and high values of the percentile-confidence interval
         :rtype: tuple
@@ -197,7 +199,7 @@ class Estimator(LogMixin):
 
         if self.meta_algo == 'RF':
             preds = []
-            for pred in estimator.estimators_:
+            for pred in meta_estimator.estimators_:
                 preds.append(pred.predict(X)[0])
             lower_bound = np.percentile(preds, (100 - percentile) / 2. )
             upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
@@ -218,8 +220,7 @@ class Estimator(LogMixin):
         :rtype: tuple
         """
         # fetching sklearn model of the end user
-        algo_metadata = self._fetch_algo_metadata(algo)
-        algo_name = algo_metadata[0]
+        algo_name, algo_params, params = self._fetch_algo_metadata(algo)
         
         if algo_name not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
@@ -230,18 +231,16 @@ class Estimator(LogMixin):
         if self.verbose >= 2:
             self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
         model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
-        estimator = joblib.load(model_path)
-
-        params = config(algo_name)
+        meta_estimator = joblib.load(model_path)
 
         # retrieving all parameters of interest:
-        df = self._fetch_params(params, algo, X, y)
+        df = self._fetch_params(algo, X, y)
 
         # Transforming the inputs:
-        X = self._tranform_params(df, params, algo)
+        X = self._tranform_params(algo, df)
 
-        prediction = estimator.predict(X)     
-        lower_bound, upper_bound = self._estimate_interval(estimator, X, percentile)
+        prediction = meta_estimator.predict(X)
+        lower_bound, upper_bound = self._estimate_interval(meta_estimator, X, percentile)
 
         if self.verbose >= 2:
             self.logger.info('Training your model should take ~ {:.2} seconds'.format(prediction[0]))
@@ -255,7 +254,7 @@ class Estimator(LogMixin):
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None is unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
-        :return: predicted runtime
+        :return: predicted runtime, low and high values of the percentile-confidence interval
         :rtype: float
         """
         try:
