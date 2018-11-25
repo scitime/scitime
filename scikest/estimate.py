@@ -43,8 +43,9 @@ class Estimator(LogMixin):
         :param y: outputs for the algo
         """
         algo.verbose = 0
-        algo_name = self._fetch_algo_metadata(algo)[0]
-        params = config(algo_name)
+        param_dic = self._fetch_algo_metadata(algo)
+        params = param_dic['config']
+
         algo_type = params['type']
         if algo_type == 'unsupervised':
             algo.fit(X)
@@ -65,7 +66,9 @@ class Estimator(LogMixin):
         algo_params = algo.get_params()
         params = config(algo_name)
 
-        return algo_name, algo_params, params
+        param_dic = {'name': algo_name, 'params': algo_params, 'config': params}
+
+        return param_dic
 
     @staticmethod
     def _fetch_inputs(json_path):
@@ -105,7 +108,9 @@ class Estimator(LogMixin):
         :return: dataframe of all inputed parameters
         :rtype: pandas dataframe
         """
-        algo_name, algo_params, params = self._fetch_algo_metadata(algo)
+        param_dic = self._fetch_algo_metadata(algo)
+        params = param_dic['config']
+        algo_params = param_dic['params']
 
         n = X.shape[0]
         p = X.shape[1]
@@ -151,7 +156,10 @@ class Estimator(LogMixin):
         :return: matrix of all relevant algo parameters and system features used to estimate algo training time
         :rtype: pandas matrix object  
         """
-        algo_name, algo_params, params = self._fetch_algo_metadata(algo)
+        param_dic = self._fetch_algo_metadata(algo)
+        algo_name = param_dic['name']
+        algo_params = param_dic['params']
+        params = param_dic['config']
 
         json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
         estimation_inputs = self._fetch_inputs(json_path)['dummy']
@@ -182,9 +190,9 @@ class Estimator(LogMixin):
         df = df[estimation_inputs]
 
         X = (df[estimation_inputs]
-                 ._get_numeric_data()
-                 .dropna(axis=0, how='any')
-                 .as_matrix())
+               ._get_numeric_data()
+               .dropna(axis=0, how='any')
+               .as_matrix())
 
         return X
 
@@ -220,7 +228,8 @@ class Estimator(LogMixin):
         :rtype: tuple
         """
         # fetching sklearn model of the end user
-        algo_name, algo_params, params = self._fetch_algo_metadata(algo)
+        param_dic = self._fetch_algo_metadata(algo)
+        algo_name = param_dic['name']
         
         if algo_name not in config("supported_algos"):
             raise ValueError(f'{algo_name} not currently supported by this package')
