@@ -153,7 +153,7 @@ class Estimator(LogMixin):
 
         :param df: dataframe of all inputed parameters
         :param algo: algo whose runtime the user wants to predict
-        :return: matrix of all relevant algo parameters and system features used to estimate algo training time
+        :return: np array of all relevant algo parameters and system features used to estimate algo training time
         :rtype: pandas matrix object  
         """
         param_dic = self._fetch_algo_metadata(algo)
@@ -189,12 +189,12 @@ class Estimator(LogMixin):
 
         df = df[estimation_inputs]
 
-        X = (df[estimation_inputs]
+        meta_X = (df[estimation_inputs]
                ._get_numeric_data()
                .dropna(axis=0, how='any')
                .as_matrix())
 
-        return X
+        return meta_X
 
     def _estimate_interval(self, meta_estimator, X, percentile=95):
         """
@@ -246,15 +246,15 @@ class Estimator(LogMixin):
         df = self._fetch_params(algo, X, y)
 
         # Transforming the inputs:
-        X = self._tranform_params(algo, df)
+        meta_X = self._tranform_params(algo, df)
 
-        prediction = meta_estimator.predict(X)
-        lower_bound, upper_bound = self._estimate_interval(meta_estimator, X, percentile)
+        prediction = meta_estimator.predict(meta_X)[0]
+        lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, percentile)
 
         if self.verbose >= 2:
-            self.logger.info('Training your model should take ~ {:.2} seconds'.format(prediction[0]))
+            self.logger.info('Training your model should take ~ {:.2} seconds'.format(prediction))
             self.logger.info('The {}% prediction interval is [{:.2}, {:.2}] seconds'.format(percentile, lower_bound, upper_bound))
-        return prediction[0], lower_bound, upper_bound
+        return prediction, lower_bound, upper_bound
 
     def estimate_duration(self, algo, X, y=None):
         """
