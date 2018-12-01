@@ -18,9 +18,9 @@ class TestEstimate(unittest.TestCase):
         rf = RandomForestRegressor()
         svc = SVC()
         kmeans = KMeans()
-        rf_name = self.estimator._fetch_algo_metadata(rf)[0]
-        svc_name = self.estimator._fetch_algo_metadata(svc)[0]
-        kmeans_name = self.estimator._fetch_algo_metadata(kmeans)[0]
+        rf_name = self.estimator._fetch_algo_metadata(rf)['name']
+        svc_name = self.estimator._fetch_algo_metadata(svc)['name']
+        kmeans_name = self.estimator._fetch_algo_metadata(kmeans)['name']
         assert rf_name == 'RandomForestRegressor'
         assert svc_name == 'SVC'
         assert kmeans_name == 'KMeans'
