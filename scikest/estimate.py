@@ -211,10 +211,12 @@ class Estimator(LogMixin):
                 preds.append(pred.predict(X)[0])
             lower_bound = np.percentile(preds, (100 - percentile) / 2. )
             upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
-            return lower_bound, upper_bound
+            
         else:
+            lower_bound = 'unknown'
+            upper_bound = 'unknown'
             #To be completed when/if we change the meta-algo
-            pass
+        return lower_bound, upper_bound
 
     def _estimate(self, algo, X, y=None, percentile=95):
         """

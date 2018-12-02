@@ -1,6 +1,6 @@
 {
   "supported_meta_algos": [
-    "RF"
+    "RF", "NN"
   ],
   "supported_algos": [
     "RandomForestRegressor",

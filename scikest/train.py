@@ -12,8 +12,10 @@ import importlib
 import json
 
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 import warnings
 
@@ -264,12 +266,20 @@ class Trainer(Estimator, LogMixin):
             raise ValueError(f'meta algo {self.meta_algo} currently not supported')
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor(criterion='mse', max_depth=100, max_features=10)
+        if self.meta_algo == 'NN':
+            meta_algo = MLPRegressor(max_iter=200)
 
+                       
         if self.verbose >= 2:
             self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
 
         # dividing into train/test
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+        if self.meta_algo == 'NN':
+            scaler = StandardScaler()  
+            scaler.fit(X_train)  
+            X_train_scaled = scaler.transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
         meta_algo.fit(X_train, y_train)
 
         if save_model:
