@@ -147,7 +147,7 @@ class Estimator(LogMixin):
 
         return df  
         
-    def _tranform_params(self, algo, df):
+    def _transform_params(self, algo, df):
         """
         builds a dataframe of the params of the estimated model
 
@@ -255,7 +255,7 @@ class Estimator(LogMixin):
         df = self._fetch_params(algo, X, y)
 
         # Transforming the inputs:
-        meta_X = self._tranform_params(algo, df)
+        meta_X = self._transform_params(algo, df)
 
         prediction = meta_estimator.predict(meta_X)[0]
         lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, percentile)
