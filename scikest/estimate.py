@@ -197,9 +197,9 @@ class Estimator(LogMixin):
         if self.meta_algo == 'NN':
             if self.verbose >= 2:
                 self.logger.info(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
-                model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
-                scaler = joblib.load(model_path)
-                meta_X = scaler.transform(meta_X)
+            model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
+            scaler = joblib.load(model_path)
+            meta_X = scaler.transform(meta_X)
 
         return meta_X
 
