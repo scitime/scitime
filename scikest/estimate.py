@@ -194,6 +194,13 @@ class Estimator(LogMixin):
                .dropna(axis=0, how='any')
                .as_matrix())
 
+        if self.meta_algo == 'NN':
+            if self.verbose >= 2:
+                self.logger.info(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
+                model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
+                scaler = joblib.load(model_path)
+                meta_X = scaler.transform(meta_X)
+
         return meta_X
 
     def _estimate_interval(self, meta_estimator, X, percentile=95):

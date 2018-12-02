@@ -244,6 +244,21 @@ class Trainer(Estimator, LogMixin):
 
         return X, y, data.columns, inputs.columns
 
+    def _scale_data(self, X_train, X_test, save_model):
+        scaler = StandardScaler()  
+        scaler.fit(X_train)  
+
+        if save_model:
+            if self.verbose >= 2:
+                self.logger.info(f'Saving scaler model to scaler_{self.algo}_estimator.pkl')
+            model_path = f'{get_path("models")}/scaler_{self.algo}_estimator.pkl'
+            joblib.dump(scaler, model_path)
+
+        X_train_scaled = scaler.transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        return(X_train_scaled, X_test_scaled)
+
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
         """
@@ -276,10 +291,8 @@ class Trainer(Estimator, LogMixin):
         # dividing into train/test
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         if self.meta_algo == 'NN':
-            scaler = StandardScaler()  
-            scaler.fit(X_train)  
-            X_train_scaled = scaler.transform(X_train)
-            X_test_scaled = scaler.transform(X_test)
+            X_train, X_test = self._scale_data(X_train, X_test, save_model)
+
         meta_algo.fit(X_train, y_train)
 
         if save_model:
