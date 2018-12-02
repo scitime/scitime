@@ -14,9 +14,6 @@ setup(
     author='Gabriel Lerner & Nathan Toubiana',
     author_email='toubiana.nathan@gmail.com',
     keywords=['machine-learning', 'sklearn', 'training-time'],
-    setup_requires=[
-        'pytest-runner',
-    ],
     tests_require=[
         'pytest',
         'pytest-cov',
