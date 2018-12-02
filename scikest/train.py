@@ -245,6 +245,15 @@ class Trainer(Estimator, LogMixin):
         return X, y, data.columns, inputs.columns
 
     def _scale_data(self, X_train, X_test, save_model):
+        """
+        scales the X vector in order to fit the NN meta algo
+
+        :param X_train: pd.DataFrame chosen as input for the training set
+        :param X_test: pd.DataFrame chosen as input for the test set
+        :param save_model: boolean set to True if the model needs to be saved
+        :return: X_train and X_test data scaled
+        :rtype: pd.DataFrame
+        """
         scaler = StandardScaler()  
         scaler.fit(X_train)  
 
