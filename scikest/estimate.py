@@ -147,7 +147,7 @@ class Estimator(LogMixin):
 
         return df  
         
-    def _tranform_params(self, algo, df):
+    def _transform_params(self, algo, df):
         """
         builds a dataframe of the params of the estimated model
 
@@ -194,6 +194,13 @@ class Estimator(LogMixin):
                .dropna(axis=0, how='any')
                .as_matrix())
 
+        if self.meta_algo == 'NN':
+            if self.verbose >= 2:
+                self.logger.info(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
+            model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
+            scaler = joblib.load(model_path)
+            meta_X = scaler.transform(meta_X)
+
         return meta_X
 
     def _estimate_interval(self, meta_estimator, X, percentile=95):
@@ -211,10 +218,12 @@ class Estimator(LogMixin):
                 preds.append(pred.predict(X)[0])
             lower_bound = np.percentile(preds, (100 - percentile) / 2. )
             upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
-            return lower_bound, upper_bound
+            
         else:
+            lower_bound = 'unknown'
+            upper_bound = 'unknown'
             #To be completed when/if we change the meta-algo
-            pass
+        return lower_bound, upper_bound
 
     def _estimate(self, algo, X, y=None, percentile=95):
         """
@@ -246,7 +255,7 @@ class Estimator(LogMixin):
         df = self._fetch_params(algo, X, y)
 
         # Transforming the inputs:
-        meta_X = self._tranform_params(algo, df)
+        meta_X = self._transform_params(algo, df)
 
         prediction = meta_estimator.predict(meta_X)[0]
         lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, percentile)
