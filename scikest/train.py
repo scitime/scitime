@@ -266,7 +266,7 @@ class Trainer(Estimator, LogMixin):
         X_train_scaled = scaler.transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        return(X_train_scaled, X_test_scaled)
+        return X_train_scaled, X_test_scaled
 
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
