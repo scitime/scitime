@@ -57,6 +57,7 @@ class Estimator(LogMixin):
     def _clean_output(seconds):
         """
         from seconds to cleaner format
+        
         :param seconds: output of meta prediction
         :return: cleaned output (string)
         """
@@ -65,6 +66,7 @@ class Estimator(LogMixin):
 
         if seconds_rest == 1:
             sec_unit = f'second'
+
         else:
             sec_unit = f'seconds'
 
