@@ -54,6 +54,44 @@ class Estimator(LogMixin):
         time.sleep(1)
 
     @staticmethod
+    def _clean_output(seconds):
+        """
+        from seconds to cleaner format
+        :param seconds: output of meta prediction
+        :return: cleaned output (string)
+        """
+        full_minutes = seconds // 60
+        seconds_rest = seconds % 60
+
+        if seconds_rest == 1:
+            sec_unit = f'second'
+        else:
+            sec_unit = f'seconds'
+
+        if full_minutes == 0:
+            return f'{seconds} {sec_unit}'
+
+        else:
+            full_hours = full_minutes // 60
+            minutes_rest = full_minutes % 60
+
+            if minutes_rest == 1:
+                min_unit = f'minute'
+            else:
+                min_unit = f'minutes'
+
+            if full_hours == 0:
+                return f'{full_minutes} {min_unit} and {seconds_rest} {sec_unit}'
+
+            else:
+                if full_hours == 1:
+                    h_unit = f'hour'
+                else:
+                    h_unit = f'hours'
+
+                return f'{full_hours} {h_unit} and {minutes_rest} {min_unit} and {seconds_rest} {sec_unit}'
+
+    @staticmethod
     def _fetch_algo_metadata(algo):
         """
         retrieves algo name from sklearn model
@@ -220,8 +258,8 @@ class Estimator(LogMixin):
             upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
             
         else:
-            lower_bound = 'unknown'
-            upper_bound = 'unknown'
+            lower_bound = 0
+            upper_bound = 0
             #To be completed when/if we change the meta-algo
         return lower_bound, upper_bound
 
@@ -260,9 +298,21 @@ class Estimator(LogMixin):
         prediction = meta_estimator.predict(meta_X)[0]
         lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, percentile)
 
+        cleaned_prediction = self._clean_output(round(prediction))
+        cleaned_lower_bound = self._clean_output(round(lower_bound))
+        cleaned_upper_bound = self._clean_output(round(upper_bound))
+
+        if self.verbose >= 1 and prediction < 1:
+            self.logger.warning('Your model predicted training runtime is very low - no need to use this package')
+
+        if prediction < 1:
+            cleaned_prediction = f'{prediction} seconds'
+            cleaned_lower_bound = f'{lower_bound} seconds'
+            cleaned_upper_bound = f'{upper_bound} seconds'
+
         if self.verbose >= 2:
-            self.logger.info('Training your model should take ~ {:.2} seconds'.format(prediction))
-            self.logger.info('The {}% prediction interval is [{:.2}, {:.2}] seconds'.format(percentile, lower_bound, upper_bound))
+            self.logger.info(f'Training your model should take ~ {cleaned_prediction}')
+            self.logger.info(f'The {percentile}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
         return prediction, lower_bound, upper_bound
 
     def estimate_duration(self, algo, X, y=None):
