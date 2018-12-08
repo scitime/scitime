@@ -16,6 +16,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import RandomizedSearchCV
 
 import warnings
 
@@ -33,13 +34,22 @@ class Trainer(Estimator, LogMixin):
     DROP_RATE = 0.9
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
+    #Parameters for Random Search
+    PARAMETER_SPACE = {
+    'hidden_layer_sizes': [(50,50,50), (50,100,50), (100,)],
+    'activation': ['tanh', 'relu'],
+    'solver': ['sgd', 'adam'],
+    'alpha': [0.0001, 0.05],
+    'learning_rate': ['constant','adaptive'],
+    }
 
-    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0):
+    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, parameter_space=PARAMETER_SPACE, verbose=0):
         # the end user will estimate the fitting time of self.algo using the package
         self.algo = algo
         self.drop_rate = drop_rate
         self.meta_algo = meta_algo
         self.verbose = verbose
+        self.parameter_space = parameter_space
 
     @property
     def num_cpu(self):
@@ -267,6 +277,28 @@ class Trainer(Estimator, LogMixin):
         X_test_scaled = scaler.transform(X_test)
 
         return X_train_scaled, X_test_scaled
+
+    @timeit
+    def _random_search(self, inputs, outputs, save_model=False):
+        """
+        TODO
+        """
+        X, y, cols, original_cols = self._transform_data(inputs, outputs)
+        if self.meta_algo != 'NN':
+            raise ValueError(f'meta algo {self.meta_algo} not supported for random search')
+
+        meta_algo = MLPRegressor(max_iter=200)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+        X_train, X_test = self._scale_data(X_train, X_test, save_model)
+
+        clf = RandomizedSearchCV(meta_algo, self.parameter_space, n_jobs=2, cv=2)
+
+        clf.fit(X_train, y_train)
+
+        if self.verbose >= 2:
+            self.logger.info(f'Best parameters found: {clf.best_estimator_}')
+
+        return(clf.best_estimator_)
 
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
