@@ -2,7 +2,7 @@
   "supported_meta_algos": [
     "RF", "NN"
   ],
-  "random_search_params": [
+  "random_search_params": 
     {
     "hidden_layer_sizes": [
       [50,50,50],
@@ -26,7 +26,7 @@
       "adaptive"
     ]
     }   
-  ],   
+  ,   
   "supported_algos": [
     "RandomForestRegressor",
     "SVC",

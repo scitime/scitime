@@ -278,7 +278,7 @@ class Trainer(Estimator, LogMixin):
         if self.meta_algo != 'NN':
             raise ValueError(f'meta algo {self.meta_algo} not supported for random search')
 
-        parameter_space = config("random_search_params")[0]    
+        parameter_space = config("random_search_params")  
         meta_algo = MLPRegressor(max_iter=200)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         X_train, X_test = self._scale_data(X_train, X_test, save_model)
