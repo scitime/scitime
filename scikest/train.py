@@ -152,7 +152,7 @@ class Trainer(Estimator, LogMixin):
             # computing only for (1-self.drop_rate) % of the data
             # making sure the dataset is not empty (at least 2 data points to pass the model fit)
             random_value = np.random.uniform()
-            if (random_value > self.drop_rate) | (len(inputs) < 2):
+            if (random_value > self.drop_rate) | (len(inputs) < 4):
                 n, p = permutation[0], permutation[1]
                 if algo_type == "classification":
                     num_cat = permutation[2]
@@ -290,11 +290,11 @@ class Trainer(Estimator, LogMixin):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         X_train, X_test = self._scale_data(X_train, X_test, save_model)
 
-        meta_algo = RandomizedSearchCV(meta_algo, parameter_space, n_iter=iterations, n_jobs=2, cv=4)
+        meta_algo = RandomizedSearchCV(meta_algo, parameter_space, n_iter=iterations, n_jobs=2)
         meta_algo.fit(X_train, y_train)
 
         if self.verbose >= 2:
-            self.logger.info(f'Best parameters found: {clf.best_estimator_}')
+            self.logger.info(f'Best parameters found: {meta_algo.best_estimator_}')
 
         return meta_algo
 
