@@ -272,7 +272,13 @@ class Trainer(Estimator, LogMixin):
     @timeit
     def _random_search(self, inputs, outputs, save_model=False):
         """
-        TODO
+        perform a random search on the NN meta algo to find the best params
+
+        :param inputs: pd.DataFrame chosen as input
+        :param outputs: pd.DataFrame chosen as output
+        :param save_model: boolean set to True if the model needs to be saved
+        :return: best meta_algo with parameters
+        :rtype: scikit learn RandomizedSearchCV object
         """
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
         if self.meta_algo != 'NN':
@@ -283,14 +289,13 @@ class Trainer(Estimator, LogMixin):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         X_train, X_test = self._scale_data(X_train, X_test, save_model)
 
-        clf = RandomizedSearchCV(meta_algo, parameter_space, n_jobs=2, cv=2)
-
-        clf.fit(X_train, y_train)
+        meta_algo = RandomizedSearchCV(meta_algo, parameter_space, n_jobs=2, cv=2)
+        meta_algo.fit(X_train, y_train)
 
         if self.verbose >= 2:
             self.logger.info(f'Best parameters found: {clf.best_estimator_}')
 
-        return(clf.best_estimator_)
+        return meta_algo
 
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
