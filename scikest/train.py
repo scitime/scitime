@@ -270,12 +270,13 @@ class Trainer(Estimator, LogMixin):
         return X_train_scaled, X_test_scaled
 
     @timeit
-    def _random_search(self, inputs, outputs, save_model=False):
+    def _random_search(self, inputs, outputs, iterations, save_model=False):
         """
-        perform a random search on the NN meta algo to find the best params
+        performs a random search on the NN meta algo to find the best params
 
         :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
+        :param iterations: Number of parameter settings that are sampled
         :param save_model: boolean set to True if the model needs to be saved
         :return: best meta_algo with parameters
         :rtype: scikit learn RandomizedSearchCV object
@@ -289,7 +290,7 @@ class Trainer(Estimator, LogMixin):
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         X_train, X_test = self._scale_data(X_train, X_test, save_model)
 
-        meta_algo = RandomizedSearchCV(meta_algo, parameter_space, n_jobs=2, cv=2)
+        meta_algo = RandomizedSearchCV(meta_algo, parameter_space, n_iter=iterations, n_jobs=2, cv=4)
         meta_algo.fit(X_train, y_train)
 
         if self.verbose >= 2:
