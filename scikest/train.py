@@ -330,9 +330,11 @@ class Trainer(Estimator, LogMixin):
         # dividing into train/test
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         if self.meta_algo == 'NN':
-            X_train, X_test = self._scale_data(X_train, X_test, save_model)
+            X_train_scaled, X_test_scaled = self._scale_data(X_train, X_test, save_model)
+            meta_algo.fit(X_train_scaled, y_train)
 
-        meta_algo.fit(X_train, y_train)
+        else: 
+            meta_algo.fit(X_train, y_train)    
 
         if save_model:
             if self.verbose >= 2:
@@ -349,10 +351,16 @@ class Trainer(Estimator, LogMixin):
             self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
 
         # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
-        y_pred_test = meta_algo.predict(X_test)
-        mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-        y_pred_train = meta_algo.predict(X_train)
-        mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
+        if self.meta_algo == 'NN':
+            y_pred_test = meta_algo.predict(X_test_scaled)
+            mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
+            y_pred_train = meta_algo.predict(X_train_scaled)
+            mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
+        else:                
+            y_pred_test = meta_algo.predict(X_test)
+            mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
+            y_pred_train = meta_algo.predict(X_train)
+            mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         # with open('mape.txt', 'w') as f:
         # f.write(str(mape))
 

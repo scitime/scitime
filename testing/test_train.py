@@ -150,6 +150,10 @@ class TestTrain(unittest.TestCase):
                                                  outputs=TestTrain.km_outputs)
         assert type(km_meta_algo).__name__ == 'MLPRegressor'
 
+    #def test_random_search_metann(self):
+    #    nn_meta_algo = self.rf_trainer_metann._random_search(inputs=TestTrain.rf_inputs,
+    #                                             outputs=TestTrain.rf_outputs, iterations = 1)
+    #    assert type(nn_meta_algo._best_parameters) == 'MLPRegressor'
 
 if __name__ == '__main__':
     unittest.main()
