@@ -2,6 +2,36 @@
   "supported_meta_algos": [
     "RF", "NN"
   ],
+  "random_search_params": 
+    {
+    "hidden_layer_sizes": [
+      [50,50,50],
+      [50,100,50],
+      [100],
+      [50],
+      [20],
+      [100,50]
+    ],
+    "activation": [
+      "tanh",
+      "relu",
+      "logistic"
+    ],
+    "solver": [
+      "sgd",
+      "adam"
+    ],
+    "alpha": [
+      0.0001, 
+      0.0005,
+      0.001
+    ],
+    "learning_rate": [
+      "constant",
+      "adaptive"
+    ]
+    }   
+  ,   
   "supported_algos": [
     "RandomForestRegressor",
     "SVC",
