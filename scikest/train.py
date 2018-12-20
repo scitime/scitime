@@ -363,8 +363,32 @@ class Trainer(Estimator, LogMixin):
             mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
             y_pred_train = meta_algo.predict(X_train)
             mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
-        # with open('mape.txt', 'w') as f:
-        # f.write(str(mape))
+
+        if self.meta_algo == 'NN':
+
+            bins = [(1, 5), (5, 30), (30, 60), (60, 5 * 60), (5 * 60, 10 * 60), (10 * 60, 30 * 60), (30 * 60, 60 * 60)]
+
+            bins_values = [y_pred_test < 1]+ [(y_pred_test >= i[0]) & (y_pred_test < i[1]) for i in bins] + [y_pred_test >= 60 * 60]
+            mape_tests = [np.mean(np.abs((y_test[bin] - y_pred_test[bin]) / y_test[bin])) * 100 for bin in bins_values]
+
+            mape_test_dic = {'less than 1s': mape_tests[0],
+                             'between 1s and 5s': mape_tests[1],
+                             'between 5s and 30s': mape_tests[2],
+                             'between 30s and 1m': mape_tests[3],
+                             'between 1m and 5m': mape_tests[4],
+                             'between 5m and 10m': mape_tests[5],
+                             'between 10m and 30m': mape_tests[6],
+                             'between 30m and 1h': mape_tests[7],
+                             'more than 1h': mape_tests[8]}
+
+            if save_model:
+                json_conf_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_confint.json'
+                if self.verbose >= 2:
+                    self.logger.info(f'Computed confint: {mape_test_dic}')
+                    self.logger.info(f'Saving confint to {json_conf_path}')
+
+                with open(json_conf_path, 'w') as outfile:
+                    json.dump(mape_test_dic, outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'''
