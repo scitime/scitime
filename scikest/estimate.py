@@ -254,7 +254,7 @@ class Estimator(LogMixin):
         """
 
         if self.meta_algo == 'RF':
-            predictions = [prediction.predict(X)[0] for prediction in meta_estimator.estimators_]
+            predictions = [predictor.predict(X)[0] for predictor in meta_estimator.estimators_]
             lower_bound = np.percentile(predictions, (100 - percentile) / 2. )
             upper_bound = np.percentile(predictions, 100 - (100 - percentile) / 2.)
             
