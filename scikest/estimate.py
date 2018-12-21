@@ -290,8 +290,8 @@ class Estimator(LogMixin):
                               'more than 1h']
 
             uncertainty = mape_dic[mape_index_list[mape_index]]
-            lower_bound = max(0, pred * (1 - uncertainty / 100))
-            upper_bound = max(0, pred * (1 + uncertainty / 100))
+            lower_bound = max(np.float64(0), pred * (1 - uncertainty / 100))
+            upper_bound = max(np.float64(0), pred * (1 + uncertainty / 100))
             #To be completed when/if we change the meta-algo
 
         else:
@@ -331,7 +331,7 @@ class Estimator(LogMixin):
         # Transforming the inputs:
         meta_X = self._transform_params(algo, df)
 
-        prediction = max(0, meta_estimator.predict(meta_X)[0])
+        prediction = max(np.float64(0), meta_estimator.predict(meta_X)[0])
         lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, algo_name, percentile)
 
         cleaned_prediction = self._clean_output(round(prediction))
