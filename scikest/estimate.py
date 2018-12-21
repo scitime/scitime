@@ -254,11 +254,9 @@ class Estimator(LogMixin):
         """
 
         if self.meta_algo == 'RF':
-            preds = []
-            for pred in meta_estimator.estimators_:
-                preds.append(pred.predict(X)[0])
-            lower_bound = np.percentile(preds, (100 - percentile) / 2. )
-            upper_bound = np.percentile(preds, 100 - (100 - percentile) / 2.)
+            predictions = [prediction.predict(X)[0] for prediction in meta_estimator.estimators_]
+            lower_bound = np.percentile(predictions, (100 - percentile) / 2. )
+            upper_bound = np.percentile(predictions, 100 - (100 - percentile) / 2.)
             
         elif self.meta_algo == 'NN':
             confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
@@ -267,16 +265,16 @@ class Estimator(LogMixin):
                 self.logger.info(f'Fetching confint: {confint_path}')
 
             mape_dic = self._fetch_inputs(confint_path)
-            pred = max(meta_estimator.predict(X)[0], 0)
+            prediction = max(meta_estimator.predict(X)[0], 0)
             bins = [(1, 5), (5, 30), (30, 60), (60, 5 * 60), (5 * 60, 10 * 60), (10 * 60, 30 * 60), (30 * 60, 60 * 60)]
 
-            if pred < 1:
+            if prediction < 1:
                 mape_index = 0
-            elif pred >= 60 * 60:
+            elif prediction >= 60 * 60:
                 mape_index = 8
             else:
                 for i in range(len(bins)):
-                    if pred >= bins[i][0] and pred < bins[i][1]:
+                    if prediction >= bins[i][0] and prediction < bins[i][1]:
                         mape_index = i + 1
 
             mape_index_list = ['less than 1s',
@@ -290,8 +288,8 @@ class Estimator(LogMixin):
                               'more than 1h']
 
             uncertainty = mape_dic[mape_index_list[mape_index]]
-            lower_bound = max(np.float64(0), pred * (1 - uncertainty / 100))
-            upper_bound = max(np.float64(0), pred * (1 + uncertainty / 100))
+            lower_bound = max(np.float64(0), prediction * (1 - uncertainty / 100))
+            upper_bound = max(np.float64(0), prediction * (1 + uncertainty / 100))
             #To be completed when/if we change the meta-algo
 
         else:
