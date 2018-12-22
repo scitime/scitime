@@ -135,7 +135,7 @@ class Trainer(Estimator, LogMixin):
         :param rename_columns: set to True if csv columns have to be named
         :return: inputs and outputs
         """
-        df = pd.read_csv(get_path(csv_name), index_col=0)
+        df = pd.read_csv(get_path(csv_name))
 
         meta_params = self.params
         parameters_list = list(meta_params['internal_params'].keys())
