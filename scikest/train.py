@@ -132,9 +132,15 @@ class Trainer(Estimator, LogMixin):
         takes data from csv and returns inputs and outputs in right format for model_fit
 
         :param csv_name: name of csv from generate data
+        :param rename_columns: set to True if csv columns have to be named
         :return: inputs and outputs
         """
         df = pd.read_csv(get_path(csv_name), index_col=0)
+
+        meta_params = self.params
+        parameters_list = list(meta_params['internal_params'].keys())
+        external_parameters_list = list(meta_params['external_params'].keys())
+        df.columns = meta_params['other_params'] + external_parameters_list + parameters_list + ['output']
 
         semi_dummy_inputs = self.params['semi_dummy_inputs']
         for col in semi_dummy_inputs:
@@ -347,7 +353,7 @@ class Trainer(Estimator, LogMixin):
             inputs, outputs, _ = self._generate_data()
         else:
             if csv_name is not None:
-                inputs, outputs = self._transform_from_csv(csv_name)
+                inputs, outputs = self._transform_from_csv(csv_name=csv_name)
 
         if inputs is None or outputs is None:
             raise ValueError('no inputs / outputs found: please enter a csv name or set generate_data to True')
