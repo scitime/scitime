@@ -114,6 +114,38 @@ class Trainer(Estimator, LogMixin):
         elapsed_time = time.time() - start_time
         return elapsed_time
 
+    @staticmethod
+    def _str_to_float(row):
+        """
+        transforms semi dummy input from csv
+
+        :param row: row of a pandas dataframe
+        :return:
+        """
+        try:
+            return np.float(row)
+        except:
+            return row
+
+    def _transform_from_csv(self, csv_name):
+        """
+        takes data from csv and returns inputs and outputs in right format for model_fit
+
+        :param csv_name: name of csv from generate data
+        :return: inputs and outputs
+        """
+        df = pd.read_csv(get_path(csv_name)).drop(['Unnamed: 0'], axis=1)
+
+        semi_dummy_inputs = self.params['semi_dummy_inputs']
+        for col in semi_dummy_inputs:
+            df[col] = df[col].apply(self._str_to_float)
+
+        inputs = df.drop(['output'], axis=1)
+        outputs = df[['output']]
+
+        return inputs, outputs
+
+
     def _get_model(self, meta_params, params):
         """
         builds the sklearn model to be fitted 
@@ -229,7 +261,7 @@ class Trainer(Estimator, LogMixin):
         # we add columns for each semi dummy features (*number of potential dummy values)
         inputs = self._add_semi_dummy(inputs, semi_dummy_inputs)
 
-        # we then fill artifical (and natural) NAs with -1
+        # we then fill artificial (and natural) NAs with -1
 
         data = pd.get_dummies(inputs.fillna(-1))
 
@@ -299,19 +331,26 @@ class Trainer(Estimator, LogMixin):
         return meta_algo
 
     @timeit
-    def model_fit(self, generate_data=True, inputs=None, outputs=None, save_model=False):
+    def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False):
         """
         builds the actual training time estimator
 
         :param generate_data: bool (if set to True, calls _generate_data)
         :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
+        :param csv_name: name if csv in case we fetch data from csv
         :param save_model: boolean set to True if the model needs to be saved
         :return: meta_algo
         :rtype: scikit learn model
         """
         if generate_data:
             inputs, outputs, _ = self._generate_data()
+        else:
+            if csv_name is not None:
+                inputs, outputs = self._transform_from_csv(csv_name)
+
+        if inputs is None or outputs is None:
+            raise ValueError('no inputs / outputs found: please enter a csv name or set generate_data to True')
 
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
