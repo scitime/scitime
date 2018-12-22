@@ -134,7 +134,7 @@ class Trainer(Estimator, LogMixin):
         :param csv_name: name of csv from generate data
         :return: inputs and outputs
         """
-        df = pd.read_csv(get_path(csv_name)).drop(['Unnamed: 0'], axis=1)
+        df = pd.read_csv(get_path(csv_name), index_col=0)
 
         semi_dummy_inputs = self.params['semi_dummy_inputs']
         for col in semi_dummy_inputs:
