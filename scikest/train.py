@@ -35,8 +35,9 @@ class Trainer(Estimator, LogMixin):
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
 
-    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0):
+    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0, bins=None):
         # the end user will estimate the fitting time of self.algo using the package
+        super().__init__(bins)
         self.algo = algo
         self.drop_rate = drop_rate
         self.meta_algo = meta_algo
@@ -363,8 +364,26 @@ class Trainer(Estimator, LogMixin):
             mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
             y_pred_train = meta_algo.predict(X_train)
             mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
-        # with open('mape.txt', 'w') as f:
-        # f.write(str(mape))
+
+        bins, mape_index_list = self.bins
+
+        bins_values = [y_pred_test < 1] + [(y_pred_test >= i[0]) & (y_pred_test < i[1]) for i in bins] + [
+            y_pred_test >= 60 * 60]
+        mape_tests = [np.mean(np.abs((y_test[bin] - y_pred_test[bin]) / y_test[bin])) * 100 for bin in bins_values]
+
+        mape_test_dic = dict(zip(mape_index_list, mape_tests))
+
+        if self.verbose >= 2:
+            self.logger.info(f'Computed confint: {mape_test_dic}')
+
+        if self.meta_algo == 'NN':
+
+            if save_model:
+                json_conf_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_confint.json'
+                self.logger.info(f'Saving confint to {json_conf_path}')
+
+                with open(json_conf_path, 'w') as outfile:
+                    json.dump(mape_test_dic, outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'''
