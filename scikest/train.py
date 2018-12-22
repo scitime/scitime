@@ -338,7 +338,7 @@ class Trainer(Estimator, LogMixin):
         return meta_algo
 
     @timeit
-    def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False):
+    def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False, meta_algo_params=None):
         """
         builds the actual training time estimator
 
@@ -347,9 +347,16 @@ class Trainer(Estimator, LogMixin):
         :param outputs: pd.DataFrame chosen as output
         :param csv_name: name if csv in case we fetch data from csv
         :param save_model: boolean set to True if the model needs to be saved
+        :param meta_algo_params: params of meta algo
         :return: meta_algo
         :rtype: scikit learn model
         """
+        if meta_algo_params is None:
+            if self.meta_algo == 'NN':
+                meta_algo_params = {'max_iter': 200}
+            elif self.meta_algo == 'RF':
+                meta_algo_params = {'criterion': 'mse', 'max_depth': 100, 'max_features':10}
+
         if generate_data:
             inputs, outputs, _ = self._generate_data()
         else:
@@ -365,9 +372,9 @@ class Trainer(Estimator, LogMixin):
         if self.meta_algo not in config('supported_meta_algos'):
             raise ValueError(f'meta algo {self.meta_algo} currently not supported')
         if self.meta_algo == 'RF':
-            meta_algo = RandomForestRegressor(criterion='mse', max_depth=100, max_features=10)
+            meta_algo = RandomForestRegressor(**meta_algo_params)
         if self.meta_algo == 'NN':
-            meta_algo = MLPRegressor(max_iter=200)
+            meta_algo = MLPRegressor(**meta_algo_params)
 
                        
         if self.verbose >= 2:
