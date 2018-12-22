@@ -18,10 +18,22 @@ from scikest.log import LogMixin
 class Estimator(LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
+    # bins to consider for computing confindence intervals (for NN meta algo)
+    BINS = [(1, 5), (5, 30), (30, 60), (60, 5 * 60), (5 * 60, 10 * 60), (10 * 60, 30 * 60), (30 * 60, 60 * 60)]
+    BINS_VERBOSE = ['less than 1s',
+                    'between 1s and 5s',
+                    'between 5s and 30s',
+                    'between 30s and 1m',
+                    'between 1m and 5m',
+                    'between 5m and 10m',
+                    'between 10m and 30m',
+                    'between 30m and 1h',
+                    'more than 1h']
 
-    def __init__(self, meta_algo=META_ALGO, verbose=3):
+    def __init__(self, meta_algo=META_ALGO, verbose=3, bins=(BINS, BINS_VERBOSE)):
         self.meta_algo = meta_algo
         self.verbose = verbose
+        self.bins = bins
 
     @property
     def num_cpu(self):
@@ -266,7 +278,7 @@ class Estimator(LogMixin):
 
             mape_dic = self._fetch_inputs(confint_path)
             prediction = max(meta_estimator.predict(X)[0], 0)
-            bins = [(1, 5), (5, 30), (30, 60), (60, 5 * 60), (5 * 60, 10 * 60), (10 * 60, 30 * 60), (30 * 60, 60 * 60)]
+            bins, mape_index_list = self.bins
 
             if prediction < 1:
                 mape_index = 0
@@ -276,16 +288,6 @@ class Estimator(LogMixin):
                 for i in range(len(bins)):
                     if prediction >= bins[i][0] and prediction < bins[i][1]:
                         mape_index = i + 1
-
-            mape_index_list = ['less than 1s',
-                              'between 1s and 5s',
-                              'between 5s and 30s',
-                              'between 30s and 1m',
-                              'between 1m and 5m',
-                              'between 5m and 10m',
-                              'between 10m and 30m',
-                              'between 30m and 1h',
-                              'more than 1h']
 
             uncertainty = mape_dic[mape_index_list[mape_index]]
             lower_bound = max(np.float64(0), prediction * (1 - uncertainty / 100))
