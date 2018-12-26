@@ -11,6 +11,7 @@ import itertools
 import importlib
 import json
 
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, mean_squared_error
@@ -413,13 +414,16 @@ class Trainer(Estimator, LogMixin):
         bins, mape_index_list = self.bins
 
         bins_values = [y_pred_test < 1] + [(y_pred_test >= i[0]) & (y_pred_test < i[1]) for i in bins] + [
-            y_pred_test >= 60 * 60]
-        mape_tests = [np.mean(np.abs((y_test[bin] - y_pred_test[bin]) / y_test[bin])) * 100 for bin in bins_values]
+            y_pred_test >= 10 * 60]
+        
+        if save_model:
+            mse_tests = [mean_squared_error(y_test[bin], y_pred_test[bin]) for bin in bins_values]
+            observation_tests = [y_test[bin].shape[0] for bin in bins_values]
 
-        mape_test_dic = dict(zip(mape_index_list, mape_tests))
+            mse_test_dic = dict(zip(mape_index_list, zip(observation_tests, mse_tests)))
 
-        if self.verbose >= 2:
-            self.logger.info(f'Computed confint: {mape_test_dic}')
+            if self.verbose >= 2:
+                self.logger.info(f'Computed mse on test set (with number of observations): {mse_test_dic}')
 
         if self.meta_algo == 'NN':
 
@@ -428,7 +432,7 @@ class Trainer(Estimator, LogMixin):
                 self.logger.info(f'Saving confint to {self.meta_algo}_{self.algo}_confint.json')
 
                 with open(json_conf_path, 'w') as outfile:
-                    json.dump(mape_test_dic, outfile)
+                    json.dump(mse_test_dic, outfile)
 
         if self.verbose >= 2:
             self.logger.info(f'''
