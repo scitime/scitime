@@ -274,7 +274,7 @@ class Estimator(LogMixin):
             confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
 
             if self.verbose >= 2:
-                self.logger.info(f'Fetching confint: {confint_path}')
+                self.logger.info(f'Fetching confint: {self.meta_algo}_{algo_name}_confint.json')
 
             mape_dic = self._fetch_inputs(confint_path)
             prediction = max(meta_estimator.predict(X)[0], 0)
@@ -332,6 +332,16 @@ class Estimator(LogMixin):
         meta_X = self._transform_params(algo, df)
 
         prediction = max(np.float64(0), meta_estimator.predict(meta_X)[0])
+
+        if prediction < 1 and self.meta_algo == 'NN':
+            if self.verbose >= 2:
+                self.logger.info('NN prediction too low - fetching rf meta algo instead')
+                self.logger.info(f'Fetching estimator: RF_{algo_name}_estimator.pkl')
+
+            model_path = f'{get_path("models")}/RF_{algo_name}_estimator.pkl'
+            meta_estimator = joblib.load(model_path)
+            prediction = meta_estimator.predict(meta_X)[0]
+
         lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, algo_name, percentile)
 
         cleaned_prediction = self._clean_output(round(prediction))

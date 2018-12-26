@@ -367,7 +367,7 @@ class Trainer(Estimator, LogMixin):
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor(criterion='mse', max_depth=100, max_features=10)
         if self.meta_algo == 'NN':
-            meta_algo = MLPRegressor(max_iter=200)
+            meta_algo = MLPRegressor(max_iter=200, hidden_layer_sizes=[100,100,100])
 
                        
         if self.verbose >= 2:
@@ -398,9 +398,9 @@ class Trainer(Estimator, LogMixin):
                 self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train_scaled))}')
 
         # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
-            y_pred_test = meta_algo.predict(X_test_scaled)
+            y_pred_test = np.array([max(i, 0) for i in meta_algo.predict(X_test_scaled)])
             mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
-            y_pred_train = meta_algo.predict(X_train_scaled)
+            y_pred_train = np.array([max(i, 0) for i in meta_algo.predict(X_train_scaled)])
             mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         else:                
             if self.verbose >= 2:
@@ -425,7 +425,7 @@ class Trainer(Estimator, LogMixin):
 
             if save_model:
                 json_conf_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_confint.json'
-                self.logger.info(f'Saving confint to {json_conf_path}')
+                self.logger.info(f'Saving confint to {self.meta_algo}_{self.algo}_confint.json')
 
                 with open(json_conf_path, 'w') as outfile:
                     json.dump(mape_test_dic, outfile)
