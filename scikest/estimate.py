@@ -368,7 +368,7 @@ class Estimator(LogMixin):
 
         if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {cleaned_prediction}')
-            self.logger.info(f'The {self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
+            self.logger.info(f'The {100 * self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
         return prediction, lower_bound, upper_bound
 
     def estimate_duration(self, algo, X, y=None):
