@@ -16,6 +16,7 @@ warnings.simplefilter("ignore")
 from scikest.utils import get_path, config, timeout
 from scikest.log import LogMixin
 
+
 class Estimator(LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
@@ -186,17 +187,17 @@ class Estimator(LogMixin):
                     # to make dummy
                     inputs.append(str(algo_params[i]))
                 else:
-                    inputs.append(algo_params[i])   
-        
-        # making dummy
+                    inputs.append(algo_params[i])
+
+                    # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
         if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
 
         df = pd.DataFrame(dic, columns=param_list)
 
-        return df  
-        
+        return df
+
     def _transform_params(self, algo, df, scaled=False):
         """
         builds a dataframe of the params of the estimated model
@@ -224,7 +225,7 @@ class Estimator(LogMixin):
         forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
 
         if len(forgotten_inputs) > 0:
-            raise ValueError(f'{forgotten_inputs} parameters missing')
+            raise NameError(f'{forgotten_inputs} parameters missing')
 
         df = pd.get_dummies(df.fillna(-1))
 
@@ -241,9 +242,9 @@ class Estimator(LogMixin):
         df = df[estimation_inputs]
 
         meta_X = (df[estimation_inputs]
-               ._get_numeric_data()
-               .dropna(axis=0, how='any')
-               .as_matrix())
+                  ._get_numeric_data()
+                  .dropna(axis=0, how='any')
+                  .as_matrix())
 
         if scaled:
             if self.verbose >= 2:
@@ -266,9 +267,9 @@ class Estimator(LogMixin):
 
         if type(meta_estimator).__name__ == 'RandomForestRegressor':
             predictions = [predictor.predict(X)[0] for predictor in meta_estimator.estimators_]
-            lower_bound = np.percentile(predictions, (100 - percentile) / 2. )
+            lower_bound = np.percentile(predictions, (100 - percentile) / 2.)
             upper_bound = np.percentile(predictions, 100 - (100 - percentile) / 2.)
-            
+
         elif type(meta_estimator).__name__ == 'MLPRegressor':
             confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
 
@@ -298,7 +299,7 @@ class Estimator(LogMixin):
             upper_bound = max(np.float64(0), prediction * (1 + uncertainty))
 
         else:
-            raise ValueError(f'{self.meta_algo} meta algo not supported')
+            raise KeyError(f'{self.meta_algo} meta algo not supported')
 
         return lower_bound, upper_bound
 
@@ -316,12 +317,12 @@ class Estimator(LogMixin):
         # fetching sklearn model of the end user
         param_dic = self._fetch_algo_metadata(algo)
         algo_name = param_dic['name']
-        
+
         if algo_name not in config("supported_algos"):
-            raise ValueError(f'{algo_name} not currently supported by this package')
+            raise NotImplementedError(f'{algo_name} not currently supported by this package')
 
         if self.meta_algo not in config('supported_meta_algos'):
-            raise ValueError(f'meta algo {self.meta_algo} currently not supported')
+            raise KeyError(f'meta algo {self.meta_algo} currently not supported')
 
         if self.verbose >= 2:
             self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')

@@ -11,7 +11,6 @@ import itertools
 import importlib
 import json
 
-
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, mean_squared_error
@@ -60,7 +59,7 @@ class Trainer(Estimator, LogMixin):
         :return: dictionary
         """
         if self.algo not in config("supported_algos"):
-            raise ValueError(f'{self.algo} not currently supported by this package')
+            raise KeyError(f'{self.algo} not currently supported by this package')
         return config(self.algo)
 
     def _add_row_to_csv(self, row_input, row_output):
@@ -152,7 +151,6 @@ class Trainer(Estimator, LogMixin):
         outputs = df[['output']]
 
         return inputs, outputs
-
 
     def _get_model(self, meta_params, params):
         """
@@ -295,8 +293,8 @@ class Trainer(Estimator, LogMixin):
         :return: X_train and X_test data scaled
         :rtype: pd.DataFrame
         """
-        scaler = StandardScaler()  
-        scaler.fit(X_train)  
+        scaler = StandardScaler()
+        scaler.fit(X_train)
 
         if save_model:
             if self.verbose >= 2:
@@ -323,9 +321,9 @@ class Trainer(Estimator, LogMixin):
         """
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
         if self.meta_algo != 'NN':
-            raise ValueError(f'meta algo {self.meta_algo} not supported for random search')
+            raise KeyError(f'meta algo {self.meta_algo} not supported for random search')
 
-        parameter_space = config("random_search_params")  
+        parameter_space = config("random_search_params")
         meta_algo = MLPRegressor(max_iter=200)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
         X_train, X_test = self._scale_data(X_train, X_test, save_model)
@@ -339,7 +337,8 @@ class Trainer(Estimator, LogMixin):
         return meta_algo
 
     @timeit
-    def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False, meta_algo_params=None):
+    def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False,
+                  meta_algo_params=None):
         """
         builds the actual training time estimator
 
@@ -354,9 +353,9 @@ class Trainer(Estimator, LogMixin):
         """
         if meta_algo_params is None:
             if self.meta_algo == 'NN':
-                meta_algo_params = {'max_iter': 200, 'hidden_layer_sizes': [100,100,100]}
+                meta_algo_params = {'max_iter': 200, 'hidden_layer_sizes': [100, 100, 100]}
             elif self.meta_algo == 'RF':
-                meta_algo_params = {'criterion': 'mse', 'max_depth': 100, 'max_features':10}
+                meta_algo_params = {'criterion': 'mse', 'max_depth': 100, 'max_features': 10}
 
         if generate_data:
             inputs, outputs, _ = self._generate_data()
@@ -365,18 +364,18 @@ class Trainer(Estimator, LogMixin):
                 inputs, outputs = self._transform_from_csv(csv_name=csv_name)
 
         if inputs is None or outputs is None:
-            raise ValueError('no inputs / outputs found: please enter a csv name or set generate_data to True')
+            raise NameError('no inputs / outputs found: please enter a csv name or set generate_data to True')
 
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
-            raise ValueError(f'meta algo {self.meta_algo} currently not supported')
+            raise KeyError(f'meta algo {self.meta_algo} currently not supported')
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor(**meta_algo_params)
         if self.meta_algo == 'NN':
             meta_algo = MLPRegressor(**meta_algo_params)
-                       
+
         if self.verbose >= 2:
             self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
 
@@ -386,8 +385,8 @@ class Trainer(Estimator, LogMixin):
             X_train_scaled, X_test_scaled = self._scale_data(X_train, X_test, save_model)
             meta_algo.fit(X_train_scaled, y_train)
 
-        else: 
-            meta_algo.fit(X_train, y_train)    
+        else:
+            meta_algo.fit(X_train, y_train)
 
         if save_model:
             if self.verbose >= 2:
@@ -404,12 +403,12 @@ class Trainer(Estimator, LogMixin):
             if self.verbose >= 2:
                 self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train_scaled))}')
 
-        # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
+            # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
             y_pred_test = np.array([max(i, 0) for i in meta_algo.predict(X_test_scaled)])
             mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
             y_pred_train = np.array([max(i, 0) for i in meta_algo.predict(X_train_scaled)])
             mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
-        else:                
+        else:
             if self.verbose >= 2:
                 self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
             y_pred_test = meta_algo.predict(X_test)
@@ -421,7 +420,7 @@ class Trainer(Estimator, LogMixin):
 
         bins_values = [y_pred_test < 1] + [(y_pred_test >= i[0]) & (y_pred_test < i[1]) for i in bins] + [
             y_pred_test >= 10 * 60]
-        
+
         if save_model:
             mse_tests = [mean_squared_error(y_test[bin], y_pred_test[bin]) for bin in bins_values]
             observation_tests = [y_test[bin].shape[0] for bin in bins_values]
