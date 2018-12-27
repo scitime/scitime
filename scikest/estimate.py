@@ -29,10 +29,11 @@ class Estimator(LogMixin):
                     'between 1m and 10m',
                     'more than 10m']
 
-    def __init__(self, meta_algo=META_ALGO, verbose=3, bins=(BINS, BINS_VERBOSE)):
+    def __init__(self, meta_algo=META_ALGO, verbose=3, confidence=0.95):
         self.meta_algo = meta_algo
         self.verbose = verbose
-        self.bins = bins
+        self.confidence = confidence
+        self.bins = self.BINS, self.BINS_VERBOSE
 
     @property
     def num_cpu(self):
@@ -255,20 +256,22 @@ class Estimator(LogMixin):
 
         return meta_X
 
-    def _estimate_interval(self, meta_estimator, X, algo_name, percentile=95):
+    def _estimate_interval(self, meta_estimator, X, algo_name, confidence=0.95):
         """
-        estimate the prediction intervals for one data-point
+        estimates the prediction intervals for one data-point
+
         :param meta_estimator: the fitted random-forest meta-algo
         :param X: parameters, the same as the ones fed in the meta-algo
         :param algo_name: name of algo (not meta algo)
-        :return: low and high values of the percentile-confidence interval
+        :param confidence: confidence for intervals (default to 95%)
+        :return: low and high values of the confidence interval
         :rtype: tuple
         """
 
         if type(meta_estimator).__name__ == 'RandomForestRegressor':
             predictions = [predictor.predict(X)[0] for predictor in meta_estimator.estimators_]
-            lower_bound = np.percentile(predictions, (100 - percentile) / 2.)
-            upper_bound = np.percentile(predictions, 100 - (100 - percentile) / 2.)
+            lower_bound = np.percentile(predictions, (100 - 100 * confidence) / 2)
+            upper_bound = np.percentile(predictions, 100 - (100 - 100 * confidence) / 2)
 
         elif type(meta_estimator).__name__ == 'MLPRegressor':
             confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
@@ -292,26 +295,25 @@ class Estimator(LogMixin):
             n_obs, local_mse = mse_dic[mse_index_list[mse_index]]
             # we fetch the average mse per bin along with number of obs
             # and then use t-statistic to compute the uncertainty
-            t_coef = stats.t.ppf(percentile / 100, n_obs)
+            t_coef = stats.t.ppf(confidence, n_obs)
             uncertainty = t_coef * np.sqrt(2 * local_mse / n_obs)
 
             lower_bound = max(np.float64(0), prediction * (1 - uncertainty))
             upper_bound = max(np.float64(0), prediction * (1 + uncertainty))
 
         else:
-            raise KeyError(f'{self.meta_algo} meta algo not supported')
+            raise KeyError(f'{type(meta_estimator).__name__} meta algo not supported')
 
         return lower_bound, upper_bound
 
-    def _estimate(self, algo, X, y=None, percentile=95):
+    def _estimate(self, algo, X, y=None):
         """
         estimates the model's training time given that the fit starts
 
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None if unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
-        :param percentile: prediction interval percentile
-        :return: predicted runtime, low and high values of the percentile-confidence interval
+        :return: predicted runtime, low and high values of the confidence interval
         :rtype: tuple
         """
         # fetching sklearn model of the end user
@@ -350,7 +352,7 @@ class Estimator(LogMixin):
             meta_X = self._transform_params(algo, df)
             prediction = meta_estimator.predict(meta_X)[0]
 
-        lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, algo_name, percentile)
+        lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, algo_name, self.confidence)
 
         cleaned_prediction = self._clean_output(round(prediction))
         cleaned_lower_bound = self._clean_output(round(lower_bound))
@@ -366,7 +368,7 @@ class Estimator(LogMixin):
 
         if self.verbose >= 2:
             self.logger.info(f'Training your model should take ~ {cleaned_prediction}')
-            self.logger.info(f'The {percentile}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
+            self.logger.info(f'The {self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
         return prediction, lower_bound, upper_bound
 
     def estimate_duration(self, algo, X, y=None):
@@ -376,7 +378,7 @@ class Estimator(LogMixin):
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None is unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
-        :return: predicted runtime, low and high values of the percentile-confidence interval
+        :return: predicted runtime, low and high values of the confidence interval
         :rtype: float
         """
         try:
