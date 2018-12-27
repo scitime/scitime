@@ -289,7 +289,8 @@ class Estimator(LogMixin):
                         mse_index = i + 1
 
             n_obs, local_mse = mse_dic[mse_index_list[mse_index]]
-            # using t stat on mse bins to compute confidence interval
+            # we fetch the average mse per bin along with number of obs
+            # and then use t-statistic to compute the uncertainty
             t_coef = stats.t.ppf(percentile / 100, n_obs)
             uncertainty = t_coef * np.sqrt(2 * local_mse / n_obs)
 
