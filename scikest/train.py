@@ -405,16 +405,15 @@ class Trainer(Estimator, LogMixin):
 
             # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
             y_pred_test = np.array([max(i, 0) for i in meta_algo.predict(X_test_scaled)])
-            mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
             y_pred_train = np.array([max(i, 0) for i in meta_algo.predict(X_train_scaled)])
-            mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
         else:
             if self.verbose >= 2:
                 self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
             y_pred_test = meta_algo.predict(X_test)
-            mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
             y_pred_train = meta_algo.predict(X_train)
-            mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
+
+        mape_test = np.mean(np.abs((y_test - y_pred_test) / y_test)) * 100
+        mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
 
         bins, mape_index_list = self.bins
 
