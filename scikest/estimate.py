@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import time
 import json
+from scipy import stats
 
 import warnings
 
@@ -19,16 +20,13 @@ class Estimator(LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
     # bins to consider for computing confindence intervals (for NN meta algo)
-    BINS = [(1, 5), (5, 30), (30, 60), (60, 5 * 60), (5 * 60, 10 * 60), (10 * 60, 30 * 60), (30 * 60, 60 * 60)]
+    BINS = [(1, 5), (5, 30), (30, 60), (60, 10 * 60)]
     BINS_VERBOSE = ['less than 1s',
                     'between 1s and 5s',
                     'between 5s and 30s',
                     'between 30s and 1m',
-                    'between 1m and 5m',
-                    'between 5m and 10m',
-                    'between 10m and 30m',
-                    'between 30m and 1h',
-                    'more than 1h']
+                    'between 1m and 10m',
+                    'more than 10m']
 
     def __init__(self, meta_algo=META_ALGO, verbose=3, bins=(BINS, BINS_VERBOSE)):
         self.meta_algo = meta_algo
@@ -199,12 +197,13 @@ class Estimator(LogMixin):
 
         return df  
         
-    def _transform_params(self, algo, df):
+    def _transform_params(self, algo, df, scaled=False):
         """
         builds a dataframe of the params of the estimated model
 
         :param df: dataframe of all inputed parameters
         :param algo: algo whose runtime the user wants to predict
+        :param scaled: scaling the input if set to True
         :return: np array of all relevant algo parameters and system features used to estimate algo training time
         :rtype: pandas matrix object  
         """
@@ -246,7 +245,7 @@ class Estimator(LogMixin):
                .dropna(axis=0, how='any')
                .as_matrix())
 
-        if self.meta_algo == 'NN':
+        if scaled:
             if self.verbose >= 2:
                 self.logger.info(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
             model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
@@ -265,34 +264,38 @@ class Estimator(LogMixin):
         :rtype: tuple
         """
 
-        if self.meta_algo == 'RF':
+        if type(meta_estimator).__name__ == 'RandomForestRegressor':
             predictions = [predictor.predict(X)[0] for predictor in meta_estimator.estimators_]
             lower_bound = np.percentile(predictions, (100 - percentile) / 2. )
             upper_bound = np.percentile(predictions, 100 - (100 - percentile) / 2.)
             
-        elif self.meta_algo == 'NN':
+        elif type(meta_estimator).__name__ == 'MLPRegressor':
             confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
 
             if self.verbose >= 2:
-                self.logger.info(f'Fetching confint: {confint_path}')
+                self.logger.info(f'Fetching confint: {self.meta_algo}_{algo_name}_confint.json')
 
-            mape_dic = self._fetch_inputs(confint_path)
+            mse_dic = self._fetch_inputs(confint_path)
             prediction = max(meta_estimator.predict(X)[0], 0)
-            bins, mape_index_list = self.bins
+            bins, mse_index_list = self.bins
 
             if prediction < 1:
-                mape_index = 0
-            elif prediction >= 60 * 60:
-                mape_index = 8
+                mse_index = 0
+            elif prediction >= 10 * 60:
+                mse_index = 5
             else:
                 for i in range(len(bins)):
                     if prediction >= bins[i][0] and prediction < bins[i][1]:
-                        mape_index = i + 1
+                        mse_index = i + 1
 
-            uncertainty = mape_dic[mape_index_list[mape_index]]
-            lower_bound = max(np.float64(0), prediction * (1 - uncertainty / 100))
-            upper_bound = max(np.float64(0), prediction * (1 + uncertainty / 100))
-            #To be completed when/if we change the meta-algo
+            n_obs, local_mse = mse_dic[mse_index_list[mse_index]]
+            # we fetch the average mse per bin along with number of obs
+            # and then use t-statistic to compute the uncertainty
+            t_coef = stats.t.ppf(percentile / 100, n_obs)
+            uncertainty = t_coef * np.sqrt(2 * local_mse / n_obs)
+
+            lower_bound = max(np.float64(0), prediction * (1 - uncertainty))
+            upper_bound = max(np.float64(0), prediction * (1 + uncertainty))
 
         else:
             raise ValueError(f'{self.meta_algo} meta algo not supported')
@@ -329,9 +332,23 @@ class Estimator(LogMixin):
         df = self._fetch_params(algo, X, y)
 
         # Transforming the inputs:
-        meta_X = self._transform_params(algo, df)
+        if self.meta_algo == 'NN':
+            meta_X = self._transform_params(algo, df, scaled=True)
+        else:
+            meta_X = self._transform_params(algo, df)
 
         prediction = max(np.float64(0), meta_estimator.predict(meta_X)[0])
+
+        if prediction < 1 and self.meta_algo == 'NN':
+            if self.verbose >= 2:
+                self.logger.info('NN prediction too low - fetching rf meta algo instead')
+                self.logger.info(f'Fetching estimator: RF_{algo_name}_estimator.pkl')
+
+            model_path = f'{get_path("models")}/RF_{algo_name}_estimator.pkl'
+            meta_estimator = joblib.load(model_path)
+            meta_X = self._transform_params(algo, df)
+            prediction = meta_estimator.predict(meta_X)[0]
+
         lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, algo_name, percentile)
 
         cleaned_prediction = self._clean_output(round(prediction))
