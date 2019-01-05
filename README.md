@@ -16,7 +16,7 @@ Inside virtualenv:
 ```
 (env)$ python -m pytest
 ```
-#### How to run train.py?
+#### How to run _model.py?
 
 After pulling the master branch (`git pull origin master`) and setting the environment (described above),
 run `ipython` and:
