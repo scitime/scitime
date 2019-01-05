@@ -23,11 +23,11 @@ import warnings
 warnings.simplefilter("ignore")
 
 from scikest.estimate import Estimator
-from scikest.utils import get_path, config, timeout
-from scikest.log import LogMixin, timeit
+from scikest._utils import get_path, config, timeout
+from scikest._log import LogMixin, timeit
 
 
-class Trainer(Estimator, LogMixin):
+class Model(Estimator, LogMixin):
     # default meta-algorithm
     META_ALGO = 'RF'
     # the drop rate is used to fit the meta-algo on random parameters

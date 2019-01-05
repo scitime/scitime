@@ -6,7 +6,9 @@ Python version: 3.6.3
 ```
 ❱ virtualenv env
 ❱ source env/bin/activate
-❱ pip install -e "git+ssh://git@github.com/nathan-toubiana/scikest.git#egg=scikest"
+❱ pip install "git+ssh://git@github.com/nathan-toubiana/scikest.git"
+or
+❱ pip install git+https://github.com/nathan-toubiana/scikest.git
 ```
 
 #### Testing
@@ -20,10 +22,10 @@ After pulling the master branch (`git pull origin master`) and setting the envir
 run `ipython` and:
 
 ```
-from scikest.train import Trainer
+from scikest._model import Model
 
 # example of data generation for rf regressor
-trainer = Trainer(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
+trainer = Model(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
 inputs, outputs, _ = trainer._generate_data()
 
 # then fitting the meta model
@@ -54,7 +56,7 @@ rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
 
 X,y = np.random.rand(100000,10),np.random.rand(100000,1)
 # run the estimation
-estimation, lower_bound, upper_bound = estimator.estimate_duration(rf, X, y)
+estimation, lower_bound, upper_bound = estimator.time(rf, X, y)
 
 # compare to the actual training time
 start_time = time.time()

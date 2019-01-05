@@ -3,20 +3,20 @@ import unittest
 import warnings
 import numpy as np
 
-from scikest.train import Trainer
+from scikest._model import Model
 
 
 class TestTrain(unittest.TestCase):
     inputs, outputs = None, None
 
     def setUp(self):
-        self.rf_trainer_metarf = Trainer(drop_rate=1, verbose=3, algo='RandomForestRegressor', meta_algo='RF')
-        self.svc_trainer_metarf = Trainer(drop_rate=1, verbose=3, algo='SVC', meta_algo='RF')
-        self.km_trainer_metarf = Trainer(drop_rate=1, verbose=3, algo='KMeans', meta_algo='RF')
+        self.rf_trainer_metarf = Model(drop_rate=1, verbose=3, algo='RandomForestRegressor', meta_algo='RF')
+        self.svc_trainer_metarf = Model(drop_rate=1, verbose=3, algo='SVC', meta_algo='RF')
+        self.km_trainer_metarf = Model(drop_rate=1, verbose=3, algo='KMeans', meta_algo='RF')
 
-        self.rf_trainer_metann = Trainer(drop_rate=1, verbose=3, algo='RandomForestRegressor', meta_algo='NN')
-        self.svc_trainer_metann = Trainer(drop_rate=1, verbose=3, algo='SVC', meta_algo='NN')
-        self.km_trainer_metann = Trainer(drop_rate=1, verbose=3, algo='KMeans', meta_algo='NN')
+        self.rf_trainer_metann = Model(drop_rate=1, verbose=3, algo='RandomForestRegressor', meta_algo='NN')
+        self.svc_trainer_metann = Model(drop_rate=1, verbose=3, algo='SVC', meta_algo='NN')
+        self.km_trainer_metann = Model(drop_rate=1, verbose=3, algo='KMeans', meta_algo='NN')
 
     def test_generate_data_regression_metarf(self):
         rf_inputs, rf_outputs, _ = self.rf_trainer_metarf._generate_data()

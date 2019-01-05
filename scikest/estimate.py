@@ -13,8 +13,8 @@ import warnings
 
 warnings.simplefilter("ignore")
 
-from scikest.utils import get_path, config, timeout
-from scikest.log import LogMixin
+from scikest._utils import get_path, config, timeout
+from scikest._log import LogMixin
 
 
 class Estimator(LogMixin):
@@ -371,7 +371,7 @@ class Estimator(LogMixin):
             self.logger.info(f'The {100 * self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
         return prediction, lower_bound, upper_bound
 
-    def estimate_duration(self, algo, X, y=None):
+    def time(self, algo, X, y=None):
         """
         predicts training runtime for a given training
 
