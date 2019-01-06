@@ -23,7 +23,7 @@ import warnings
 warnings.simplefilter("ignore")
 
 from scikest.estimate import Estimator
-from scikest._utils import get_path, config, timeout
+from scikest._utils import get_path, config
 from scikest._log import LogMixin, timeit
 
 

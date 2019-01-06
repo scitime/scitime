@@ -22,7 +22,7 @@ def config(key):
     :param key: specific key to load
     :return: dictionary
     """
-    return json.load(open(get_path('config.json')))[key]
+    return json.load(open(get_path('_config.json')))[key]
 
 
 class TimeoutError(Exception):
