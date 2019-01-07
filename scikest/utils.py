@@ -7,12 +7,9 @@ from functools import wraps
 import errno
 import signal
 import threading
-import multiprocessing
-
-
 import sys
-import threading
 from time import sleep
+
 try:
     import thread
 except ImportError:
@@ -42,9 +39,7 @@ class TimeoutError(Exception):
 
 
 def quit_function(fn_name):
-    # print to stderr, unbuffered in Python 2.
-    #print('{0} took too long'.format(fn_name), file=sys.stderr)
-    sys.stderr.flush() # Python 3 stderr is likely buffered.
+    sys.stderr.flush() 
     thread.interrupt_main() # raises KeyboardInterrupt
 
 def timeout(s):
