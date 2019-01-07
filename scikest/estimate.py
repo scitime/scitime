@@ -383,11 +383,12 @@ class Estimator(LogMixin):
         """
         try:
             self._fit_start(algo=algo, X=X, y=y)
+        except KeyboardInterrupt:
+           
+            if self.verbose >= 2:
+                self.logger.info('The model would fit. Moving on')
+            return self._estimate(algo, X, y)
         except Exception as e:
-            if e.__class__.__name__ != 'TimeoutError':
-                # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
-                raise e
-            else:
-                if self.verbose >= 2:
-                    self.logger.info('The model would fit. Moving on')
-                return self._estimate(algo, X, y)
+            # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
+            print(e.__class__.__name__)
+            raise e     

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 import json
@@ -5,6 +6,17 @@ import json
 from functools import wraps
 import errno
 import signal
+import threading
+import multiprocessing
+
+
+import sys
+import threading
+from time import sleep
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 
 import warnings
 warnings.simplefilter("ignore")
@@ -29,22 +41,25 @@ class TimeoutError(Exception):
     pass
 
 
-def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
-    """checks if a function does not throw an instant error without actually running the entire function"""
+def quit_function(fn_name):
+    # print to stderr, unbuffered in Python 2.
+    #print('{0} took too long'.format(fn_name), file=sys.stderr)
+    sys.stderr.flush() # Python 3 stderr is likely buffered.
+    thread.interrupt_main() # raises KeyboardInterrupt
 
-    def decorator(func):
-        def _handle_timeout(signum, frame):
-            raise TimeoutError(error_message)
-
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.alarm(seconds)
+def timeout(s):
+    '''
+    use as decorator to exit process if 
+    function takes longer than s seconds
+    '''
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
             try:
-                result = func(*args, **kwargs)
+                result = fn(*args, **kwargs)
             finally:
-                signal.alarm(0)
+                timer.cancel()
             return result
-
-        return wraps(func)(wrapper)
-
-    return decorator
+        return inner
+    return outer
