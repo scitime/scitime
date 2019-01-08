@@ -1,19 +1,10 @@
-from __future__ import print_function
 import os
-
 import json
 
-from functools import wraps
-import errno
-import signal
 import threading
 import sys
 from time import sleep
-
-try:
-    import thread
-except ImportError:
-    import _thread as thread
+import _thread as thread
 
 import warnings
 warnings.simplefilter("ignore")
