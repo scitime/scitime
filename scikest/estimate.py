@@ -390,5 +390,4 @@ class Estimator(LogMixin):
             return self._estimate(algo, X, y)
         except Exception as e:
             # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
-            print(e.__class__.__name__)
             raise e     
