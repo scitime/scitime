@@ -18,7 +18,6 @@ def get_path(file):
 def config(key):
     """
     loads json data
-
     :param key: specific key to load
     :return: dictionary
     """
@@ -30,12 +29,12 @@ class TimeoutError(Exception):
 
 
 def quit_function(fn_name):
-    sys.stderr.flush() 
+    sys.stderr.flush()
     thread.interrupt_main() # raises KeyboardInterrupt
 
 def timeout(s):
     '''
-    use as decorator to exit process if 
+    use as decorator to exit process if
     function takes longer than s seconds
     '''
     def outer(fn):
@@ -49,3 +48,4 @@ def timeout(s):
             return result
         return inner
     return outer
+
