@@ -3,7 +3,6 @@ import json
 
 import threading
 import sys
-from time import sleep
 import _thread as thread
 
 import warnings

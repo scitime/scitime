@@ -14,9 +14,8 @@ import json
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import r2_score, mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import RandomizedSearchCV
 
 import warnings
 
@@ -208,6 +207,7 @@ class Model(Estimator, LogMixin):
 
                     outputs.append(row_output)
                     inputs.append(row_input)
+
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
 
@@ -271,8 +271,8 @@ class Model(Estimator, LogMixin):
 
         data = pd.get_dummies(inputs.fillna(-1))
 
-        if self.verbose >= 2:
-            self.logger.info('Model inputs: {}'.format(list(data.columns)))
+        if self.verbose >= 3:
+            self.logger.debug('Model inputs: {}'.format(list(data.columns)))
 
         # reshaping into arrays
         X = (data
@@ -299,6 +299,7 @@ class Model(Estimator, LogMixin):
         if save_model:
             if self.verbose >= 2:
                 self.logger.info(f'Saving scaler model to scaler_{self.algo}_estimator.pkl')
+
             model_path = f'{get_path("models")}/scaler_{self.algo}_estimator.pkl'
             joblib.dump(scaler, model_path)
 
@@ -320,6 +321,7 @@ class Model(Estimator, LogMixin):
         :rtype: scikit learn RandomizedSearchCV object
         """
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
+
         if self.meta_algo != 'NN':
             raise KeyError(f'meta algo {self.meta_algo} not supported for random search')
 
@@ -371,6 +373,7 @@ class Model(Estimator, LogMixin):
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
             raise KeyError(f'meta algo {self.meta_algo} currently not supported')
+
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor(**meta_algo_params)
         if self.meta_algo == 'NN':
@@ -391,6 +394,7 @@ class Model(Estimator, LogMixin):
         if save_model:
             if self.verbose >= 2:
                 self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
+
             model_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
             joblib.dump(meta_algo, model_path)
 
@@ -406,6 +410,7 @@ class Model(Estimator, LogMixin):
             # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
             y_pred_test = np.array([max(i, 0) for i in meta_algo.predict(X_test_scaled)])
             y_pred_train = np.array([max(i, 0) for i in meta_algo.predict(X_train_scaled)])
+
         else:
             if self.verbose >= 2:
                 self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
@@ -430,7 +435,6 @@ class Model(Estimator, LogMixin):
                 self.logger.info(f'Computed mse on test set (with number of observations): {mse_test_dic}')
 
         if self.meta_algo == 'NN':
-
             if save_model:
                 json_conf_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_confint.json'
                 self.logger.info(f'Saving confint to {self.meta_algo}_{self.algo}_confint.json')

@@ -1,6 +1,5 @@
 import unittest
 
-import warnings
 import numpy as np
 
 from scikest._model import Model

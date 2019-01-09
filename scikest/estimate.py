@@ -192,6 +192,7 @@ class Estimator(LogMixin):
 
                     # making dummy
         dic = dict(zip(param_list, [[i] for i in inputs]))
+
         if self.verbose >= 2:
             self.logger.info(f'Training your model for these params: {dic}')
 
@@ -248,8 +249,9 @@ class Estimator(LogMixin):
                   .as_matrix())
 
         if scaled:
-            if self.verbose >= 2:
-                self.logger.info(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
+            if self.verbose >= 3:
+                self.logger.debug(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
+
             model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
             scaler = joblib.load(model_path)
             meta_X = scaler.transform(meta_X)
@@ -276,8 +278,8 @@ class Estimator(LogMixin):
         elif type(meta_estimator).__name__ == 'MLPRegressor':
             confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
 
-            if self.verbose >= 2:
-                self.logger.info(f'Fetching confint: {self.meta_algo}_{algo_name}_confint.json')
+            if self.verbose >= 3:
+                self.logger.debug(f'Fetching confint: {self.meta_algo}_{algo_name}_confint.json')
 
             mse_dic = self._fetch_inputs(confint_path)
             prediction = max(meta_estimator.predict(X)[0], 0)
@@ -326,8 +328,9 @@ class Estimator(LogMixin):
         if self.meta_algo not in config('supported_meta_algos'):
             raise KeyError(f'meta algo {self.meta_algo} currently not supported')
 
-        if self.verbose >= 2:
-            self.logger.info(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+        if self.verbose >= 3:
+            self.logger.debug(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+
         model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
         meta_estimator = joblib.load(model_path)
 
@@ -343,9 +346,9 @@ class Estimator(LogMixin):
         prediction = max(np.float64(0), meta_estimator.predict(meta_X)[0])
 
         if prediction < 1 and self.meta_algo == 'NN':
-            if self.verbose >= 2:
-                self.logger.info('NN prediction too low - fetching rf meta algo instead')
-                self.logger.info(f'Fetching estimator: RF_{algo_name}_estimator.pkl')
+            if self.verbose >= 3:
+                self.logger.debug('NN prediction too low - fetching rf meta algo instead')
+                self.logger.debug(f'Fetching estimator: RF_{algo_name}_estimator.pkl')
 
             model_path = f'{get_path("models")}/RF_{algo_name}_estimator.pkl'
             meta_estimator = joblib.load(model_path)
@@ -383,11 +386,13 @@ class Estimator(LogMixin):
         """
         try:
             self._fit_start(algo=algo, X=X, y=y)
+
         except KeyboardInterrupt:
-           
-            if self.verbose >= 2:
-                self.logger.info('The model would fit. Moving on')
+            if self.verbose >= 3:
+                self.logger.debug('The model would fit. Moving on')
+
             return self._estimate(algo, X, y)
+
         except Exception as e:
             # this means that the sklearn fit has raised a natural exception before we artificially raised a timeout
             raise e     
