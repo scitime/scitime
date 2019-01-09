@@ -29,7 +29,7 @@ class TestEstimate(unittest.TestCase):
     def test_estimate_duration_regression_metarf(self):
         rf = RandomForestRegressor()
         X, y_continuous = np.random.rand(10000, 10), np.random.rand(10000, 1)
-        rf_duration = self.estimator_metarf.estimate_duration(rf, X, y_continuous)
+        rf_duration = self.estimator_metarf.time(rf, X, y_continuous)
         assert type(rf_duration[0]) == np.float64
         assert type(rf_duration[1]) == np.float64
         assert type(rf_duration[2]) == np.float64
@@ -39,7 +39,7 @@ class TestEstimate(unittest.TestCase):
     def test_estimate_duration_classification_metarf(self):
         svc = SVC()
         X, y_class = np.random.rand(10000, 10), np.random.randint(0, 4, 10000)
-        svc_duration = self.estimator_metarf.estimate_duration(svc, X, y_class)
+        svc_duration = self.estimator_metarf.time(svc, X, y_class)
         assert type(svc_duration[0]) == np.float64
         assert type(svc_duration[1]) == np.float64
         assert type(svc_duration[2]) == np.float64
@@ -49,7 +49,7 @@ class TestEstimate(unittest.TestCase):
     def test_estimate_duration_unsupervised_metarf(self):
         kmeans = KMeans()
         X = np.random.rand(10000, 10)
-        kmeans_duration = self.estimator_metarf.estimate_duration(kmeans, X)
+        kmeans_duration = self.estimator_metarf.time(kmeans, X)
         assert type(kmeans_duration[0]) == np.float64
         assert type(kmeans_duration[1]) == np.float64
         assert type(kmeans_duration[2]) == np.float64
@@ -70,19 +70,19 @@ class TestEstimate(unittest.TestCase):
     def test_estimate_duration_regression_metann(self):
         rf = RandomForestRegressor()
         X, y_continuous = np.random.rand(10000, 10), np.random.rand(10000, 1)
-        rf_duration = self.estimator_metann.estimate_duration(rf, X, y_continuous)
+        rf_duration = self.estimator_metann.time(rf, X, y_continuous)
         assert type(rf_duration[0]) == np.float64
 
     def test_estimate_duration_classification_metann(self):
         svc = SVC()
         X, y_class = np.random.rand(10000, 10), np.random.randint(0, 4, 10000)
-        svc_duration = self.estimator_metann.estimate_duration(svc, X, y_class)
+        svc_duration = self.estimator_metann.time(svc, X, y_class)
         assert type(svc_duration[0]) == np.float64
 
     def test_estimate_duration_unsupervised_metann(self):
         kmeans = KMeans()
         X = np.random.rand(10000, 10)
-        kmeans_duration = self.estimator_metann.estimate_duration(kmeans, X)
+        kmeans_duration = self.estimator_metann.time(kmeans, X)
         assert type(kmeans_duration[0]) == np.float64
 
 
