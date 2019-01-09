@@ -1,10 +1,10 @@
 import os
-
 import json
 
-from functools import wraps
-import errno
-import signal
+import threading
+import sys
+from time import sleep
+import _thread as thread
 
 import warnings
 warnings.simplefilter("ignore")
@@ -18,33 +18,33 @@ def get_path(file):
 def config(key):
     """
     loads json data
-
     :param key: specific key to load
     :return: dictionary
     """
-    return json.load(open(get_path('_config.json')))[key]
+    return json.load(open(get_path('config.json')))[key]
 
 
 class TimeoutError(Exception):
     pass
 
 
-def timeout(seconds=10, error_message=os.strerror(errno.ETIME)):
-    """checks if a function does not throw an instant error without actually running the entire function"""
+def quit_function(fn_name):
+    sys.stderr.flush()
+    thread.interrupt_main() # raises KeyboardInterrupt
 
-    def decorator(func):
-        def _handle_timeout(signum, frame):
-            raise TimeoutError(error_message)
-
-        def wrapper(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _handle_timeout)
-            signal.alarm(seconds)
+def timeout(s):
+    '''
+    use as decorator to exit process if
+    function takes longer than s seconds
+    '''
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
             try:
-                result = func(*args, **kwargs)
+                result = fn(*args, **kwargs)
             finally:
-                signal.alarm(0)
+                timer.cancel()
             return result
-
-        return wraps(func)(wrapper)
-
-    return decorator
+        return inner
+    return outer
