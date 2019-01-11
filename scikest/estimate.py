@@ -57,8 +57,13 @@ class Estimator(LogMixin):
         algo.verbose = 0
         param_dic = self._fetch_algo_metadata(algo)
         params = param_dic['config']
-
         algo_type = params['type']
+
+        if X.shape[0] > 10:
+            X = X[:10, :]
+            if y is not None:
+                y = y[:10]
+
         if algo_type == 'unsupervised':
             algo.fit(X)
         else:
