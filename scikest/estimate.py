@@ -62,7 +62,7 @@ class Estimator(LogMixin):
         if X.shape[0] > 10:
             X = X[:10, :]
             if y is not None:
-                y = y[:10, :]
+                y = y[:10]
 
         if algo_type == 'unsupervised':
             algo.fit(X)
