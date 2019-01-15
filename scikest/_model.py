@@ -54,6 +54,7 @@ class Model(Estimator, LogMixin):
     def params(self):
         """
         retrieves the estimated algorithm's parameters if the algo is supported
+        else, return KeyError
 
         :return: dictionary
         """
@@ -63,7 +64,7 @@ class Model(Estimator, LogMixin):
 
     def _add_row_to_csv(self, row_input, row_output):
         """
-        writes a row into the csv results file
+        writes a row into the csv results file - parameters (X) and number of seconds (y)
 
         :param input: row inputs
         :param output: row output
@@ -78,7 +79,7 @@ class Model(Estimator, LogMixin):
     @staticmethod
     def _generate_numbers(n, p, meta_params, num_cat=None):
         """
-        generates random inputs / outputs
+        generates random inputs / outputs for regression / classification / unsupervised algorithms
 
         :param meta_params: params from json file (equivalent to self.params)
         :param num_cat: number of categories if classification algo
@@ -97,7 +98,7 @@ class Model(Estimator, LogMixin):
     @staticmethod
     def _measure_time(model, X, y, meta_params):
         """
-        generates fits with the meta-algo using dummy data and tracks the training runtime
+        generates fits with the algo using dummy data and tracks the training runtime
 
         :param X: inputs
         :param y: outputs
@@ -118,18 +119,21 @@ class Model(Estimator, LogMixin):
     def _str_to_float(row):
         """
         transforms semi dummy input from csv
+        this is needed when the pd.read_csv function changes format of ambiguous columns
 
         :param row: row of a pandas dataframe
         :return:
         """
         try:
             return np.float(row)
+
         except:
             return row
 
     def _transform_from_csv(self, csv_name):
         """
         takes data from csv and returns inputs and outputs in right format for model_fit
+        this is needed when the pd.read_csv function changes format of ambiguous columns
 
         :param csv_name: name of csv from generate data
         :param rename_columns: set to True if csv columns have to be named
@@ -153,7 +157,8 @@ class Model(Estimator, LogMixin):
 
     def _get_model(self, meta_params, params):
         """
-        builds the sklearn model to be fitted 
+        builds the sklearn model to be fitted
+        abstracted to support any sklearn algo
 
         :param params: model params included in the estimation
         :param meta_params: params from json file (equivalent to self.params)
@@ -165,15 +170,20 @@ class Model(Estimator, LogMixin):
         return model
 
     @timeit
-    def _permute(self, concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, validation=False):
+    def _permute(self, concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, write_csv=False, validation=False):
         """
-        for loop over every possible param combination
+        performs a for loop over every possible param combination to generate data on the specified algo
+        abstracted to support any sklearn algo
+        runtime of this function depends on the specified drop_rate: the higher it is, the less data will be generated
+        a minimum of 4 data points is generated
+
 
         :param concat_dic: all params + all values range dictionary
         :param parameters_list: all internal parameters names
         :param external_parameters_list: all external parameters names
         :param meta_params: params from json file (equivalent to self.params)
         :param algo_type: unsupervised / supervised / classification
+        :param write_csv: set to True in order to write outputs in a dedicated csv file
         :param validation: boolean, set true if data is used for validation, use only once the model has been trained
         :return: inputs, outputs
         :rtype: lists
@@ -211,7 +221,7 @@ class Model(Estimator, LogMixin):
                     if self.verbose >= 2:
                         self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
 
-                    if not validation:
+                    if not validation and write_csv:
                         self._add_row_to_csv(row_input, row_output)
                     else:
                         row_estimated_output, _, _ = self._estimate(model, X, y)
@@ -224,11 +234,12 @@ class Model(Estimator, LogMixin):
         return inputs, outputs, estimated_outputs
 
     @timeit
-    def _generate_data(self, validation=False):
+    def _generate_data(self, write_csv=False, validation=False):
         """
         measures training runtimes for a set of distinct parameters
-        saves results in a csv (row by row)
+        if specified, saves results in a csv (row by row)
 
+        :param write_csv: set to True in order to write outputs in a dedicated csv file
         :param validation: boolean, set true if data is used for validation, use only once the model has been trained
         :return: inputs, outputs
         :rtype: pd.DataFrame
@@ -243,7 +254,7 @@ class Model(Estimator, LogMixin):
         algo_type = meta_params["type"]
 
         inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list,
-                                                           meta_params, algo_type, validation)
+                                                           meta_params, algo_type, write_csv, validation)
 
         if validation:
             estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
@@ -256,10 +267,15 @@ class Model(Estimator, LogMixin):
     def _transform_data(self, inputs, outputs):
         """
         transforms the data before fitting the meta model
+        specifically, transforms semi dummy data:
+        columns that are either continuous or categorical for a discrete number of outputs (usually 1)
+        are treated as continuous and we add a binary column for the categorical output
+        as an example, max_depth (for RandomForest) can be either an integer or 'None',
+        we treat this column as continuous and add a boolean column is_max_depth_None
 
         :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
-        :return: X, y
+        :return: X, y, and columns names
         :rtype: np arrays
         """
         # first we transform semi dummy features
@@ -286,6 +302,7 @@ class Model(Estimator, LogMixin):
     def _scale_data(self, X_train, X_test, save_model):
         """
         scales the X vector in order to fit the NN meta algo
+        saves the scaler as a pkl file if specified
 
         :param X_train: pd.DataFrame chosen as input for the training set
         :param X_test: pd.DataFrame chosen as input for the test set
@@ -342,14 +359,16 @@ class Model(Estimator, LogMixin):
     def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False,
                   meta_algo_params=None):
         """
-        builds the actual training time estimator
+        builds the actual training time estimator (currently we only support NN or RF)
+        the data is either generated from scratch or taken as input
+        if specified, the meta algo is saved as a pkl file along with associated metadata (column names, mse per bin)
 
         :param generate_data: bool (if set to True, calls _generate_data)
         :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
         :param csv_name: name if csv in case we fetch data from csv
         :param save_model: boolean set to True if the model needs to be saved
-        :param meta_algo_params: params of meta algo
+        :param meta_algo_params: params of the meta algo
         :return: meta_algo
         :rtype: scikit learn model
         """
