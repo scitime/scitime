@@ -41,6 +41,9 @@ class Model(Estimator, LogMixin):
         self.drop_rate = drop_rate
         self.meta_algo = meta_algo
         self.verbose = verbose
+        if self.verbose >= 2:
+            self.logger.info(f'Model object created with verbose={self.verbose}, algo={self.algo}, meta_algo={self.meta_algo} and drop_rate={self.drop_rate}')
+
 
     @property
     def num_cpu(self):

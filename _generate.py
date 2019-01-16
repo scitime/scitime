@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 
 from scikest._model import Model
 from scikest._utils import config
@@ -23,12 +24,12 @@ if __name__ == '__main__':
     if args.drop_rate is None:
         drop_rate = 0.999
     else:
-        drop_rate = args.drop_rate
+        drop_rate = np.float(args.drop_rate)
 
     if args.verbose is None:
         verbose = 1
     else:
-        verbose = args.verbose
+        verbose = int(args.verbose)
 
     if args.meta_algo is None:
         meta_algo = 'RF'
