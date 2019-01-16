@@ -12,7 +12,7 @@ or
 ```
 
 #### Testing
-Inside virtualenv:
+Inside virtualenv (with pytest>=3.2.1):
 ```
 (env)$ python -m pytest
 ```
