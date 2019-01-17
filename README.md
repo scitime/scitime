@@ -16,13 +16,14 @@ Inside virtualenv (with pytest>=3.2.1):
 ```
 (env)$ python -m pytest
 ```
-#### How to use _generate.py to generate data?
+#### How to use _data.py to generate data / fit models?
 ```
-$ python _generate.py --help
+$ python _data.py --help
 
-usage: _generate.py [-h] [--drop_rate DROP_RATE] [--meta_algo {RF,NN}]
-                    [--verbose VERBOSE]
-                    [--algo {RandomForestRegressor,SVC,KMeans}] [--persist]
+usage: _data.py [-h] [--drop_rate DROP_RATE] [--meta_algo {RF,NN}]
+                [--verbose VERBOSE]
+                [--algo {RandomForestRegressor,SVC,KMeans}] [--generate_data]
+                [--fit FIT] [--save]
 
 Gather & Persist Data of model training runtimes
 
@@ -37,7 +38,12 @@ optional arguments:
   --verbose VERBOSE     verbose mode (0, 1, 2 or 3)
   --algo {RandomForestRegressor,SVC,KMeans}
                         algo to train data on
-  --persist             do you want to write data in a dedicated csv?
+  --generate_data       do you want to generate & write data in a dedicated
+                        csv?
+  --fit FIT             do you want to fit the model? If so indicate the csv
+                        name
+  --save                (only used for model fit) do you want to save /
+                        overwrite the meta model from this fit?
 ```
 #### How to run _model.py?
 
