@@ -16,6 +16,35 @@ Inside virtualenv (with pytest>=3.2.1):
 ```
 (env)$ python -m pytest
 ```
+#### How to use _data.py to generate data / fit models?
+```
+$ python _data.py --help
+
+usage: _data.py [-h] [--drop_rate DROP_RATE] [--meta_algo {RF,NN}]
+                [--verbose VERBOSE]
+                [--algo {RandomForestRegressor,SVC,KMeans}] [--generate_data]
+                [--fit FIT] [--save]
+
+Gather & Persist Data of model training runtimes
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --drop_rate DROP_RATE
+                        drop rate of number of data generated (from all param
+                        combinations taken from _config.json). Default is
+                        0.999
+  --meta_algo {RF,NN}   meta algo used to fit the meta model (NN or RF) -
+                        default is RF
+  --verbose VERBOSE     verbose mode (0, 1, 2 or 3)
+  --algo {RandomForestRegressor,SVC,KMeans}
+                        algo to train data on
+  --generate_data       do you want to generate & write data in a dedicated
+                        csv?
+  --fit FIT             do you want to fit the model? If so indicate the csv
+                        name
+  --save                (only used for model fit) do you want to save /
+                        overwrite the meta model from this fit?
+```
 #### How to run _model.py?
 
 After pulling the master branch (`git pull origin master`) and setting the environment (described above),
