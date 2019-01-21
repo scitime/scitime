@@ -75,7 +75,7 @@ print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".fo
 ### --- FOR TESTERS / CONTRIBUTORS ---
 
 
-#### Testing
+#### Local Testing
 Inside virtualenv (with pytest>=3.2.1):
 ```
 (env)$ python -m pytest
