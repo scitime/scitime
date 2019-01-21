@@ -1,4 +1,4 @@
-The preferred way to contribute to sciti;e is to fork the main repository on GitHub, then submit a “pull request” (PR) - as done for sklearn contributions:
+The preferred way to contribute to scitime is to fork the main repository on GitHub, then submit a “pull request” (PR) - as done for scikit-learn contributions:
 
 - Create an account on GitHub if you do not already have one.
 - Fork the project repository: click on the ‘Fork’ button near the top of the page. This creates a copy of the code under your account on the GitHub user account. 
