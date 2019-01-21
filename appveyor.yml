@@ -1,0 +1,15 @@
+environment:
+
+  matrix:
+
+    - PYTHON: "C:\\Python36-x64"
+
+install:
+  # We need wheel installed to build wheels
+  - "%PYTHON%\\python.exe -m pip install -r requirements.txt"
+
+build: off
+
+test_script:
+
+  - "build.cmd %PYTHON%\\python.exe -m pytest"
