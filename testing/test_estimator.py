@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.cluster import KMeans
 from sklearn.svm import SVC
 
-from scikest.estimate import Estimator
+from scitime.estimate import Estimator
 
 
 class TestEstimate(unittest.TestCase):

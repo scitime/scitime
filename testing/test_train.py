@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from scikest._model import Model
+from scitime._model import Model
 
 
 class TestTrain(unittest.TestCase):

@@ -1,4 +1,4 @@
-# scikest
+# scitime
 Training time estimation for sklearn algos
 ### Environment setup
 Python version: 3.6.3
@@ -13,7 +13,7 @@ or
 
 #### How to run estimate.py?
 
-After having a corresponding model in `scikest/models/`:
+After having a corresponding model in `scitime/models/`:
 
 Example for RandomForestRegressor
 
@@ -23,7 +23,7 @@ import numpy as np
 import time
 import pandas as pd
 
-from scikest.estimate import Estimator
+from scitime.estimate import Estimator
 
 # example for rf regressor
 estimator = Estimator(meta_algo='RF', verbose=3)
@@ -54,7 +54,7 @@ import numpy as np
 import time
 import pandas as pd
 
-from scikest.estimate import Estimator
+from scitimet.estimate import Estimator
 
 # example for kmeans clustering
 estimator = Estimator(meta_algo='RF', verbose=3)
@@ -115,7 +115,7 @@ After pulling the master branch (`git pull origin master`) and setting the envir
 run `ipython` and:
 
 ```
-from scikest._model import Model
+from scitime._model import Model
 
 # example of data generation for rf regressor
 trainer = Model(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
@@ -123,6 +123,6 @@ inputs, outputs, _ = trainer._generate_data()
 
 # then fitting the meta model
 meta_algo = trainer.model_fit(generate_data=False, inputs=inputs, outputs=outputs)
-# this should not locally overwrite the pickle file located at scikest/models/{your_model}
+# this should not locally overwrite the pickle file located at scitime/models/{your_model}
 # if you want to save the model, set the argument save_model to True
 ```
