@@ -6,9 +6,9 @@ Python version: 3.6.3
 ```
 ❱ virtualenv env
 ❱ source env/bin/activate
-❱ pip install "git+ssh://git@github.com/nathan-toubiana/scikest.git"
+❱ pip install "git+ssh://git@github.com/nathan-toubiana/scitime.git"
 or
-❱ pip install git+https://github.com/nathan-toubiana/scikest.git
+❱ pip install git+https://github.com/nathan-toubiana/scitime.git
 ```
 
 #### How to run estimate.py?
