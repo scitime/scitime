@@ -15,7 +15,7 @@ or
 
 After having a corresponding model in `scitime/models/`:
 
-Example for RandomForestRegressor
+- Example for RandomForestRegressor
 
 ```
 from sklearn.ensemble import RandomForestRegressor
@@ -46,7 +46,7 @@ print("elapsed time: {:.2}".format(elapsed_time))
 print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
 
-Example for KMeans
+- Example for KMeans
 
 ```
 from sklearn.cluster import KMeans
@@ -72,10 +72,10 @@ print("elapsed time: {:.2}".format(elapsed_time))
 print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
 
-### ---FOR TESTERS / CONTRIBUTORS ---
+### --- FOR TESTERS / CONTRIBUTORS ---
 
 
-#### Testing
+#### Local Testing
 Inside virtualenv (with pytest>=3.2.1):
 ```
 (env)$ python -m pytest
