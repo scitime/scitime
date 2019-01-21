@@ -12,4 +12,4 @@ build: off
 
 test_script:
 
-  - "build.cmd %PYTHON%\\python.exe -m pytest"
+  - "%PYTHON%\\python.exe -m pytest"
