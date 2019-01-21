@@ -386,7 +386,7 @@ class Estimator(LogMixin):
             cleaned_upper_bound = f'{upper_bound} seconds'
 
         if self.verbose >= 2:
-            self.logger.info(f'Training your model should take ~ {cleaned_prediction}')
+            self.logger.info(f'Training your {algo_name} model should take ~ {cleaned_prediction}')
             self.logger.info(f'The {100 * self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
         return prediction, lower_bound, upper_bound
 

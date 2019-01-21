@@ -11,6 +11,70 @@ or
 ❱ pip install git+https://github.com/nathan-toubiana/scikest.git
 ```
 
+#### How to run estimate.py?
+
+After having a corresponding model in `scikest/models/`:
+
+Example for RandomForestRegressor
+
+```
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+import time
+import pandas as pd
+
+from scikest.estimate import Estimator
+
+# example for rf regressor
+estimator = Estimator(meta_algo='RF', verbose=3)
+rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
+           max_features=10, max_leaf_nodes=10, min_impurity_decrease=10,
+           min_impurity_split=10, min_samples_leaf=10,
+           min_samples_split=10, min_weight_fraction_leaf=0.5,
+           n_estimators=100, n_jobs=10, oob_score=False, random_state=None,
+           verbose=2, warm_start=False)
+
+X,y = np.random.rand(100000,10),np.random.rand(100000,1)
+# run the estimation
+estimation, lower_bound, upper_bound = estimator.time(rf, X, y)
+
+# compare to the actual training time
+start_time = time.time()
+rf.fit(X,y)
+elapsed_time = time.time() - start_time
+print("elapsed time: {:.2}".format(elapsed_time))
+print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
+```
+
+Example for KMeans
+
+```
+from sklearn.cluster import KMeans
+import numpy as np
+import time
+import pandas as pd
+
+from scikest.estimate import Estimator
+
+# example for kmeans clustering
+estimator = Estimator(meta_algo='RF', verbose=3)
+km = KMeans()
+
+X = np.random.rand(100000,10)
+# run the estimation
+estimation, lower_bound, upper_bound = estimator.time(km, X)
+
+# compare to the actual training time
+start_time = time.time()
+km.fit(X)
+elapsed_time = time.time() - start_time
+print("elapsed time: {:.2}".format(elapsed_time))
+print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
+```
+
+### ---FOR TESTERS / CONTRIBUTORS ---
+
+
 #### Testing
 Inside virtualenv (with pytest>=3.2.1):
 ```
@@ -61,36 +125,4 @@ inputs, outputs, _ = trainer._generate_data()
 meta_algo = trainer.model_fit(generate_data=False, inputs=inputs, outputs=outputs)
 # this should not locally overwrite the pickle file located at scikest/models/{your_model}
 # if you want to save the model, set the argument save_model to True
-```
-#### How to run estimate.py?
-
-After having a corresponding model in `scikest/models/`:
-
-```
-from sklearn.ensemble import RandomForestRegressor
-import numpy as np
-import time
-import pandas as pd
-
-from scikest.estimate import Estimator
-
-# example for rf regressor
-estimator = Estimator(meta_algo='RF', verbose=3)
-rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
-           max_features=10, max_leaf_nodes=10, min_impurity_decrease=10,
-           min_impurity_split=10, min_samples_leaf=10,
-           min_samples_split=10, min_weight_fraction_leaf=0.5,
-           n_estimators=100, n_jobs=10, oob_score=False, random_state=None,
-           verbose=2, warm_start=False)
-
-X,y = np.random.rand(100000,10),np.random.rand(100000,1)
-# run the estimation
-estimation, lower_bound, upper_bound = estimator.time(rf, X, y)
-
-# compare to the actual training time
-start_time = time.time()
-rf.fit(X,y)
-elapsed_time = time.time() - start_time
-print("elapsed time: {:.2}".format(elapsed_time))
-print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
