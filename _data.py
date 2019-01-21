@@ -1,8 +1,8 @@
 import argparse
 import numpy as np
 
-from scikest._model import Model
-from scikest._utils import config
+from scitime._model import Model
+from scitime._utils import config
 
 SUPPORTED_META_ALGOS = config('supported_meta_algos')
 SUPPORTED_ALGOS = config('supported_algos')

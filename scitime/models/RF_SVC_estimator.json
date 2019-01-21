@@ -1,0 +1,40 @@
+{
+  "dummy": [
+    "total_memory",
+    "available_memory",
+    "num_cpu",
+    "num_rows",
+    "num_features",
+    "num_categories",
+    "C",
+    "cache_size",
+    "coef0",
+    "degree",
+    "max_iter",
+    "probability",
+    "shrinking",
+    "tol",
+    "decision_function_shape_ovr",
+    "gamma_auto",
+    "kernel_linear"
+  ],
+  "original": [
+    "total_memory",
+    "available_memory",
+    "num_cpu",
+    "num_rows",
+    "num_features",
+    "num_categories",
+    "C",
+    "cache_size",
+    "coef0",
+    "decision_function_shape",
+    "degree",
+    "gamma",
+    "kernel",
+    "max_iter",
+    "probability",
+    "shrinking",
+    "tol"
+  ]
+}
