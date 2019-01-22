@@ -76,14 +76,14 @@ print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".fo
 
 The Estimator class arguments:
 
-- meta_algo: The estimator used to predict the time, either RF or NN 
-- verbose: Controls the amount of log output (either 0, 1, 2 or 3)
-- confidence: Confidence for intervals (defaults to 95%)
+- **meta_algo**: The estimator used to predict the time, either RF or NN 
+- **verbose**: Controls the amount of log output (either 0, 1, 2 or 3)
+- **confidence**: Confidence for intervals (defaults to 95%)
 
 Parameters of the estimator.time function:
-- X: np.array of inputs to be trained
-- y: np.array of outputs to be trained (set to None for unsupervised algo)
-- algo: algo whose runtime the user wants to predict
+- **X**: np.array of inputs to be trained
+- **y**: np.array of outputs to be trained (set to None for unsupervised algo)
+- **algo**: algo whose runtime the user wants to predict
 
 ### --- FOR TESTERS / CONTRIBUTORS ---
 
