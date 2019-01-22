@@ -11,6 +11,8 @@ or
 ❱ pip install git+https://github.com/nathan-toubiana/scitime.git
 ```
 
+### Usage
+
 #### How to run estimate.py?
 
 After having a corresponding model in `scitime/models/`:
@@ -71,6 +73,17 @@ elapsed_time = time.time() - start_time
 print("elapsed time: {:.2}".format(elapsed_time))
 print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
+
+The Estimator class arguments:
+
+- meta_algo: The estimator used to predict the time, either RF or NN 
+- verbose: Controls the amount of log output (either 0, 1, 2 or 3)
+- confidence: Confidence for intervals (defaults to 95%)
+
+Parameters of the estimator.time function:
+- X: np.array of inputs to be trained
+- y: np.array of outputs to be trained (set to None for unsupervised algo)
+- algo: algo whose runtime the user wants to predict
 
 ### --- FOR TESTERS / CONTRIBUTORS ---
 
