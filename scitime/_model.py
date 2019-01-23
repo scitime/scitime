@@ -66,8 +66,7 @@ class Model(Estimator, LogMixin):
         :return: dictionary
         """
         if self.algo not in config("supported_algos"):
-            raise KeyError(f'''{self.algo} not currently
-            supported by this package''')
+            raise KeyError(f'''{self.algo} not currently supported by this package''')
         return config(self.algo)
 
     def _add_row_to_csv(self, row_input, row_output):
@@ -386,8 +385,7 @@ class Model(Estimator, LogMixin):
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
         if self.meta_algo != 'NN':
-            raise KeyError(f'''meta algo {self.meta_algo} not supported
-             for random search''')
+            raise KeyError(f'''meta algo {self.meta_algo} not supported for random search''')
 
         parameter_space = config("random_search_params")
         meta_algo = MLPRegressor(max_iter=200)
@@ -441,15 +439,13 @@ class Model(Estimator, LogMixin):
                 inputs, outputs = self._transform_from_csv(csv_name=csv_name)
 
         if inputs is None or outputs is None:
-            raise NameError('''no inputs / outputs found:
-            please enter a csv name or set generate_data to True''')
+            raise NameError('''no inputs / outputs found: please enter a csv name or set generate_data to True''')
 
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
-            raise KeyError(f'''meta algo {self.meta_algo}
-            currently not supported''')
+            raise KeyError(f'''meta algo {self.meta_algo} currently not supported''')
 
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor(**meta_algo_params)
