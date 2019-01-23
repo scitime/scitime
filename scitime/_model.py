@@ -1,5 +1,5 @@
 """Class used to instantiate an object for fitting the meta-algorithm"""
-from scitime.estimate import Estimator
+from scitime import Estimator
 from scitime._utils import get_path, config
 from scitime._log import LogMixin, timeit
 
