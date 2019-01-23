@@ -39,7 +39,6 @@ start_time = time.time()
 rf.fit(X,y)
 elapsed_time = time.time() - start_time
 print("elapsed time: {:.2}".format(elapsed_time))
-print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
 
 - Example for KMeans
@@ -64,7 +63,6 @@ start_time = time.time()
 km.fit(X)
 elapsed_time = time.time() - start_time
 print("elapsed time: {:.2}".format(elapsed_time))
-print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
 
 The Estimator class arguments:
@@ -115,6 +113,7 @@ optional arguments:
   --save                (only used for model fit) do you want to save /
                         overwrite the meta model from this fit?
 ```
+(_data.py uses _model.py behind the scenes)
 #### How to run _model.py?
 
 After pulling the master branch (`git pull origin master`) and setting the environment (described above),
