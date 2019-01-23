@@ -21,7 +21,9 @@ class TestEstimate(unittest.TestCase):
         kmeans = KMeans()
         rf_name = self.estimator_metarf._fetch_algo_metadata(rf)['name']
         svc_name = self.estimator_metarf._fetch_algo_metadata(svc)['name']
-        kmeans_name = self.estimator_metarf._fetch_algo_metadata(kmeans)['name']
+        kmeans_name = \
+            self.estimator_metarf._fetch_algo_metadata(kmeans)['name']
+
         assert rf_name == 'RandomForestRegressor'
         assert svc_name == 'SVC'
         assert kmeans_name == 'KMeans'
@@ -62,7 +64,9 @@ class TestEstimate(unittest.TestCase):
         kmeans = KMeans()
         rf_name = self.estimator_metann._fetch_algo_metadata(rf)['name']
         svc_name = self.estimator_metann._fetch_algo_metadata(svc)['name']
-        kmeans_name = self.estimator_metann._fetch_algo_metadata(kmeans)['name']
+        kmeans_name = \
+            self.estimator_metann._fetch_algo_metadata(kmeans)['name']
+
         assert rf_name == 'RandomForestRegressor'
         assert svc_name == 'SVC'
         assert kmeans_name == 'KMeans'

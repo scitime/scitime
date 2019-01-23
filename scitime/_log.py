@@ -24,7 +24,10 @@ def timeit(method):
         ts = time.time()
         result = method(*args, **kw)
         te = time.time()
-        log.logger.info(f'{method.__qualname__} took {round(te - ts, 3)}s seconds')
+
+        log.logger.info(f'''{method.__qualname__} took
+        {round(te - ts, 3)}s seconds''')
+
         return result
 
     return timed

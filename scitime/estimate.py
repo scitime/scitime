@@ -1,4 +1,8 @@
-"""Class used to instantiate an object that will estimate the running time of the user's model"""
+"""Class used to instantiate an object
+that will estimate the running time of the user's model"""
+from scitime._utils import get_path, config, timeout
+from scitime._log import LogMixin
+
 import os
 import psutil
 
@@ -12,9 +16,6 @@ from scipy import stats
 import warnings
 
 warnings.simplefilter("ignore")
-
-from scitime._utils import get_path, config, timeout
-from scitime._log import LogMixin
 
 
 class Estimator(LogMixin):
@@ -46,10 +47,10 @@ class Estimator(LogMixin):
     @timeout(1)
     def _fit_start(self, algo, X, y=None):
         """
-        starts fitting a smaller version of the model (10 first lines) to make sure the fit is legit,
-        throws error if error happens before 1 sec
-        raises a  KeyBoardInterrupt if no other exception is raised before
-        used in the estimate_duration function
+        starts fitting a smaller version of the model (10 first lines)
+        to make sure the fit is legit, throws error if error happens before
+        1 sec raises a  KeyBoardInterrupt if no other exception is raised
+        before used in the estimate_duration function
 
         :param algo: algo used
         :param X: inputs for the algo
@@ -75,7 +76,7 @@ class Estimator(LogMixin):
     def _clean_output(seconds):
         """
         from seconds to cleaner format (minutes and hours when relevant)
-        
+
         :param seconds: output of meta prediction
         :return: cleaned output (string)
         """
@@ -89,7 +90,7 @@ class Estimator(LogMixin):
             sec_unit = f'seconds'
 
         if full_minutes == 0:
-            return f'{seconds} {sec_unit}'
+            return f'{seconds:.0f} {sec_unit}'
 
         else:
             full_hours = full_minutes // 60
@@ -101,7 +102,8 @@ class Estimator(LogMixin):
                 min_unit = f'minutes'
 
             if full_hours == 0:
-                return f'{full_minutes} {min_unit} and {seconds_rest} {sec_unit}'
+                return f'''{full_minutes:.0f} {min_unit}
+                and {seconds_rest:.0f} {sec_unit}'''
 
             else:
                 if full_hours == 1:
@@ -109,7 +111,8 @@ class Estimator(LogMixin):
                 else:
                     h_unit = f'hours'
 
-                return f'{full_hours} {h_unit} and {minutes_rest} {min_unit} and {seconds_rest} {sec_unit}'
+                return f'''{full_hours:.0f} {h_unit} and {minutes_rest:.0f}
+                {min_unit} and {seconds_rest:.0f} {sec_unit}'''
 
     @staticmethod
     def _fetch_algo_metadata(algo):
@@ -124,7 +127,8 @@ class Estimator(LogMixin):
         algo_params = algo.get_params()
         params = config(algo_name)
 
-        param_dic = {'name': algo_name, 'params': algo_params, 'config': params}
+        param_dic = {'name': algo_name,
+                     'params': algo_params, 'config': params}
 
         return param_dic
 
@@ -140,11 +144,14 @@ class Estimator(LogMixin):
 
     def _add_semi_dummy(self, df, semi_dummy_inputs):
         """
-        add columns for semi dummy inputs (continuous except for one or a few values)
-        columns that are either continuous or categorical for a discrete number of outputs (usually 1)
-        are treated as continuous and we add a binary column for the categorical output
-        as an example, max_depth (for RandomForest) can be either an integer or 'None',
-        we treat this column as continuous and add a boolean column is_max_depth_None
+        add columns for semi dummy inputs (continuous except
+        for one or a few values) columns that are either
+        continuous or categorical for a discrete number of
+        outputs (usually 1) are treated as continuous and
+        we add a binary column for the categorical output.
+        As an example, max_depth (for RandomForest) can be
+        either an integer or 'None', we treat this column
+        as continuous and add a boolean column is_max_depth_None
 
         :param df: df before made dummy
         :param semi_dummy_inputs: from meta params
@@ -155,8 +162,10 @@ class Estimator(LogMixin):
 
         for key in semi_dummy_inputs:
             for sub_key in semi_dummy_inputs[key]:
-                df[f'{key}_{sub_key}'] = df[f'{key}'].apply(lambda x: x == sub_key)
-                df[f'{key}'] = df[f'{key}'].apply(lambda x: None if x == sub_key else x)
+                df[f'{key}_{sub_key}'] = (df[f'{key}']
+                                          .apply(lambda x: x == sub_key))
+                df[f'{key}'] = (df[f'{key}']
+                                .apply(lambda x: None if x == sub_key else x))
 
         return df
 
@@ -165,7 +174,8 @@ class Estimator(LogMixin):
         builds a dataframe of the params of the estimated model
 
         :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained (set to None if unsupervised algo)
+        :param y: np.array of outputs to be trained
+        (set to None if unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
         :return: dataframe of all inputed parameters
         :rtype: pandas dataframe
@@ -182,8 +192,9 @@ class Estimator(LogMixin):
             num_cat = len(np.unique(y))
             inputs.append(num_cat)
 
-        param_list = params['other_params'] + list(params['external_params'].keys()) + list(
-            params['internal_params'].keys())
+        param_list = params['other_params'] + \
+            list(params['external_params'].keys()) + \
+            list(params['internal_params'].keys())
 
         for i in params['internal_params'].keys():
             # handling n_jobs=-1 case
@@ -211,43 +222,52 @@ class Estimator(LogMixin):
 
     def _transform_params(self, algo, df, scaled=False):
         """
-        transforms the dataframe of the params of the estimated model before predicting runtime
+        transforms the dataframe of the params of the estimated
+        model before predicting runtime
 
         :param df: dataframe of all inputed parameters
         :param algo: algo whose runtime the user wants to predict
         :param scaled: scaling the input if set to True
-        :return: np array of all relevant algo parameters and system features used to estimate algo training time
-        :rtype: pandas matrix object  
+        :return: np array of all relevant algo parameters
+        and system features used to estimate algo training time
+        :rtype: pandas matrix object
         """
         param_dic = self._fetch_algo_metadata(algo)
         algo_name = param_dic['name']
         algo_params = param_dic['params']
         params = param_dic['config']
 
-        json_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'
+        json_path = f'''{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.json'''
         estimation_inputs = self._fetch_inputs(json_path)['dummy']
         estimation_original_inputs = self._fetch_inputs(json_path)['original']
 
         # first we transform semi dummy features
         semi_dummy_inputs = params['semi_dummy_inputs']
-        # we add columns for each semi dummy features (*number of potential dummy values)
+        # we add columns for each semi dummy features
+        # (times the number of potential dummy values)
         df = self._add_semi_dummy(df, semi_dummy_inputs)
 
-        forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
+        forgotten_inputs = list(set(list(estimation_original_inputs)) -
+                                set(list((df.columns))))
 
         if len(forgotten_inputs) > 0:
-            # if some params that we use to train the underlying meta model do not appear, we can't predict the runtime
+            # if some params that we use to train the underlying
+            # meta model do not appear, we can't predict the runtime
             raise NameError(f'{forgotten_inputs} parameters missing')
 
         df = pd.get_dummies(df.fillna(-1))
 
         # adding 0 columns for columns that are not in the dataset
-        dummy_inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
-        missing_inputs = list(set(list(algo_params.keys())) - set(list((params['internal_params'].keys()))))
+        dummy_inputs_to_fill = list(set(list(estimation_inputs)) -
+                                    set(list((df.columns))))
+
+        missing_inputs = list(set(list(algo_params.keys())) -
+                              set(list((params['internal_params'].keys()))))
 
         if self.verbose >= 1 and (len(missing_inputs) > 0):
-            # if there are other params that are not in the underlying meta model, let's log them
-            self.logger.warning(f'Parameters {missing_inputs} will not be accounted for')
+            # if there are other params that are not in
+            # the underlying meta model, let's log them
+            self.logger.warning(f'''Parameters {missing_inputs} will not be accounted for''')
 
         for i in dummy_inputs_to_fill:
             df[i] = 0
@@ -262,20 +282,25 @@ class Estimator(LogMixin):
         # scaling (for meta algo NN)
         if scaled:
             if self.verbose >= 3:
-                self.logger.debug(f'Fetching scaler: scaler_{algo_name}_estimator.pkl')
+                self.logger.debug(f'''Fetching scaler: scaler_{algo_name}_estimator.pkl''')
 
-            model_path = f'{get_path("models")}/scaler_{algo_name}_estimator.pkl'
+            model_path = f'''{get_path("models")}/scaler_{algo_name}_estimator.pkl'''
+
             scaler = joblib.load(model_path)
             meta_X = scaler.transform(meta_X)
 
         return meta_X
 
-    def _estimate_interval(self, meta_estimator, X, algo_name, confidence=0.95):
+    def _estimate_interval(self, meta_estimator,
+                           X, algo_name, confidence=0.95):
         """
         estimates the prediction intervals for one data-point
-        there are two ways of computing this interval. The first one (for meta algo RF)
-        is using the fact that we have access to multiple trees (predictors) to compute a prediction percentile
-        The second on (for meta algo NN) is to fetch the mse per bin and use a t stat to compute the confidence intervals
+        there are two ways of computing this interval.
+        The first one (for meta algo RF) is using the fact
+        that we have access to multiple trees (predictors)
+        to compute a prediction percentile.
+        The second on (for meta algo NN) is to fetch the mse
+        per bin and use a t stat to compute the confidence intervals
 
         :param meta_estimator: the fitted random-forest meta-algo
         :param X: parameters, the same as the ones fed in the meta-algo
@@ -286,15 +311,19 @@ class Estimator(LogMixin):
         """
 
         if type(meta_estimator).__name__ == 'RandomForestRegressor':
-            predictions = [predictor.predict(X)[0] for predictor in meta_estimator.estimators_]
-            lower_bound = np.percentile(predictions, (100 - 100 * confidence) / 2)
-            upper_bound = np.percentile(predictions, 100 - (100 - 100 * confidence) / 2)
+            predictions = [predictor.predict(X)[0]
+                           for predictor in meta_estimator.estimators_]
+
+            lower_conf = (100 - 100 * confidence) / 2
+            upper_conf = 100 - (100 - 100 * confidence) / 2
+            lower_bound = np.percentile(predictions, lower_conf)
+            upper_bound = np.percentile(predictions, upper_conf)
 
         elif type(meta_estimator).__name__ == 'MLPRegressor':
-            confint_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'
+            confint_path = f'''{get_path("models")}/{self.meta_algo}_{algo_name}_confint.json'''
 
             if self.verbose >= 3:
-                self.logger.debug(f'Fetching confint: {self.meta_algo}_{algo_name}_confint.json')
+                self.logger.debug(f'''Fetching confint: {self.meta_algo}_{algo_name}_confint.json''')
 
             mse_dic = self._fetch_inputs(confint_path)
             prediction = max(meta_estimator.predict(X)[0], 0)
@@ -319,7 +348,7 @@ class Estimator(LogMixin):
             upper_bound = max(np.float64(0), prediction * (1 + uncertainty))
 
         else:
-            raise KeyError(f'{type(meta_estimator).__name__} meta algo not supported')
+            raise KeyError(f'''{type(meta_estimator).__name__} meta algo not supported''')
 
         return lower_bound, upper_bound
 
@@ -328,9 +357,11 @@ class Estimator(LogMixin):
         estimates the model's training time given that the fit starts
 
         :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained (set to None if unsupervised algo)
+        :param y: np.array of outputs to be trained
+        (set to None if unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
-        :return: predicted runtime, low and high values of the confidence interval
+        :return: predicted runtime,
+        low and high values of the confidence interval
         :rtype: tuple
         """
         # fetching sklearn model of the end user
@@ -338,15 +369,16 @@ class Estimator(LogMixin):
         algo_name = param_dic['name']
 
         if algo_name not in config("supported_algos"):
-            raise NotImplementedError(f'{algo_name} not currently supported by this package')
+            raise NotImplementedError(f'''{algo_name} not currently supported by this package''')
 
         if self.meta_algo not in config('supported_meta_algos'):
-            raise KeyError(f'meta algo {self.meta_algo} currently not supported')
+            raise KeyError(f'''meta algo {self.meta_algo} currently not supported''')
 
         if self.verbose >= 3:
-            self.logger.debug(f'Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl')
+            self.logger.debug(f'''Fetching estimator: {self.meta_algo}_{algo_name}_estimator.pkl''')
 
-        model_path = f'{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'
+        model_path = f'''{get_path("models")}/{self.meta_algo}_{algo_name}_estimator.pkl'''
+
         meta_estimator = joblib.load(model_path)
 
         # retrieving all parameters of interest:
@@ -363,22 +395,25 @@ class Estimator(LogMixin):
         # if prediction from NN is too low, let's go back to RF
         if prediction < 1 and self.meta_algo == 'NN':
             if self.verbose >= 3:
-                self.logger.debug('NN prediction too low - fetching rf meta algo instead')
-                self.logger.debug(f'Fetching estimator: RF_{algo_name}_estimator.pkl')
+                self.logger.debug('''NN prediction too low - fetching rf meta algo instead''')
+
+                self.logger.debug(f'''Fetching estimator: RF_{algo_name}_estimator.pkl''')
 
             model_path = f'{get_path("models")}/RF_{algo_name}_estimator.pkl'
             meta_estimator = joblib.load(model_path)
             meta_X = self._transform_params(algo, df)
             prediction = meta_estimator.predict(meta_X)[0]
 
-        lower_bound, upper_bound = self._estimate_interval(meta_estimator, meta_X, algo_name, self.confidence)
+        lower_bound, upper_bound = \
+            self._estimate_interval(meta_estimator,
+                                    meta_X, algo_name, self.confidence)
 
         cleaned_prediction = self._clean_output(round(prediction))
         cleaned_lower_bound = self._clean_output(round(lower_bound))
         cleaned_upper_bound = self._clean_output(round(upper_bound))
 
         if self.verbose >= 1 and prediction < 1:
-            self.logger.warning('Your model predicted training runtime is very low - no need to use this package')
+            self.logger.warning('''Your model predicted training runtime is very low - no need to use this package''')
 
         if prediction < 1:
             cleaned_prediction = f'{prediction} seconds'
@@ -386,8 +421,10 @@ class Estimator(LogMixin):
             cleaned_upper_bound = f'{upper_bound} seconds'
 
         if self.verbose >= 2:
-            self.logger.info(f'Training your {algo_name} model should take ~ {cleaned_prediction}')
-            self.logger.info(f'The {100 * self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]')
+            self.logger.info(f'''Training your {algo_name} model should take ~ {cleaned_prediction}''')
+
+            self.logger.info(f'''The {100 * self.confidence}% prediction interval is [{cleaned_lower_bound}, {cleaned_upper_bound}]''')
+
         return prediction, lower_bound, upper_bound
 
     def time(self, algo, X, y=None):
@@ -395,9 +432,11 @@ class Estimator(LogMixin):
         predicts training runtime for a given training
 
         :param X: np.array of inputs to be trained
-        :param y: np.array of outputs to be trained (set to None is unsupervised algo)
+        :param y: np.array of outputs to be trained
+        (set to None is unsupervised algo)
         :param algo: algo whose runtime the user wants to predict
-        :return: predicted runtime, low and high values of the confidence interval
+        :return: predicted runtime, low and high values
+        of the confidence interval
         :rtype: float
         """
         try:
@@ -410,5 +449,7 @@ class Estimator(LogMixin):
             return self._estimate(algo, X, y)
 
         except Exception as e:
-            # this means that the sklearn fit has raised a natural exception before we artificially raised a keyboard interrupt
-            raise e     
+            # this means that the sklearn fit has raised
+            # a natural exception before we artificially
+            # raised a keyboard interrupt
+            raise e

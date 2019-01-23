@@ -1,5 +1,5 @@
 # scitime
-Training time estimation for sklearn algos
+Training time estimation for scikit-learn algorithms
 ### Environment setup
 Python version: 3.6.3
 #### Virtualenv
@@ -19,13 +19,12 @@ After having a corresponding model in `scitime/models/`:
 
 - Example for RandomForestRegressor
 
-```
+```python
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import time
-import pandas as pd
 
-from scitime.estimate import Estimator
+from scitime import Estimator
 
 # example for rf regressor
 estimator = Estimator(meta_algo='RF', verbose=3)
@@ -50,13 +49,12 @@ print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".fo
 
 - Example for KMeans
 
-```
+```python
 from sklearn.cluster import KMeans
 import numpy as np
 import time
-import pandas as pd
 
-from scitimet.estimate import Estimator
+from scitime import Estimator
 
 # example for kmeans clustering
 estimator = Estimator(meta_algo='RF', verbose=3)
@@ -127,7 +125,7 @@ optional arguments:
 After pulling the master branch (`git pull origin master`) and setting the environment (described above),
 run `ipython` and:
 
-```
+```python
 from scitime._model import Model
 
 # example of data generation for rf regressor
