@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is used in Travis to check that PRs do not add obvious
+# This script is mostly taken from scikit-learn repo. It's used in Travis to check that PRs do not add obvious
 # flake8 violations.
 #   - ./build_tools/travis/flake8_diff.sh can be run locally for quick
 #     turn-around
@@ -108,11 +108,6 @@ echo -e '\nRunning flake8 on the diff in the range' "$COMMIT_RANGE" \
      "($(git rev-list $COMMIT_RANGE | wc -l) commit(s)):"
 echo '--------------------------------------------------------------------------------'
 
-# We ignore files from sklearn/externals. Unfortunately there is no
-# way to do it with flake8 directly (the --exclude does not seem to
-# work with --diff). We could use the exclude magic in the git pathspec
-# ':!sklearn/externals' but it is only available on git 1.9 and Travis
-# uses git 1.8.
 # We need the following command to exit with 0 hence the echo in case
 # there is no match
 MODIFIED_FILES="$(git diff --name-only $COMMIT_RANGE || echo "no_match")"
@@ -127,6 +122,7 @@ check_files() {
         git diff --unified=0 $COMMIT_RANGE -- $files | flake8 --ignore 'E501, F401' --diff --show-source $options
     fi
 }
+echo $MODIFIED_FILES
 
 if [[ "$MODIFIED_FILES" == "no_match" ]]; then
     echo "No file outside has been modified"
