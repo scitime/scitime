@@ -31,12 +31,13 @@ def timeout(seconds_before_timeout):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             res = [TimeoutError('artificial timeout error')]
-            def newFunc():
+
+            def new_func():
                 try:
                     res[0] = func(*args, **kwargs)
                 except Exception as e:
                     res[0] = e
-            t = Thread(target=newFunc)
+            t = Thread(target=new_func)
             t.daemon = True
             try:
                 t.start()
