@@ -160,8 +160,7 @@ class Model(Estimator, LogMixin):
         meta_params = self.params
         parameters_list = list(meta_params['internal_params'].keys())
         external_parameters_list = list(meta_params['external_params'].keys())
-        df.columns = (meta_params['other_params'] + external_parameters_list
-                      + parameters_list + ['output'])
+        df.columns = (meta_params['other_params'] + external_parameters_list + parameters_list + ['output'])
 
         semi_dummy_inputs = self.params['semi_dummy_inputs']
         for col in semi_dummy_inputs:
@@ -233,8 +232,9 @@ class Model(Estimator, LogMixin):
                 else:
                     parameters_dic = dict(zip(parameters_list,
                                               permutation[2:]))
-                final_params = dict(zip(external_parameters_list
-                                        + parameters_list, permutation))
+
+                final_params = dict(zip(external_parameters_list + parameters_list,
+                                        permutation))
 
                 try:
                     model = self._get_model(meta_params, parameters_dic)
@@ -298,8 +298,7 @@ class Model(Estimator, LogMixin):
                                              columns=['estimated_outputs'])
 
         inputs = pd.DataFrame(inputs,
-                              columns=meta_params['other_params'] +
-                              external_parameters_list + parameters_list)
+                              columns=meta_params['other_params'] + external_parameters_list + parameters_list)
 
         outputs = pd.DataFrame(outputs, columns=['output'])
 

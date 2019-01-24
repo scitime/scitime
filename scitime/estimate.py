@@ -247,8 +247,7 @@ class Estimator(LogMixin):
         # (times the number of potential dummy values)
         df = self._add_semi_dummy(df, semi_dummy_inputs)
 
-        forgotten_inputs = list(set(list(estimation_original_inputs)) -
-                                set(list((df.columns))))
+        forgotten_inputs = list(set(list(estimation_original_inputs)) - set(list((df.columns))))
 
         if len(forgotten_inputs) > 0:
             # if some params that we use to train the underlying
@@ -258,11 +257,9 @@ class Estimator(LogMixin):
         df = pd.get_dummies(df.fillna(-1))
 
         # adding 0 columns for columns that are not in the dataset
-        dummy_inputs_to_fill = list(set(list(estimation_inputs)) -
-                                    set(list((df.columns))))
+        dummy_inputs_to_fill = list(set(list(estimation_inputs)) - set(list((df.columns))))
 
-        missing_inputs = list(set(list(algo_params.keys())) -
-                              set(list((params['internal_params'].keys()))))
+        missing_inputs = list(set(list(algo_params.keys())) - set(list((params['internal_params'].keys()))))
 
         if self.verbose >= 1 and (len(missing_inputs) > 0):
             # if there are other params that are not in
