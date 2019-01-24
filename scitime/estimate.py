@@ -47,9 +47,9 @@ class Estimator(LogMixin):
     @timeout(1)
     def _fit_start(self, algo, X, y=None):
         """
-        starts fitting a smaller version of the model (10 first lines)
+        starts fitting the model
         to make sure the fit is legit, throws error if error happens before
-        1 sec raises a  TimeoutError if no other exception is raised
+        1 sec raises or a TimeoutError if no other exception is raised
         before used in the .time function
 
         :param algo: algo used
