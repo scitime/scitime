@@ -61,7 +61,7 @@ class TestTrain(unittest.TestCase):
 
     def test_validate_data_regression_metarf(self):
         rf_val_inputs, rf_val_outputs, rf_val_estimated_outputs, \
-         rf_val_avg_weighted_error = self.rf_trainer_metarf.model_validate()
+            rf_val_avg_weighted_error = self.rf_trainer_metarf.model_validate()
 
         assert rf_val_inputs.shape[0] > 0
         assert rf_val_outputs.shape[0] == rf_val_inputs.shape[0]
@@ -70,7 +70,7 @@ class TestTrain(unittest.TestCase):
 
     def test_validate_data_classification_metarf(self):
         svc_val_inputs, svc_val_outputs, svc_val_estimated_outputs, \
-         svc_val_avg_weighted_error = self.svc_trainer_metarf.model_validate()
+            svc_val_avg_weighted_error = self.svc_trainer_metarf.model_validate()
 
         assert svc_val_inputs.shape[0] > 0
         assert svc_val_outputs.shape[0] == svc_val_inputs.shape[0]
@@ -79,7 +79,7 @@ class TestTrain(unittest.TestCase):
 
     def test_validate_data_unsupervised_metarf(self):
         km_val_inputs, km_val_outputs, km_val_estimated_outputs, \
-         km_val_avg_weighted_error = self.km_trainer_metarf.model_validate()
+            km_val_avg_weighted_error = self.km_trainer_metarf.model_validate()
 
         assert km_val_inputs.shape[0] > 0
         assert km_val_outputs.shape[0] == km_val_inputs.shape[0]
@@ -139,7 +139,7 @@ class TestTrain(unittest.TestCase):
 
     def test_validate_data_regression_metann(self):
         rf_val_inputs, rf_val_outputs, rf_val_estimated_outputs, \
-         rf_val_avg_weighted_error = self.rf_trainer_metann.model_validate()
+            rf_val_avg_weighted_error = self.rf_trainer_metann.model_validate()
 
         assert rf_val_inputs.shape[0] > 0
         assert rf_val_outputs.shape[0] == rf_val_inputs.shape[0]
@@ -148,7 +148,7 @@ class TestTrain(unittest.TestCase):
 
     def test_validate_data_classification_metann(self):
         svc_val_inputs, svc_val_outputs, svc_val_estimated_outputs, \
-         svc_val_avg_weighted_error = self.svc_trainer_metann.model_validate()
+            svc_val_avg_weighted_error = self.svc_trainer_metann.model_validate()
 
         assert svc_val_inputs.shape[0] > 0
         assert svc_val_outputs.shape[0] == svc_val_inputs.shape[0]
@@ -157,7 +157,7 @@ class TestTrain(unittest.TestCase):
 
     def test_validate_data_unsupervised_metann(self):
         km_val_inputs, km_val_outputs, km_val_estimated_outputs, \
-         km_val_avg_weighted_error = self.km_trainer_metann.model_validate()
+            km_val_avg_weighted_error = self.km_trainer_metann.model_validate()
 
         assert km_val_inputs.shape[0] > 0
         assert km_val_outputs.shape[0] == km_val_inputs.shape[0]
