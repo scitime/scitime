@@ -44,13 +44,13 @@ class Estimator(LogMixin):
     def memory(self):
         return psutil.virtual_memory()
 
-    @timeout(1)
+    @timeout(0.1)
     def _fit_start(self, algo, X, y=None):
         """
         starts fitting a smaller version of the model (10 first lines)
         to make sure the fit is legit, throws error if error happens before
-        1 sec raises a  KeyBoardInterrupt if no other exception is raised
-        before used in the estimate_duration function
+        0.1 sec raises a  KeyBoardInterrupt if no other exception is raised
+        before used in the .time function
 
         :param algo: algo used
         :param X: inputs for the algo
@@ -65,6 +65,9 @@ class Estimator(LogMixin):
             X = X[:10, :]
             if y is not None:
                 y = y[:10]
+
+        if X.shape[1] > 10:
+            X = X[:, :10]
 
         if algo_type == 'unsupervised':
             algo.fit(X)
