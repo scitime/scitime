@@ -1,9 +1,8 @@
 import os
 import json
 
-import threading
-import sys
-import _thread as thread
+from threading import Thread
+import functools
 
 import warnings
 warnings.simplefilter("ignore")
@@ -27,25 +26,26 @@ class TimeoutError(Exception):
     pass
 
 
-def quit_function(fn_name):
-    sys.stderr.flush()
-    thread.interrupt_main()
-    # raises KeyboardInterrupt
-
-
-def timeout(s):
-    """
-    function used as decorator to exit process if
-    underlying function takes longer than s seconds
-    """
-    def outer(fn):
-        def inner(*args, **kwargs):
-            timer = threading.Timer(s, quit_function, args=[fn.__name__])
-            timer.start()
+def timeout(seconds_before_timeout):
+    def deco(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            res = [TimeoutError('artificial timeout error')]
+            def newFunc():
+                try:
+                    res[0] = func(*args, **kwargs)
+                except Exception as e:
+                    res[0] = e
+            t = Thread(target=newFunc)
+            t.daemon = True
             try:
-                result = fn(*args, **kwargs)
-            finally:
-                timer.cancel()
-            return result
-        return inner
-    return outer
+                t.start()
+                t.join(seconds_before_timeout)
+            except Exception as e:
+                raise e
+            ret = res[0]
+            if isinstance(ret, TimeoutError):
+                raise ret
+            return ret
+        return wrapper
+    return deco

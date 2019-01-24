@@ -44,12 +44,12 @@ class Estimator(LogMixin):
     def memory(self):
         return psutil.virtual_memory()
 
-    @timeout(0.1)
+    @timeout(1)
     def _fit_start(self, algo, X, y=None):
         """
         starts fitting a smaller version of the model (10 first lines)
         to make sure the fit is legit, throws error if error happens before
-        0.1 sec raises a  KeyBoardInterrupt if no other exception is raised
+        1 sec raises a  TimeoutError if no other exception is raised
         before used in the .time function
 
         :param algo: algo used
@@ -60,14 +60,6 @@ class Estimator(LogMixin):
         param_dic = self._fetch_algo_metadata(algo)
         params = param_dic['config']
         algo_type = params['type']
-
-        if X.shape[0] > 10:
-            X = X[:10, :]
-            if y is not None:
-                y = y[:10]
-
-        if X.shape[1] > 10:
-            X = X[:, :10]
 
         if algo_type == 'unsupervised':
             algo.fit(X)
@@ -442,14 +434,14 @@ class Estimator(LogMixin):
         try:
             self._fit_start(algo=algo, X=X, y=y)
 
-        except KeyboardInterrupt:
-            if self.verbose >= 3:
-                self.logger.debug('The model would fit. Moving on')
-
-            return self._estimate(algo, X, y)
-
         except Exception as e:
             # this means that the sklearn fit has raised
             # a natural exception before we artificially
-            # raised a keyboard interrupt
-            raise e
+            # raised a timeouterror
+            if e.__class__.__name__ != 'TimeoutError':
+                raise e
+
+            else:
+                if self.verbose >= 3:
+                    self.logger.debug('The model would fit. Moving on')
+                return self._estimate(algo, X, y)
