@@ -73,9 +73,7 @@ if [[ -z "$COMMIT_RANGE" ]]; then
     # Make sure that $REMOTE_MASTER_REF is a valid reference
     echo -e "\nFetching $REMOTE_MASTER_REF"
     echo '--------------------------------------------------------------------------------'
-    echo $REMOTE
-    echo $REMOTE
-    echo $REMOTE_MASTER_REF
+
     git fetch $REMOTE master:refs/remotes/$REMOTE_MASTER_REF
     LOCAL_BRANCH_SHORT_HASH=$(git rev-parse --short $LOCAL_BRANCH_REF)
     REMOTE_MASTER_SHORT_HASH=$(git rev-parse --short $REMOTE_MASTER_REF)
@@ -122,14 +120,11 @@ check_files() {
         git diff --unified=0 $COMMIT_RANGE -- $files | flake8 --ignore 'E501, F401' --diff --show-source $options
     fi
 }
-echo $MODIFIED_FILES
 
 if [[ "$MODIFIED_FILES" == "no_match" ]]; then
     echo "No file outside has been modified"
 else
 
-    check_files "$(echo "$MODIFIED_FILES" | grep -v ^examples)"
-    check_files "$(echo "$MODIFIED_FILES" | grep ^examples)" \
-        --config ./examples/.flake8
+    check_files "$(echo "$MODIFIED_FILES")"
 fi
 echo -e "No problem detected by flake8\n"
