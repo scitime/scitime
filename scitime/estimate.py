@@ -47,7 +47,7 @@ class Estimator(LogMixin):
     @timeout(1)
     def _fit_start(self, algo, X, y=None):
         """
-        starts fitting the model
+        starts fitting the model on a small subset of the data
         to make sure the fit is legit, throws error if error happens before
         1 sec raises or a TimeoutError if no other exception is raised
         before used in the .time function
@@ -60,6 +60,11 @@ class Estimator(LogMixin):
         param_dic = self._fetch_algo_metadata(algo)
         params = param_dic['config']
         algo_type = params['type']
+
+        if X.shape[0] > 10:
+            X = X[:10, :]
+            if y is not None:
+                y = y[:10]
 
         if algo_type == 'unsupervised':
             algo.fit(X)
@@ -439,6 +444,8 @@ class Estimator(LogMixin):
             # a natural exception before we artificially
             # raised a timeouterror
             if e.__class__.__name__ != 'TimeoutError':
+                self.logger.warning('sklearn throws an error for this fit (see below)')
+                self.logger.warning('if the error is not relevant, try using ._estimate instead of .time')
                 raise e
 
             else:
