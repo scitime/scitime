@@ -1,7 +1,7 @@
 import os
 import json
 
-from threading import Thread
+import multiprocessing
 import functools
 
 import warnings
@@ -37,7 +37,7 @@ def timeout(seconds_before_timeout):
                     res[0] = func(*args, **kwargs)
                 except Exception as e:
                     res[0] = e
-            t = Thread(target=new_func)
+            t = multiprocessing.Process(target=new_func)
             t.daemon = True
             try:
                 t.start()
@@ -46,6 +46,7 @@ def timeout(seconds_before_timeout):
                 raise e
             ret = res[0]
             if isinstance(ret, BaseException):
+                t.terminate()
                 raise ret
             return ret
         return wrapper
