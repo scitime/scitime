@@ -45,7 +45,7 @@ def timeout(seconds_before_timeout):
             except Exception as e:
                 raise e
             ret = res[0]
-            if isinstance(ret, TimeoutError):
+            if isinstance(ret, BaseException):
                 raise ret
             return ret
         return wrapper
