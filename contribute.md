@@ -32,3 +32,7 @@ $ git push -u origin my-feature
 
 
 - Follow GitHub instructions to create a pull request from your fork. 
+
+Some quick additional notes:
+- We use appveyor and travis.ci for our tests
+- We try to follow the PEP8 guidelines (using flake8, ignoring codes E501 and F401)

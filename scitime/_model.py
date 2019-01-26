@@ -1,4 +1,8 @@
 """Class used to instantiate an object for fitting the meta-algorithm"""
+from scitime import Estimator
+from scitime._utils import get_path, config
+from scitime._log import LogMixin, timeit
+
 import os
 import psutil
 
@@ -21,10 +25,6 @@ import warnings
 
 warnings.simplefilter("ignore")
 
-from scitime.estimate import Estimator
-from scitime._utils import get_path, config
-from scitime._log import LogMixin, timeit
-
 
 class Model(Estimator, LogMixin):
     # default meta-algorithm
@@ -34,16 +34,20 @@ class Model(Estimator, LogMixin):
     # the default estimated algorithm is a Random Forest from sklearn
     ALGO = 'RandomForestRegressor'
 
-    def __init__(self, drop_rate=DROP_RATE, meta_algo=META_ALGO, algo=ALGO, verbose=0, bins=None):
-        # the end user will estimate the fitting time of self.algo using the package
+    def __init__(self, drop_rate=DROP_RATE,
+                 meta_algo=META_ALGO, algo=ALGO, verbose=0, bins=None):
+        # the end user will estimate the fitting time
+        # of self.algo using the package
         super().__init__(bins)
         self.algo = algo
         self.drop_rate = drop_rate
         self.meta_algo = meta_algo
         self.verbose = verbose
         if self.verbose >= 2:
-            self.logger.info(f'Model object created with verbose={self.verbose}, algo={self.algo}, meta_algo={self.meta_algo} and drop_rate={self.drop_rate}')
-
+            init_log = f'''Model object created with verbose={self.verbose},
+            algo={self.algo}, meta_algo={self.meta_algo}
+            and drop_rate={self.drop_rate}'''
+            self.logger.info(init_log)
 
     @property
     def num_cpu(self):
@@ -62,12 +66,13 @@ class Model(Estimator, LogMixin):
         :return: dictionary
         """
         if self.algo not in config("supported_algos"):
-            raise KeyError(f'{self.algo} not currently supported by this package')
+            raise KeyError(f'''{self.algo} not currently supported by this package''')
         return config(self.algo)
 
     def _add_row_to_csv(self, row_input, row_output):
         """
-        writes a row into the csv results file - parameters (X) and number of seconds (y)
+        writes a row into the csv results file -
+        parameters (X) and number of seconds (y)
 
         :param input: row inputs
         :param output: row output
@@ -82,7 +87,8 @@ class Model(Estimator, LogMixin):
     @staticmethod
     def _generate_numbers(n, p, meta_params, num_cat=None):
         """
-        generates random inputs / outputs for regression / classification / unsupervised algorithms
+        generates random inputs / outputs
+        for regression / classification / unsupervised algorithms
 
         :param meta_params: params from json file (equivalent to self.params)
         :param num_cat: number of categories if classification algo
@@ -101,7 +107,8 @@ class Model(Estimator, LogMixin):
     @staticmethod
     def _measure_time(model, X, y, meta_params):
         """
-        generates fits with the algo using dummy data and tracks the training runtime
+        generates fits with the algo using
+        dummy data and tracks the training runtime
 
         :param X: inputs
         :param y: outputs
@@ -122,7 +129,8 @@ class Model(Estimator, LogMixin):
     def _str_to_float(row):
         """
         transforms semi dummy input from csv
-        this is needed when the pd.read_csv function changes format of ambiguous columns
+        this is needed when the pd.read_csv
+        function changes format of ambiguous columns
 
         :param row: row of a pandas dataframe
         :return:
@@ -130,13 +138,18 @@ class Model(Estimator, LogMixin):
         try:
             return np.float(row)
 
-        except:
-            return row
+        except Exception as e:
+            if e.__class__.__name__ == 'ValueError':
+                return row
+            else:
+                raise e
 
     def _transform_from_csv(self, csv_name):
         """
-        takes data from csv and returns inputs and outputs in right format for model_fit
-        this is needed when the pd.read_csv function changes format of ambiguous columns
+        takes data from csv and returns inputs
+        and outputs in right format for model_fit
+        this is needed when the pd.read_csv
+        function changes format of ambiguous columns
 
         :param csv_name: name of csv from generate data
         :param rename_columns: set to True if csv columns have to be named
@@ -147,7 +160,7 @@ class Model(Estimator, LogMixin):
         meta_params = self.params
         parameters_list = list(meta_params['internal_params'].keys())
         external_parameters_list = list(meta_params['external_params'].keys())
-        df.columns = meta_params['other_params'] + external_parameters_list + parameters_list + ['output']
+        df.columns = (meta_params['other_params'] + external_parameters_list + parameters_list + ['output'])
 
         semi_dummy_inputs = self.params['semi_dummy_inputs']
         for col in semi_dummy_inputs:
@@ -173,12 +186,15 @@ class Model(Estimator, LogMixin):
         return model
 
     @timeit
-    def _permute(self, concat_dic, parameters_list, external_parameters_list, meta_params, algo_type, write_csv=False, validation=False):
+    def _permute(self, concat_dic, parameters_list,
+                 external_parameters_list, meta_params,
+                 algo_type, write_csv=False, validation=False):
         """
-        performs a for loop over every possible param combination to generate data on the specified algo
-        abstracted to support any sklearn algo
-        runtime of this function depends on the specified drop_rate: the higher it is, the less data will be generated
-        a minimum of 4 data points is generated
+        performs a for loop over every possible param combination
+        to generate data on the specified algo abstracted to support
+        any sklearn algo runtime of this function depends on the
+        specified drop_rate: the higher it is, the less data
+        will be generated a minimum of 4 data points is generated
 
 
         :param concat_dic: all params + all values range dictionary
@@ -186,8 +202,10 @@ class Model(Estimator, LogMixin):
         :param external_parameters_list: all external parameters names
         :param meta_params: params from json file (equivalent to self.params)
         :param algo_type: unsupervised / supervised / classification
-        :param write_csv: set to True in order to write outputs in a dedicated csv file
-        :param validation: boolean, set true if data is used for validation, use only once the model has been trained
+        :param write_csv: set to True in order
+        to write outputs in a dedicated csv file
+        :param validation: boolean, set true if data is used
+        for validation, use only once the model has been trained
         :return: inputs, outputs
         :rtype: lists
         """
@@ -196,43 +214,52 @@ class Model(Estimator, LogMixin):
         estimated_outputs = []
         num_cat = None
 
-        # in this for loop, we fit the estimated algo multiple times for random parameters and random input (and output if the estimated algo is supervised)
-        # we use a drop rate to randomize the parameters that we use
+        # in this for loop, we fit the estimated algo multiple times
+        # for random parameters and random input (and output if the
+        # estimated algo is supervised) we use a drop rate to
+        # randomize the parameters that we use
         for permutation in itertools.product(*concat_dic.values()):
             # computing only for (1-self.drop_rate) % of the data
-            # making sure the dataset is not empty (at least 2 data points to pass the model fit)
+            # making sure the dataset is not empty
+            # (at least 2 data points to pass the model fit)
             random_value = np.random.uniform()
             if (random_value > self.drop_rate) | (len(inputs) < 4):
                 n, p = permutation[0], permutation[1]
                 if algo_type == "classification":
                     num_cat = permutation[2]
-                    parameters_dic = dict(zip(parameters_list, permutation[3:]))
+                    parameters_dic = dict(zip(parameters_list,
+                                              permutation[3:]))
                 else:
-                    parameters_dic = dict(zip(parameters_list, permutation[2:]))
-                final_params = dict(zip(external_parameters_list + parameters_list, permutation))
+                    parameters_dic = dict(zip(parameters_list,
+                                              permutation[2:]))
+
+                final_params = dict(zip(external_parameters_list + parameters_list,
+                                        permutation))
 
                 try:
                     model = self._get_model(meta_params, parameters_dic)
                     # fitting the models
                     X, y = self._generate_numbers(n, p, meta_params, num_cat)
-                    row_input = [self.memory.total, self.memory.available, self.num_cpu] + [i for i in permutation]
+                    machine_info = [self.memory.total,
+                                    self.memory.available, self.num_cpu]
+                    row_input = machine_info + [i for i in permutation]
                     row_output = self._measure_time(model, X, y, meta_params)
 
                     outputs.append(row_output)
                     inputs.append(row_input)
 
                     if self.verbose >= 2:
-                        self.logger.info(f'data added for {final_params} which outputs {row_output} seconds')
+                        self.logger.info(f'''data added for {final_params} which outputs {row_output} seconds''')
 
                     if not validation and write_csv:
                         self._add_row_to_csv(row_input, row_output)
                     else:
-                        row_estimated_output, _, _ = self._estimate(model, X, y)
-                        estimated_outputs.append(row_estimated_output)
+                        estimated_output, _, _ = self._estimate(model, X, y)
+                        estimated_outputs.append(estimated_output)
 
                 except Exception as e:
                     if self.verbose >= 1:
-                        self.logger.warning(f'model fit for {final_params} throws a {e.__class__.__name__}')
+                        self.logger.warning(f'''model fit for {final_params} throws a {e.__class__.__name__}''')
 
         return inputs, outputs, estimated_outputs
 
@@ -242,27 +269,37 @@ class Model(Estimator, LogMixin):
         measures training runtimes for a set of distinct parameters
         if specified, saves results in a csv (row by row)
 
-        :param write_csv: set to True in order to write outputs in a dedicated csv file
-        :param validation: boolean, set true if data is used for validation, use only once the model has been trained
+        :param write_csv: set to True in order to write
+        outputs in a dedicated csv file
+        :param validation: boolean, set true if data is used
+        for validation, use only once the model has been trained
         :return: inputs, outputs
         :rtype: pd.DataFrame
         """
         if self.verbose >= 2:
-            self.logger.info('Generating dummy training durations to create a training set')
+            self.logger.info('''Generating dummy training durations to create a training set''')
 
         meta_params = self.params
         parameters_list = list(meta_params['internal_params'].keys())
         external_parameters_list = list(meta_params['external_params'].keys())
-        concat_dic = dict(**meta_params['external_params'], **meta_params['internal_params'])
+
+        concat_dic = dict(**meta_params['external_params'],
+                          **meta_params['internal_params'])
+
         algo_type = meta_params["type"]
 
-        inputs, outputs, estimated_outputs = self._permute(concat_dic, parameters_list, external_parameters_list,
-                                                           meta_params, algo_type, write_csv, validation)
+        inputs, outputs, estimated_outputs = \
+            self._permute(concat_dic, parameters_list,
+                          external_parameters_list, meta_params,
+                          algo_type, write_csv, validation)
 
         if validation:
-            estimated_outputs = pd.DataFrame(estimated_outputs, columns=['estimated_outputs'])
+            estimated_outputs = pd.DataFrame(estimated_outputs,
+                                             columns=['estimated_outputs'])
 
-        inputs = pd.DataFrame(inputs, columns=meta_params['other_params'] + external_parameters_list + parameters_list)
+        inputs = pd.DataFrame(inputs,
+                              columns=meta_params['other_params'] + external_parameters_list + parameters_list)
+
         outputs = pd.DataFrame(outputs, columns=['output'])
 
         return inputs, outputs, estimated_outputs
@@ -271,10 +308,13 @@ class Model(Estimator, LogMixin):
         """
         transforms the data before fitting the meta model
         specifically, transforms semi dummy data:
-        columns that are either continuous or categorical for a discrete number of outputs (usually 1)
-        are treated as continuous and we add a binary column for the categorical output
-        as an example, max_depth (for RandomForest) can be either an integer or 'None',
-        we treat this column as continuous and add a boolean column is_max_depth_None
+        columns that are either continuous or categorical
+        for a discrete number of outputs (usually 1) are
+        treated as continuous and we add a binary column
+        for the categorical output as an example, max_depth
+        (for RandomForest) can be either an integer or 'None',
+        we treat this column as continuous and add a boolean
+        column is_max_depth_None
 
         :param inputs: pd.DataFrame chosen as input
         :param outputs: pd.DataFrame chosen as output
@@ -283,7 +323,8 @@ class Model(Estimator, LogMixin):
         """
         # first we transform semi dummy features
         semi_dummy_inputs = self.params['semi_dummy_inputs']
-        # we add columns for each semi dummy features (*number of potential dummy values)
+        # we add columns for each semi dummy features
+        # (times the number of potential dummy values)
         inputs = self._add_semi_dummy(inputs, semi_dummy_inputs)
 
         # we then fill artificial (and natural) NAs with -1
@@ -318,9 +359,9 @@ class Model(Estimator, LogMixin):
 
         if save_model:
             if self.verbose >= 2:
-                self.logger.info(f'Saving scaler model to scaler_{self.algo}_estimator.pkl')
+                self.logger.info(f'''Saving scaler model to scaler_{self.algo}_estimator.pkl''')
 
-            model_path = f'{get_path("models")}/scaler_{self.algo}_estimator.pkl'
+            model_path = f'''{get_path("models")}/scaler_{self.algo}_estimator.pkl'''
             joblib.dump(scaler, model_path)
 
         X_train_scaled = scaler.transform(X_train)
@@ -343,28 +384,34 @@ class Model(Estimator, LogMixin):
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
         if self.meta_algo != 'NN':
-            raise KeyError(f'meta algo {self.meta_algo} not supported for random search')
+            raise KeyError(f'''meta algo {self.meta_algo} not supported for random search''')
 
         parameter_space = config("random_search_params")
         meta_algo = MLPRegressor(max_iter=200)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+
+        X_train, X_test, y_train, y_test \
+            = train_test_split(X, y, test_size=0.20, random_state=42)
+
         X_train, X_test = self._scale_data(X_train, X_test, save_model)
 
-        meta_algo = RandomizedSearchCV(meta_algo, parameter_space, n_iter=iterations, n_jobs=2)
+        meta_algo = RandomizedSearchCV(meta_algo, parameter_space,
+                                       n_iter=iterations, n_jobs=2)
         meta_algo.fit(X_train, y_train)
 
         if self.verbose >= 2:
-            self.logger.info(f'Best parameters found: {meta_algo.best_estimator_}')
+            self.logger.info(f'''Best parameters found: {meta_algo.best_estimator_}''')
 
         return meta_algo
 
     @timeit
-    def model_fit(self, generate_data=True, inputs=None, outputs=None, csv_name=None, save_model=False,
-                  meta_algo_params=None):
+    def model_fit(self, generate_data=True, inputs=None, outputs=None,
+                  csv_name=None, save_model=False, meta_algo_params=None):
         """
-        builds the actual training time estimator (currently we only support NN or RF)
+        builds the actual training time estimator
+        (currently we only support NN or RF)
         the data is either generated from scratch or taken as input
-        if specified, the meta algo is saved as a pkl file along with associated metadata (column names, mse per bin)
+        if specified, the meta algo is saved as a pkl file along
+        with associated metadata (column names, mse per bin)
 
         :param generate_data: bool (if set to True, calls _generate_data)
         :param inputs: pd.DataFrame chosen as input
@@ -377,9 +424,12 @@ class Model(Estimator, LogMixin):
         """
         if meta_algo_params is None:
             if self.meta_algo == 'NN':
-                meta_algo_params = {'max_iter': 200, 'hidden_layer_sizes': [100, 100, 100]}
+                meta_algo_params = \
+                    {'max_iter': 200, 'hidden_layer_sizes': [100, 100, 100]}
+
             elif self.meta_algo == 'RF':
-                meta_algo_params = {'criterion': 'mse', 'max_depth': 100, 'max_features': 10}
+                meta_algo_params = \
+                    {'criterion': 'mse', 'max_depth': 100, 'max_features': 10}
 
         if generate_data:
             inputs, outputs, _ = self._generate_data()
@@ -388,13 +438,13 @@ class Model(Estimator, LogMixin):
                 inputs, outputs = self._transform_from_csv(csv_name=csv_name)
 
         if inputs is None or outputs is None:
-            raise NameError('no inputs / outputs found: please enter a csv name or set generate_data to True')
+            raise NameError('''no inputs / outputs found: please enter a csv name or set generate_data to True''')
 
         X, y, cols, original_cols = self._transform_data(inputs, outputs)
 
         # we decide on a meta-algorithm
         if self.meta_algo not in config('supported_meta_algos'):
-            raise KeyError(f'meta algo {self.meta_algo} currently not supported')
+            raise KeyError(f'''meta algo {self.meta_algo} currently not supported''')
 
         if self.meta_algo == 'RF':
             meta_algo = RandomForestRegressor(**meta_algo_params)
@@ -402,12 +452,16 @@ class Model(Estimator, LogMixin):
             meta_algo = MLPRegressor(**meta_algo_params)
 
         if self.verbose >= 2:
-            self.logger.info(f'Fitting {self.meta_algo} to estimate training durations for model {self.algo}')
+            self.logger.info(f'''Fitting {self.meta_algo} to estimate training durations for model {self.algo}''')
 
         # dividing into train/test
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+        X_train, X_test, y_train, y_test = \
+            train_test_split(X, y, test_size=0.20, random_state=42)
+
         if self.meta_algo == 'NN':
-            X_train_scaled, X_test_scaled = self._scale_data(X_train, X_test, save_model)
+            X_train_scaled, X_test_scaled = \
+                self._scale_data(X_train, X_test, save_model)
+
             meta_algo.fit(X_train_scaled, y_train)
 
         else:
@@ -415,27 +469,32 @@ class Model(Estimator, LogMixin):
 
         if save_model:
             if self.verbose >= 2:
-                self.logger.info(f'Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl')
+                self.logger.info(f'''Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl''')
 
-            model_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'
+            model_path = f'''{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'''
+
             joblib.dump(meta_algo, model_path)
 
-            json_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.json'
+            json_path = f'''{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.json'''
 
             with open(json_path, 'w') as outfile:
-                json.dump({"dummy": list(cols), "original": list(original_cols)}, outfile)
+                json.dump({"dummy": list(cols),
+                           "original": list(original_cols)}, outfile)
 
         if self.meta_algo == 'NN':
             if self.verbose >= 2:
-                self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train_scaled))}')
+                self.logger.info(f'''R squared on train set is {r2_score(y_train, meta_algo.predict(X_train_scaled))}''')
 
-            # MAPE is the mean absolute percentage error https://en.wikipedia.org/wiki/Mean_absolute_percentage_error
-            y_pred_test = np.array([max(i, 0) for i in meta_algo.predict(X_test_scaled)])
-            y_pred_train = np.array([max(i, 0) for i in meta_algo.predict(X_train_scaled)])
+            # MAPE is the mean absolute percentage error
+            test_relu = [max(i, 0) for i in meta_algo.predict(X_test_scaled)]
+            train_relu = [max(i, 0) for i in meta_algo.predict(X_train_scaled)]
+            y_pred_test = np.array(test_relu)
+            y_pred_train = np.array(train_relu)
 
         else:
             if self.verbose >= 2:
-                self.logger.info(f'R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}')
+                self.logger.info(f'''R squared on train set is {r2_score(y_train, meta_algo.predict(X_train))}''')
+
             y_pred_test = meta_algo.predict(X_test)
             y_pred_train = meta_algo.predict(X_train)
 
@@ -443,48 +502,58 @@ class Model(Estimator, LogMixin):
         mape_train = np.mean(np.abs((y_train - y_pred_train) / y_train)) * 100
 
         bins, mape_index_list = self.bins
+        mid_bins = [(y_pred_test >= i[0]) & (y_pred_test < i[1]) for i in bins]
 
-        bins_values = [y_pred_test < 1] + [(y_pred_test >= i[0]) & (y_pred_test < i[1]) for i in bins] + [
-            y_pred_test >= 10 * 60]
+        bins_values = [y_pred_test < 1] + mid_bins + [y_pred_test >= 10 * 60]
 
         if save_model:
-            mse_tests = [mean_squared_error(y_test[bin], y_pred_test[bin]) for bin in bins_values]
+            mse_tests = [mean_squared_error(y_test[bin], y_pred_test[bin])
+                         for bin in bins_values]
+
             observation_tests = [y_test[bin].shape[0] for bin in bins_values]
 
-            mse_test_dic = dict(zip(mape_index_list, zip(observation_tests, mse_tests)))
+            mse_test_dic = dict(zip(mape_index_list,
+                                    zip(observation_tests, mse_tests)))
 
             if self.verbose >= 2:
-                self.logger.info(f'Computed mse on test set (with number of observations): {mse_test_dic}')
+                self.logger.info(f'''Computed mse on test set (with number of observations): {mse_test_dic}''')
 
         if self.meta_algo == 'NN':
             if save_model:
-                json_conf_path = f'{get_path("models")}/{self.meta_algo}_{self.algo}_confint.json'
-                self.logger.info(f'Saving confint to {self.meta_algo}_{self.algo}_confint.json')
+                json_conf_path = f'''{get_path("models")}/{self.meta_algo}_{self.algo}_confint.json'''
+
+                self.logger.info(f'''Saving confint to {self.meta_algo}_{self.algo}_confint.json''')
 
                 with open(json_conf_path, 'w') as outfile:
                     json.dump(mse_test_dic, outfile)
 
         if self.verbose >= 2:
+            rmse_train = np.sqrt(mean_squared_error(y_train, y_pred_train))
+            rmse_test = np.sqrt(mean_squared_error(y_test, y_pred_test))
+
             self.logger.info(f'''
             MAPE on train set is: {mape_train}
             MAPE on test set is: {mape_test}
-            RMSE on train set is {np.sqrt(mean_squared_error(y_train, y_pred_train))}
-            RMSE on test set is {np.sqrt(mean_squared_error(y_test, y_pred_test))} ''')
+            RMSE on train set is {rmse_train}
+            RMSE on test set is {rmse_test} ''')
 
         return meta_algo
 
     @timeit
     def model_validate(self):
         """
-        measures training runtimes and compares to actual runtimes once the model has been trained
+        measures training runtimes and compares to actual
+        runtimes once the model has been trained
 
         :return: results dataframe and error rate
         :rtype: pd.DataFrame and float
         """
-        inputs, outputs, estimated_outputs = self._generate_data(validation=True)
+        inputs, outputs, estimated_outputs = \
+            self._generate_data(validation=True)
 
         actual_values = outputs['output']
         estimated_values = estimated_outputs['estimated_outputs']
-        avg_weighted_error = np.dot(actual_values, actual_values - estimated_values) / sum(actual_values)
+        dot_product = np.dot(actual_values, actual_values - estimated_values)
+        avg_weighted_error = dot_product / sum(actual_values)
 
         return inputs, outputs, estimated_outputs, avg_weighted_error

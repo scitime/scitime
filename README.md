@@ -1,5 +1,5 @@
 # scitime
-Training time estimation for sklearn algos
+Training time estimation for scikit-learn algorithms
 ### Environment setup
 Python version: 3.6.3
 #### Virtualenv
@@ -19,22 +19,16 @@ After having a corresponding model in `scitime/models/`:
 
 - Example for RandomForestRegressor
 
-```
+```python
 from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import time
-import pandas as pd
 
-from scitime.estimate import Estimator
+from scitime import Estimator
 
 # example for rf regressor
 estimator = Estimator(meta_algo='RF', verbose=3)
-rf = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=200,
-           max_features=10, max_leaf_nodes=10, min_impurity_decrease=10,
-           min_impurity_split=10, min_samples_leaf=10,
-           min_samples_split=10, min_weight_fraction_leaf=0.5,
-           n_estimators=100, n_jobs=10, oob_score=False, random_state=None,
-           verbose=2, warm_start=False)
+rf = RandomForestRegressor()
 
 X,y = np.random.rand(100000,10),np.random.rand(100000,1)
 # run the estimation
@@ -45,18 +39,16 @@ start_time = time.time()
 rf.fit(X,y)
 elapsed_time = time.time() - start_time
 print("elapsed time: {:.2}".format(elapsed_time))
-print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
 
 - Example for KMeans
 
-```
+```python
 from sklearn.cluster import KMeans
 import numpy as np
 import time
-import pandas as pd
 
-from scitimet.estimate import Estimator
+from scitime import Estimator
 
 # example for kmeans clustering
 estimator = Estimator(meta_algo='RF', verbose=3)
@@ -71,7 +63,6 @@ start_time = time.time()
 km.fit(X)
 elapsed_time = time.time() - start_time
 print("elapsed time: {:.2}".format(elapsed_time))
-print("estimated elapsed time: {:.2}. 95% confidence interval: [{:.2},{:.2}]".format(estimation, lower_bound, upper_bound))
 ```
 
 The Estimator class arguments:
@@ -122,12 +113,13 @@ optional arguments:
   --save                (only used for model fit) do you want to save /
                         overwrite the meta model from this fit?
 ```
+(_data.py uses _model.py behind the scenes)
 #### How to run _model.py?
 
 After pulling the master branch (`git pull origin master`) and setting the environment (described above),
 run `ipython` and:
 
-```
+```python
 from scitime._model import Model
 
 # example of data generation for rf regressor
