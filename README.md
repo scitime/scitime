@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.com/nathan-toubiana/scitime) [![Build status](https://ci.appveyor.com/api/projects/status/8y4repq2a6rq4qvp?svg=true)](https://ci.appveyor.com/project/nathan-toubiana/scitime)
+[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.com/nathan-toubiana/scitime) [![Build status](https://ci.appveyor.com/api/projects/status/8y4repq2a6rq4qvp?svg=true)](https://ci.appveyor.com/project/nathan-toubiana/scitime) [![codecov](https://codecov.io/gh/nathan-toubiana/scitime/branch/master/graph/badge.svg?token=yWAeEV2qWc)](https://codecov.io/gh/nathan-toubiana/scitime)
+
 
 
 # scitime
