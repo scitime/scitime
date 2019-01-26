@@ -2,3 +2,6 @@
 branch = True
 source = scitime
 include = */scitime/*
+omit =
+    */_data.py
+    */setup.py
