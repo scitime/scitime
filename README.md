@@ -1,8 +1,18 @@
+[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.com/nathan-toubiana/scitime) [![Build status](https://ci.appveyor.com/api/projects/status/8y4repq2a6rq4qvp?svg=true)](https://ci.appveyor.com/project/nathan-toubiana/scitime)
+
+
 # scitime
 Training time estimation for scikit-learn algorithms
 ### Environment setup
-Python version: 3.6.3
-#### Virtualenv
+Python version: 3.6 or higher
+
+Package dependencies:
+- scikit-learn (>=0.19.1)
+- pandas (>=0.20.3)
+- joblib (>=0.12.5)
+- psutil (>=5.4.7)
+
+#### Install scitime
 ```
 ❱ virtualenv env
 ❱ source env/bin/activate
