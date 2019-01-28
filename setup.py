@@ -5,12 +5,12 @@ DIR = path.dirname(path.abspath(__file__))
 INSTALL_PACKAGES = open(path.join(DIR, 'requirements.txt')).read().splitlines()
 
 setup(
-    name='scikest',
-    packages=['scikest'],
+    name='scitime',
+    packages=['scitime'],
     description="Training time estimator for sklearn algos",
     install_requires=INSTALL_PACKAGES,
     version='0.0.1',
-    url='http://github.com/nathan-toubiana/scikest',
+    url='http://github.com/nathan-toubiana/scitime',
     author='Gabriel Lerner & Nathan Toubiana',
     author_email='toubiana.nathan@gmail.com',
     keywords=['machine-learning', 'sklearn', 'training-time'],
