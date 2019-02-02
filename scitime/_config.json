@@ -1,16 +1,33 @@
 {
   "supported_meta_algos": [
-    "RF", "NN"
+    "RF",
+    "NN"
   ],
-  "random_search_params": 
-    {
+  "random_search_params": {
     "hidden_layer_sizes": [
-      [50,50,50],
-      [50,100,50],
-      [100],
-      [50],
-      [20],
-      [100,50]
+      [
+        50,
+        50,
+        50
+      ],
+      [
+        50,
+        100,
+        50
+      ],
+      [
+        100
+      ],
+      [
+        50
+      ],
+      [
+        20
+      ],
+      [
+        100,
+        50
+      ]
     ],
     "activation": [
       "tanh",
@@ -22,7 +39,7 @@
       "adam"
     ],
     "alpha": [
-      0.0001, 
+      0.0001,
       0.0005,
       0.001
     ],
@@ -30,8 +47,7 @@
       "constant",
       "adaptive"
     ]
-    }   
-  ,   
+  },
   "supported_algos": [
     "RandomForestRegressor",
     "SVC",
@@ -64,6 +80,8 @@
       ],
       "max_features": [
         "auto",
+        "log2",
+        "sqrt",
         10,
         20,
         30,
@@ -71,6 +89,10 @@
         50,
         100,
         200
+      ],
+      "criterion": [
+        "mae",
+        "mse"
       ],
       "max_leaf_nodes": [
         null,
@@ -100,13 +122,16 @@
       ]
     },
     "dummy_inputs": [
+      "criterion"
     ],
     "semi_dummy_inputs": {
       "max_depth": [
         null
       ],
       "max_features": [
-        "auto"
+        "auto",
+        "sqrt",
+        "log2"
       ],
       "max_leaf_nodes": [
         null
@@ -226,16 +251,22 @@
     "type": "unsupervised",
     "internal_params": {
       "algorithm": [
-        "auto", "full", "elkan"
+        "auto",
+        "full",
+        "elkan"
       ],
       "copy_x": [
         "True"
       ],
       "init": [
-        "k-means++", "random"
+        "k-means++",
+        "random"
       ],
       "max_iter": [
-        10,20,50,100,
+        10,
+        20,
+        50,
+        100,
         300
       ],
       "n_clusters": [
@@ -243,10 +274,16 @@
         2,
         3,
         4,
-        5,10, 20, 100
+        5,
+        10,
+        20,
+        100
       ],
       "n_init": [
-        10, 20, 30, 50
+        10,
+        20,
+        30,
+        50
       ],
       "n_jobs": [
         1,
@@ -255,7 +292,9 @@
         8
       ],
       "precompute_distances": [
-        "auto", true, false
+        "auto",
+        true,
+        false
       ],
       "tol": [
         0.0001,
@@ -272,12 +311,17 @@
     "external_params": {
       "num_rows": [
         100,
-        1000,10000, 100000, 1000000
+        1000,
+        10000,
+        100000,
+        1000000
       ],
       "num_features": [
         5,
         50,
-        100,200,500
+        100,
+        200,
+        500
       ]
     },
     "other_params": [
