@@ -4,16 +4,21 @@ from os import path
 DIR = path.dirname(path.abspath(__file__))
 INSTALL_PACKAGES = open(path.join(DIR, 'requirements.txt')).read().splitlines()
 
+with open(path.join(DIR, 'README.md')) as f:
+    README = f.read()
+
 setup(
     name='scitime',
     packages=['scitime'],
-    description="Training time estimator for sklearn algos",
+    description="Training time estimator for scikit-learn algorithms",
+    long_description=README,
+    long_description_content_type='text/markdown',
     install_requires=INSTALL_PACKAGES,
     version='0.0.1',
     url='http://github.com/nathan-toubiana/scitime',
     author='Gabriel Lerner & Nathan Toubiana',
     author_email='toubiana.nathan@gmail.com',
-    keywords=['machine-learning', 'sklearn', 'training-time'],
+    keywords=['machine-learning', 'scikit-learn', 'training-time'],
     tests_require=[
         'pytest',
         'pytest-cov',

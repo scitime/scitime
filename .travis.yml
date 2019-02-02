@@ -5,7 +5,11 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install flake8
+  - pip install pytest-cov
+  - pip install codecov
 # command to run tests
 script:
-  - python -m pytest
+  - python -m pytest --cov=scitime
   - ./build_tools/flake_diff.sh
+after_success:
+  - codecov --token=236a0008-78af-473f-b7c1-adbf3fda6928

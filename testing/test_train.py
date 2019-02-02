@@ -38,8 +38,22 @@ class TestTrain(unittest.TestCase):
         TestTrain.rf_inputs = rf_inputs
         TestTrain.rf_outputs = rf_outputs
 
+        self.rf_inputs = rf_inputs
+        self.rf_outputs = rf_outputs
+
         assert rf_inputs.shape[0] > 0
         assert rf_outputs.shape[0] == rf_inputs.shape[0]
+
+    def test_transform_data(self):
+        X, y, _, _ = self.rf_trainer_metarf._transform_data(self.rf_inputs, self.rf_outputs)
+
+        new_X_1, new_X_2 = self.rf_trainer_metarf._scale_data(X, X, False)
+
+        assert type(X) == np.ndarray
+        assert type(y) == np.ndarray
+        assert y.shape[0] == X.shape[0]
+        assert type(new_X_1) == np.ndarray
+        assert type(new_X_2) == np.ndarray
 
     def test_generate_data_classification_metarf(self):
         svc_inputs, svc_outputs, _ = self.svc_trainer_metarf._generate_data()
