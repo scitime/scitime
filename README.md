@@ -3,7 +3,12 @@
 
 
 # scitime
-Training time estimation for scikit-learn algorithms
+Training time estimation for scikit-learn algorithms. Currently supporting:
+- RandomForestRegressor
+- SVC
+- KMeans
+- RandomForestClassifier
+
 ### Environment setup
 Python version: 3.6 or higher
 
@@ -17,9 +22,7 @@ Package dependencies:
 ```
 ❱ virtualenv env
 ❱ source env/bin/activate
-❱ pip install "git+ssh://git@github.com/nathan-toubiana/scitime.git"
-or
-❱ pip install git+https://github.com/nathan-toubiana/scitime.git
+❱ pip install scitime
 ```
 
 ### Usage
@@ -101,8 +104,8 @@ $ python _data.py --help
 
 usage: _data.py [-h] [--drop_rate DROP_RATE] [--meta_algo {RF,NN}]
                 [--verbose VERBOSE]
-                [--algo {RandomForestRegressor,SVC,KMeans}] [--generate_data]
-                [--fit FIT] [--save]
+                [--algo {RandomForestRegressor,RandomForestClassifier,SVC,KMeans}]
+                [--generate_data] [--fit FIT] [--save]
 
 Gather & Persist Data of model training runtimes
 
@@ -115,7 +118,7 @@ optional arguments:
   --meta_algo {RF,NN}   meta algo used to fit the meta model (NN or RF) -
                         default is RF
   --verbose VERBOSE     verbose mode (0, 1, 2 or 3)
-  --algo {RandomForestRegressor,SVC,KMeans}
+  --algo {RandomForestRegressor,RandomForestClassifier,SVC,KMeans}
                         algo to train data on
   --generate_data       do you want to generate & write data in a dedicated
                         csv?

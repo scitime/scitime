@@ -12,4 +12,4 @@ script:
   - python -m pytest --cov=scitime
   - ./build_tools/flake_diff.sh
 after_success:
-  - codecov --token=236a0008-78af-473f-b7c1-adbf3fda6928
+  - codecov 
