@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.com/nathan-toubiana/scitime) [![Build status](https://ci.appveyor.com/api/projects/status/f6xp39veawdd4y43?svg=true)](https://ci.appveyor.com/project/nathan-toubiana/scitime-2l382)
  [![codecov](https://codecov.io/gh/nathan-toubiana/scitime/branch/master/graph/badge.svg?token=yWAeEV2qWc)](https://codecov.io/gh/nathan-toubiana/scitime) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
- [![PyPI version](https://badge.fury.io/py/scitime.svg)](https://badge.fury.io/py/scitime)![DOI version](https://anaconda.org/nathan-toubiana/scitime/badges/version.svg) ![DOI version](https://anaconda.org/nathan-toubiana/scitime/badges/downloads.svg)
+ [![PyPI version](https://badge.fury.io/py/scitime.svg)](https://badge.fury.io/py/scitime) ![DOI version](https://anaconda.org/nathan-toubiana/scitime/badges/version.svg) ![DOI version](https://anaconda.org/nathan-toubiana/scitime/badges/downloads.svg)
 
 
 # scitime
