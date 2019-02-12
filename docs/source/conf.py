@@ -167,6 +167,3 @@ texinfo_documents = [
      author, 'scitime', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
