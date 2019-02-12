@@ -19,6 +19,13 @@ warnings.simplefilter("ignore")
 
 
 class Estimator(LogMixin):
+    """
+    Estimator class arguments
+
+    :param meta_algo: meta algorithm (RF or NN)
+    :param verbose: log output (0, 1, 2 or 3)
+    :param confidence: confidence for intervals
+    """
     # default meta-algorithm
     META_ALGO = 'RF'
     # bins to consider for computing confindence intervals (for NN meta algo)
@@ -431,8 +438,7 @@ class Estimator(LogMixin):
         :param algo: algo whose runtime the user wants to predict
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained (set to None is unsupervised algo)
-        :return: predicted runtime, low and high values
-        of the confidence interval
+        :return: predicted runtime, low and high values of the confidence interval
         :rtype: float
         """
         try:
