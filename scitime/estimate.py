@@ -428,10 +428,9 @@ class Estimator(LogMixin):
         """
         predicts training runtime for a given training
 
+        :param algo: algo whose runtime the user wants to predict (set to None is unsupervised algo)
         :param X: np.array of inputs to be trained
         :param y: np.array of outputs to be trained
-        (set to None is unsupervised algo)
-        :param algo: algo whose runtime the user wants to predict
         :return: predicted runtime, low and high values
         of the confidence interval
         :rtype: float
