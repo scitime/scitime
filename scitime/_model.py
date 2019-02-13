@@ -44,14 +44,6 @@ class Model(Estimator, LogMixin):
 
     def __init__(self, drop_rate=DROP_RATE,
                  meta_algo=META_ALGO, algo=ALGO, verbose=0, bins=None):
-        """
-        Model class arguments
-
-        :param drop_rate: drop rate over generating data loop
-        :param meta_algo: meta algorithm (RF or NN)
-        :param algo: algo chosen for generating data / fitting meta model
-        :param verbose: log output (0, 1, 2 or 3)
-        """
         # the end user will estimate the fitting time
         # of self.algo using the package
         super().__init__(bins)
