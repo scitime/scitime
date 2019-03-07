@@ -29,9 +29,7 @@ or
 
 ### Usage
 
-#### How to run estimate.py?
-
-After having a corresponding model in `scitime/models/`:
+#### How to compute a runtime estimation
 
 - Example for RandomForestRegressor
 
