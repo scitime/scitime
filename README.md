@@ -5,7 +5,9 @@
  [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 # scitime
-Training time estimation for scikit-learn algorithms. Currently supporting:
+Training time estimation for scikit-learn algorithms. Method explained in this [article](https://medium.freecodecamp.org/two-hours-later-and-still-running-how-to-keep-your-sklearn-fit-under-control-cc603dc1283b?source=friends_link&sk=98e79add47516c38eeec59cf755df938)
+
+Currently supporting:
 - RandomForestRegressor
 - SVC
 - KMeans
