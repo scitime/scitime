@@ -14,7 +14,7 @@ setup(
     long_description=README,
     long_description_content_type='text/markdown',
     install_requires=INSTALL_PACKAGES,
-    version='0.0.1',
+    version='0.0.2',
     url='http://github.com/nathan-toubiana/scitime',
     author='Gabriel Lerner & Nathan Toubiana',
     author_email='toubiana.nathan@gmail.com',
