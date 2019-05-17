@@ -8,7 +8,7 @@ with open(path.join(DIR, 'README.md')) as f:
     README = f.read()
 
 # get __version__ from _version.py
-ver_file = os.path.join('scitime', '_version.py')
+ver_file = path.join('scitime', '_version.py')
 with open(ver_file) as f:
     exec(f.read())
 
