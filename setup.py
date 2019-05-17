@@ -7,6 +7,13 @@ INSTALL_PACKAGES = open(path.join(DIR, 'requirements.txt')).read().splitlines()
 with open(path.join(DIR, 'README.md')) as f:
     README = f.read()
 
+# get __version__ from _version.py
+ver_file = os.path.join('scitime', '_version.py')
+with open(ver_file) as f:
+    exec(f.read())
+
+VERSION = __version__
+
 setup(
     name='scitime',
     packages=['scitime'],
@@ -14,7 +21,7 @@ setup(
     long_description=README,
     long_description_content_type='text/markdown',
     install_requires=INSTALL_PACKAGES,
-    version='0.0.2',
+    version=VERSION,
     url='http://github.com/nathan-toubiana/scitime',
     author='Gabriel Lerner & Nathan Toubiana',
     author_email='toubiana.nathan@gmail.com',
