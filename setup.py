@@ -13,7 +13,7 @@ EMAIL = 'toubiana.nathan@gmail.com'
 
 with open(path.join(DIR, 'requirements.txt')) as f:
     INSTALL_PACKAGES = f.read().splitlines()
-    
+
 with open(path.join(DIR, 'README.md')) as f:
     README = f.read()
 
