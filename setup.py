@@ -2,8 +2,18 @@ from setuptools import setup
 from os import path
 
 DIR = path.dirname(path.abspath(__file__))
-INSTALL_PACKAGES = open(path.join(DIR, 'requirements.txt')).read().splitlines()
 
+DESCRIPTION = "Training time estimator for scikit-learn algorithms"
+
+AUTHORS = 'Gabriel Lerner & Nathan Toubiana'
+
+URL = 'http://github.com/nathan-toubiana/scitime'
+
+EMAIL = 'toubiana.nathan@gmail.com'
+
+with open(path.join(DIR, 'requirements.txt')) as f:
+    INSTALL_PACKAGES = f.read().splitlines()
+    
 with open(path.join(DIR, 'README.md')) as f:
     README = f.read()
 
@@ -17,14 +27,14 @@ VERSION = __version__
 setup(
     name='scitime',
     packages=['scitime'],
-    description="Training time estimator for scikit-learn algorithms",
+    description=DESCRIPTION,
     long_description=README,
     long_description_content_type='text/markdown',
     install_requires=INSTALL_PACKAGES,
     version=VERSION,
-    url='http://github.com/nathan-toubiana/scitime',
-    author='Gabriel Lerner & Nathan Toubiana',
-    author_email='toubiana.nathan@gmail.com',
+    url=URL,
+    author=AUTHORS,
+    author_email=EMAIL,
     keywords=['machine-learning', 'scikit-learn', 'training-time'],
     tests_require=[
         'pytest',
