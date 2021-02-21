@@ -346,8 +346,8 @@ class Model(Estimator, LogMixin):
         X = (data
              ._get_numeric_data()
              .dropna(axis=0, how='any')
-             .as_matrix())
-        y = outputs['output'].dropna(axis=0, how='any').as_matrix()
+             .to_numpy())
+        y = outputs['output'].dropna(axis=0, how='any').to_numpy()
 
         return X, y, data.columns, inputs.columns
 

@@ -281,7 +281,7 @@ class Estimator(LogMixin):
         meta_X = (df[estimation_inputs]
                   ._get_numeric_data()
                   .dropna(axis=0, how='any')
-                  .as_matrix())
+                  .to_numpy())
 
         # scaling (for meta algo NN)
         if scaled:
