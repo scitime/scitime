@@ -1,8 +1,10 @@
 [![Documentation Status](https://readthedocs.org/projects/scitime/badge/?version=latest)](https://scitime.readthedocs.io/en/latest/?badge=latest)
-[![Build Status](https://travis-ci.org/simkimsia/UtilityBehaviors.png)](https://travis-ci.com/nathan-toubiana/scitime) [![Build status](https://ci.appveyor.com/api/projects/status/f6xp39veawdd4y43?svg=true)](https://ci.appveyor.com/project/nathan-toubiana/scitime-2l382)
- [![codecov](https://codecov.io/gh/nathan-toubiana/scitime/branch/master/graph/badge.svg?token=yWAeEV2qWc)](https://codecov.io/gh/nathan-toubiana/scitime) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![Build Status](https://travis-ci.org/scitime/scitime.svg?branch=master)](https://travis-ci.org/scitime/scitime) [![Build status](https://ci.appveyor.com/api/projects/status/kov6x5hb222k9f1e?svg=true)](https://ci.appveyor.com/project/nathan-toubiana/scitime-ihdym)
+
  [![PyPI version](https://badge.fury.io/py/scitime.svg)](https://badge.fury.io/py/scitime) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/scitime.svg)](https://anaconda.org/conda-forge/scitime) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/scitime.svg)](https://anaconda.org/conda-forge/scitime)
  [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+ [![codecov](https://codecov.io/gh/scitime/scitime/branch/master/graph/badge.svg?token=yWAeEV2qWc)](https://codecov.io/gh/scitime/scitime)
+
 
 # scitime
 Training time estimation for scikit-learn algorithms. Method explained in this [article](https://medium.freecodecamp.org/two-hours-later-and-still-running-how-to-keep-your-sklearn-fit-under-control-cc603dc1283b?source=friends_link&sk=98e79add47516c38eeec59cf755df938)
