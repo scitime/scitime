@@ -15,13 +15,14 @@ Currently supporting:
 - RandomForestClassifier
 
 ### Environment setup
-Python version: 3.6 or higher
+Python version: 3.7
 
 Package dependencies:
-- scikit-learn (>=0.19.1)
-- pandas (>=0.20.3)
-- joblib (>=0.12.5)
-- psutil (>=5.4.7)
+- scikit-learn (~=0.24.1)
+- pandas (~=1.1.5)
+- joblib (~=1.0.1)
+- psutil (~=5.8.0)
+- scipy (~=1.5.4)
 
 #### Install scitime
 ```

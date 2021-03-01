@@ -203,11 +203,12 @@ class TestTrain(unittest.TestCase):
         assert type(km_meta_algo).__name__ == 'MLPRegressor'
 
     def test_random_search_metann(self):
+        self.rf_trainer_metann.drop_rate=0.9999 # Making sure we get at least 5 rows to avoid error
         nn_meta_algo = \
             self.rf_trainer_metann._random_search(inputs=TestTrain.rf_inputs,
                                                   outputs=TestTrain.rf_outputs,
                                                   iterations=1)
-
+        self.rf_trainer_metann.drop_rate=1
         assert type(nn_meta_algo.best_estimator_).__name__ == 'MLPRegressor'
 
 
