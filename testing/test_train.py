@@ -9,7 +9,7 @@ class TestTrain(unittest.TestCase):
     inputs, outputs = None, None
 
     def setUp(self):
-        self.rf_trainer_metarf = Model(drop_rate=1,
+        self.rf_trainer_metarf = Model(drop_rate=0.9999,
                                        verbose=3,
                                        algo='RandomForestRegressor',
                                        meta_algo='RF')
@@ -21,7 +21,7 @@ class TestTrain(unittest.TestCase):
                                        verbose=3, algo='KMeans',
                                        meta_algo='RF')
 
-        self.rf_trainer_metann = Model(drop_rate=0.9999,
+        self.rf_trainer_metann = Model(drop_rate=1,
                                        verbose=3, algo='RandomForestRegressor',
                                        meta_algo='NN')
 
