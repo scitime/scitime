@@ -77,7 +77,7 @@ class Estimator(LogMixin):
             algo.fit(X)
         else:
             algo.fit(X, y)
-        time.sleep(1)
+        time.sleep(1.1)
 
     @staticmethod
     def _clean_output(seconds):
