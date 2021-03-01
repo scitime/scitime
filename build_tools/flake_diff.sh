@@ -9,7 +9,7 @@ set -e
 # pipefail is necessary to propagate exit codes
 set -o pipefail
 
-PROJECT=nathan-toubiana/scitime
+PROJECT=scitime/scitime
 PROJECT_URL=git@github.com:$PROJECT.git
 
 # Find the remote with the project name (upstream in most cases)

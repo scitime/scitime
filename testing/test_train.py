@@ -9,7 +9,7 @@ class TestTrain(unittest.TestCase):
     inputs, outputs = None, None
 
     def setUp(self):
-        self.rf_trainer_metarf = Model(drop_rate=1,
+        self.rf_trainer_metarf = Model(drop_rate=0.9999,
                                        verbose=3,
                                        algo='RandomForestRegressor',
                                        meta_algo='RF')
@@ -207,7 +207,6 @@ class TestTrain(unittest.TestCase):
             self.rf_trainer_metann._random_search(inputs=TestTrain.rf_inputs,
                                                   outputs=TestTrain.rf_outputs,
                                                   iterations=1)
-
         assert type(nn_meta_algo.best_estimator_).__name__ == 'MLPRegressor'
 
 

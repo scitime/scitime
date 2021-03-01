@@ -346,8 +346,8 @@ class Model(Estimator, LogMixin):
         X = (data
              ._get_numeric_data()
              .dropna(axis=0, how='any')
-             .as_matrix())
-        y = outputs['output'].dropna(axis=0, how='any').as_matrix()
+             .to_numpy())
+        y = outputs['output'].dropna(axis=0, how='any').to_numpy()
 
         return X, y, data.columns, inputs.columns
 
@@ -413,7 +413,7 @@ class Model(Estimator, LogMixin):
 
     @timeit
     def model_fit(self, generate_data=True, inputs=None, outputs=None,
-                  csv_name=None, save_model=False, meta_algo_params=None):
+                  csv_name=None, save_model=False, meta_algo_params=None, compress=3):
         """
         builds the actual training time estimator
         (currently we only support NN or RF)
@@ -427,6 +427,7 @@ class Model(Estimator, LogMixin):
         :param csv_name: name if csv in case we fetch data from csv
         :param save_model: boolean set to True if the model needs to be saved
         :param meta_algo_params: params of the meta algo
+        :param compress: value between 1 and 9 to compress the pkl model (the higher the more compressed)
         :return: meta_algo
         :rtype: scikit learn model
         """
@@ -437,7 +438,7 @@ class Model(Estimator, LogMixin):
 
             elif self.meta_algo == 'RF':
                 meta_algo_params = \
-                    {'criterion': 'mse', 'max_depth': 100, 'max_features': 10}
+                    {'criterion': 'mse', 'max_depth': 50, 'max_features': 10}
 
         if generate_data:
             inputs, outputs, _ = self._generate_data()
@@ -480,10 +481,9 @@ class Model(Estimator, LogMixin):
                 self.logger.info(f'''Saving {self.meta_algo} to {self.meta_algo}_{self.algo}_estimator.pkl''')
 
             model_path = f'''{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.pkl'''
-
-            joblib.dump(meta_algo, model_path)
-
             json_path = f'''{get_path("models")}/{self.meta_algo}_{self.algo}_estimator.json'''
+
+            joblib.dump(meta_algo, model_path, compress=compress)
 
             with open(json_path, 'w') as outfile:
                 json.dump({"dummy": list(cols),
