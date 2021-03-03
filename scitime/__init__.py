@@ -1,4 +1,4 @@
-from .estimate import Estimator
+from .estimate import RuntimeEstimator
 
 from ._version import __version__
 

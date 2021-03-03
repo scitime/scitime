@@ -1,6 +1,6 @@
 Estimator (main class)
 ===========================
 
-.. autoclass:: scitime.Estimator
+.. autoclass:: scitime.RuntimeEstimator
    :members:
    :show-inheritance:

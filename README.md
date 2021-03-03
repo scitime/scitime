@@ -42,10 +42,10 @@ from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import time
 
-from scitime import Estimator
+from scitime import RuntimeEstimator
 
 # example for rf regressor
-estimator = Estimator(meta_algo='RF', verbose=3)
+estimator = RuntimeEstimator(meta_algo='RF', verbose=3)
 rf = RandomForestRegressor()
 
 X,y = np.random.rand(100000,10),np.random.rand(100000,1)
@@ -66,10 +66,10 @@ from sklearn.cluster import KMeans
 import numpy as np
 import time
 
-from scitime import Estimator
+from scitime import RuntimeEstimator
 
 # example for kmeans clustering
-estimator = Estimator(meta_algo='RF', verbose=3)
+estimator = RuntimeEstimator(meta_algo='RF', verbose=3)
 km = KMeans()
 
 X = np.random.rand(100000,10)
@@ -138,10 +138,10 @@ After pulling the master branch (`git pull origin master`) and setting the envir
 run `ipython` and:
 
 ```python
-from scitime._model import Model
+from scitime._model import RuntimeModelBuilder
 
 # example of data generation for rf regressor
-trainer = Model(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
+trainer = RuntimeModelBuilder(drop_rate=0.99999, verbose=3, algo='RandomForestRegressor')
 inputs, outputs, _ = trainer._generate_data()
 
 # then fitting the meta model

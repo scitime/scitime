@@ -33,10 +33,10 @@ Example of getting runtime estimation for KMeans:
     import numpy as np
     import time
 
-    from scitime import Estimator
+    from scitime import RuntimeEstimator
 
     # example for kmeans clustering
-    estimator = Estimator(meta_algo='RF', verbose=3)
+    estimator = RuntimeEstimator(meta_algo='RF', verbose=3)
     km = KMeans()
 
     # generating inputs for this example
