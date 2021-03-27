@@ -18,7 +18,7 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-class Estimator(LogMixin):
+class RuntimeEstimator(LogMixin):
     """
     Estimator class arguments
 

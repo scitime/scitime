@@ -33,16 +33,25 @@ Example of getting runtime estimation for KMeans:
     import numpy as np
     import time
 
-    from scitime import Estimator
+    from scitime import RuntimeEstimator
 
     # example for kmeans clustering
-    estimator = Estimator(meta_algo='RF', verbose=3)
+    estimator = RuntimeEstimator(meta_algo='RF', verbose=3)
     km = KMeans()
 
     # generating inputs for this example
     X = np.random.rand(100000,10)
     # run the estimation
     estimation, lower_bound, upper_bound = estimator.time(km, X)
+    
+How Scitime works
+-------
+
+Scitime predicts the runtime to fit by pre-trained runtime estimators, we call it meta algorithm (meta_algo), whose weights are stored in a dedicated pickle file in the package metadata.
+For each Scikit Learn model (if supported), you will find a corresponding meta algo pickle file in Scitime’s code base.
+You can also train your own meta algorithm using your own generated data (see section "Use _data.py to generate data" below). More information about how the models are pre-trained can be found `here`.
+
+.. _here: https://medium.com/free-code-camp/two-hours-later-and-still-running-how-to-keep-your-sklearn-fit-under-control-cc603dc1283b
 
 
 Local Testing

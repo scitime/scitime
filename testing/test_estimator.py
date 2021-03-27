@@ -5,15 +5,15 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.cluster import KMeans
 from sklearn.svm import SVC
 
-from scitime import Estimator
+from scitime import RuntimeEstimator
 
 
 class TestEstimate(unittest.TestCase):
     inputs, outputs = None, None
 
     def setUp(self):
-        self.estimator_metarf = Estimator(meta_algo='RF', verbose=0)
-        self.estimator_metann = Estimator(meta_algo='NN', verbose=0)
+        self.estimator_metarf = RuntimeEstimator(meta_algo='RF', verbose=0)
+        self.estimator_metann = RuntimeEstimator(meta_algo='NN', verbose=0)
 
     def test_fetch_name_metarf(self):
         rf = RandomForestRegressor()

@@ -1,5 +1,5 @@
 """Class used to instantiate an object for fitting the meta-algorithm"""
-from scitime import Estimator
+from scitime import RuntimeEstimator
 from scitime._utils import get_path, config
 from scitime._log import LogMixin, timeit
 
@@ -26,7 +26,7 @@ import warnings
 warnings.simplefilter("ignore")
 
 
-class Model(Estimator, LogMixin):
+class RuntimeModelBuilder(RuntimeEstimator, LogMixin):
     """
     Model class arguments
 
